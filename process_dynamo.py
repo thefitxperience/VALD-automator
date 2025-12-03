@@ -173,6 +173,35 @@ def get_template_info(export_filename):
 
 
 
+def get_movement_label(movement, region):
+    """
+    Get the bilingual label for a movement/region combination.
+    """
+    m = movement.lower().strip()
+    r = region.lower().strip()
+    
+    movement_labels = {
+        ('internal rotation', 'shoulder'): "Shoulder IR Standing Asymmetry / عدم توازن دوران الكتف الداخلي",
+        ('external rotation', 'shoulder'): "Shoulder External Rotation Asymmetry /  عدم توازن الدوران الخارجي للكتف",
+        ('flexion', 'shoulder'): "Shoulder Flexion Asymmetry /\n عدم تناسق انثناء الكتف",
+        ('abduction', 'shoulder'): "Shoulder Abduction Asymmetry /\nعدم توازن إبعاد الكتف",
+        ('push', 'shoulder'): "Shoulder Push Asymmetry/\nعدم توازن في دفع الكتف",
+        ('pull', 'shoulder'): "Shoulder Pull Asymmetry/\nعدم توازن في سحب الكتف",
+        ('extension', 'elbow'): "Elbow Extension Asymmetry /\nعدم توازن تمديد الكوع",
+        ('flexion', 'elbow'): "Elbow Flexion Asymmetry /\nعدم توازن انثناء الكوع",
+        ('grip squeeze', 'hand'): "Grip Squeeze Asymmetry/\nعدم توازن ضغط القبضة",
+        ('extension', 'knee'): "Knee Extension Asymmetry /\n عدم تناسق تمديد الركبة",
+        ('flexion', 'knee'): "Knee Flexion Asymmetry /\n عدم تناسق انثناء الركبة",
+        ('abduction', 'hip'): "Hip Abduction Asymmetry /\n عدم تناسق إبعاد الورك",
+        ('adduction', 'hip'): "Hip Adduction Asymmetry /\n عدم تناسق تقريب الورك",
+        ('lateral flexion', 'trunk'): "Trunk Lateral Flexion /\nالثني الجانبي للجذع",
+        ('flexion', 'hip'): "Hip Flexion Asymmetry /\nعدم تناسق ثني الورك",
+        ('extension', 'hip'): "Hip Extension Asymmetry /\nعدم تناسق مدّ الورك",
+    }
+    
+    return movement_labels.get((m, r), None)
+
+
 def nz_str(v):
     if v is None:
         return ""
@@ -236,20 +265,36 @@ def calculate_trunk_asymmetry(patient_rows, src_ws):
 
 def parse_asymmetry(raw):
     """
-    raw example: '9.0% L' or '3% R'
+    raw example: '9.0% L' or '3% R' or 'n/a' or '0'
     returns: (pct_value, side_char) → (9.0, 'L')
+    Returns (None, None) for invalid or n/a values
     """
     if raw is None:
         return None, None
-    s = str(raw).strip()
+    s = str(raw).strip().lower()
     if not s:
         return None, None
-
-    if "%" not in s:
+    
+    # Check for n/a variants
+    if s in ['n/a', 'na', 'n.a.', 'n.a']:
         return None, None
+
+    # Check if it's just a number without % (like "0")
+    if "%" not in s:
+        # Try to parse as a plain number
+        try:
+            pct_val = float(s.replace(",", "."))
+            # For plain numbers, assume no side character (will be handled as 0%)
+            return pct_val, None
+        except ValueError:
+            return None, None
 
     percent_index = s.index("%")
     num_part = s[:percent_index].strip()   # e.g. "9.0"
+    
+    # Check if the numeric part is n/a
+    if num_part.lower() in ['n/a', 'na', 'n.a.', 'n.a']:
+        return None, None
 
     # side is last non-space character
     side_char = None
@@ -350,74 +395,214 @@ def get_target_info(movement, region):
         return pct_cell, side_cell, right_text, left_text
 
     # ==================== LOWER BODY ====================
+    # Lower body uses dynamic assignment, handled separately
     
-    # KNEE – Extension (Quadriceps)
-    if r == "knee" and m == "extension":
-        pct_cell = "D21"
-        side_cell = "C22"
-        right_text = "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى"
-        left_text  = "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # KNEE – Flexion (Hamstring)
-    if r == "knee" and m == "flexion":
-        pct_cell = "D23"
-        side_cell = "C24"
-        right_text = "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى"
-        left_text  = "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # HIP – Adduction
-    if r == "hip" and m == "adduction":
-        pct_cell = "P21"
-        side_cell = "O22"
-        right_text = "Right Adductors /\nعضلات الفخذ الداخلي اليمنى"
-        left_text  = "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # HIP – Abduction
-    if r == "hip" and m == "abduction":
-        pct_cell = "P23"
-        side_cell = "O24"
-        right_text = "Right Abductors /\nعضلات الفخذ الخارجية اليمنى"
-        left_text  = "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # TRUNK – Lateral Flexion (Lower Body only)
-    if r == "trunk" and m == "lateral flexion":
-        pct_cell = "AB21"
-        side_cell = "AA22"
-        right_text = "Right Sides /\nالجانب الأيمن"
-        left_text  = "Left Sides /\nالجانب الأيسر"
-        return pct_cell, side_cell, right_text, left_text
-
-    # HIP – Flexion (Lower Body only)
-    if r == "hip" and m == "flexion":
-        pct_cell = "AH21"
-        side_cell = "AG22"
-        right_text = "Right Hip Flexors /\nعضلات مثنية الورك اليمنى"
-        left_text  = "Left Hip Flexors /\nعضلات مثنية الورك اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # HIP – Extension (Lower Body only)
-    if r == "hip" and m == "extension":
-        pct_cell = "AH23"
-        side_cell = "AG24"
-        right_text = "Right Hip Extensors /\nعضلات باسطة الورك اليمنى"
-        left_text  = "Left Hip Extensors /\nعضلات باسطة الورك اليسرى"
-        return pct_cell, side_cell, right_text, left_text
-
-    # ==================== FULL BODY SPECIFIC ====================
-    
-    # ELBOW – Extension in Full Body (different position than upper body)
-    # In Full Body: O21/O22, In Upper Body: AB21/AA22
-    # We'll handle this by checking context later
-    
-    # ELBOW – Flexion in Full Body (different position than upper body)
-    # In Full Body: O23/O24, In Upper Body: AB23/AA24
-    # We'll handle this by checking context later
-
     return None, None, None, None
+
+
+def get_lower_body_cells(movement, region, knee_movements, hip_abd_add_movements, hip_flex_ext_movements):
+    """
+    Get cell addresses for lower body based on which movements are present.
+    Returns: (label_cell, pct_cell, side_cell, right_text, left_text)
+    """
+    m = movement.lower().strip()
+    r = region.lower().strip()
+    
+    # KNEE movements - assigned to C21/C23 based on order
+    if r == "knee":
+        if (m, r) == ('extension', 'knee') and ('extension', 'knee') in knee_movements:
+            idx = knee_movements.index(('extension', 'knee'))
+            if idx == 0:
+                return "C21", "D21", "C22", "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى", "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
+            elif idx == 1:
+                return "C23", "D23", "C24", "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى", "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
+        elif (m, r) == ('flexion', 'knee') and ('flexion', 'knee') in knee_movements:
+            idx = knee_movements.index(('flexion', 'knee'))
+            if idx == 0:
+                return "C21", "D21", "C22", "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى", "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
+            elif idx == 1:
+                return "C23", "D23", "C24", "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى", "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
+    
+    # HIP abd/add - assigned to O21/O23 based on order
+    if r == "hip" and m in ['adduction', 'abduction']:
+        if (m, r) == ('adduction', 'hip') and ('adduction', 'hip') in hip_abd_add_movements:
+            idx = hip_abd_add_movements.index(('adduction', 'hip'))
+            if idx == 0:
+                return "O21", "P21", "O22", "Right Adductors /\nعضلات الفخذ الداخلي اليمنى", "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
+            elif idx == 1:
+                return "O23", "P23", "O24", "Right Adductors /\nعضلات الفخذ الداخلي اليمنى", "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
+        elif (m, r) == ('abduction', 'hip') and ('abduction', 'hip') in hip_abd_add_movements:
+            idx = hip_abd_add_movements.index(('abduction', 'hip'))
+            if idx == 0:
+                return "O21", "P21", "O22", "Right Abductors /\nعضلات الفخذ الخارجية اليمنى", "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
+            elif idx == 1:
+                return "O23", "P23", "O24", "Right Abductors /\nعضلات الفخذ الخارجية اليمنى", "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
+    
+    # HIP flex/ext - assigned to AG21/AG23 based on order
+    if r == "hip" and m in ['flexion', 'extension']:
+        if (m, r) == ('flexion', 'hip') and ('flexion', 'hip') in hip_flex_ext_movements:
+            idx = hip_flex_ext_movements.index(('flexion', 'hip'))
+            if idx == 0:
+                return "AG21", "AH21", "AG22", "Right Hip Flexors /\nعضلات مثنية الورك اليمنى", "Left Hip Flexors /\nعضلات مثنية الورك اليسرى"
+            elif idx == 1:
+                return "AG23", "AH23", "AG24", "Right Hip Flexors /\nعضلات مثنية الورك اليمنى", "Left Hip Flexors /\nعضلات مثنية الورك اليسرى"
+        elif (m, r) == ('extension', 'hip') and ('extension', 'hip') in hip_flex_ext_movements:
+            idx = hip_flex_ext_movements.index(('extension', 'hip'))
+            if idx == 0:
+                return "AG21", "AH21", "AG22", "Right Hip Extensors /\nعضلات باسطة الورك اليمنى", "Left Hip Extensors /\nعضلات باسطة الورك اليسرى"
+            elif idx == 1:
+                return "AG23", "AH23", "AG24", "Right Hip Extensors /\nعضلات باسطة الورك اليمنى", "Left Hip Extensors /\nعضلات باسطة الورك اليسرى"
+    
+    return None, None, None, None, None
+
+
+def get_upper_body_cells(movement, region, shoulder_c_movements, shoulder_o_movements, elbow_movements, hand_movements):
+    """
+    Get cell addresses for upper body based on which movements are present.
+    Returns: (label_cell, pct_cell, side_cell, right_text, left_text)
+    """
+    m = movement.lower().strip()
+    r = region.lower().strip()
+    
+    # SHOULDER rotations/movements - C21/C23/C25/C27
+    if r == "shoulder" and m in ['external rotation', 'internal rotation', 'flexion', 'abduction']:
+        if (m, r) in shoulder_c_movements:
+            idx = shoulder_c_movements.index((m, r))
+            cells = [
+                ("C21", "D21", "C22"),  # idx 0
+                ("C23", "D23", "C24"),  # idx 1
+                ("C25", "D25", "C26"),  # idx 2
+                ("C27", "D27", "C28"),  # idx 3
+            ]
+            if idx < len(cells):
+                label_cell, pct_cell, side_cell = cells[idx]
+                if m == 'external rotation':
+                    return label_cell, pct_cell, side_cell, "Right External Rotation /\nالدوران الخارجي الأيمن ", "Left External Rotation /\nالدوران الخارجي الأيسر "
+                elif m == 'internal rotation':
+                    return label_cell, pct_cell, side_cell, "Right Internal Rotation /\n الدوران الداخلي الأيمن", "Left Internal Rotation / \nالدوران الداخلي الأيسر"
+                elif m == 'flexion':
+                    return label_cell, pct_cell, side_cell, "Right shoulder flexion /\n ثني الكتف الأيمن", "Left shoulder flexion /\n ثني الكتف الأيسر"
+                elif m == 'abduction':
+                    return label_cell, pct_cell, side_cell, "Right shoulder abductor /\nعضلة فتح الكتف الأيمن", "Left shoulder abductor /\nعضلة فتح الكتف الأيسر "
+    
+    # SHOULDER push/pull - O21/O23
+    if r == "shoulder" and m in ['push', 'pull']:
+        if (m, r) in shoulder_o_movements:
+            idx = shoulder_o_movements.index((m, r))
+            if idx == 0:
+                label_cell, pct_cell, side_cell = "O21", "P21", "O22"
+            elif idx == 1:
+                label_cell, pct_cell, side_cell = "O23", "P23", "O24"
+            else:
+                return None, None, None, None, None
+            
+            if m == 'push':
+                return label_cell, pct_cell, side_cell, "Right Shoulder Push/\nدفع الكتف الأيمن", "Left Shoulder Push/\nدفع الكتف الأيسر"
+            elif m == 'pull':
+                return label_cell, pct_cell, side_cell, "Right Shoulder Pull/\nسحب الكتف الأيمن", "Left Shoulder Pull/\nسحب الكتف الأيسر"
+    
+    # ELBOW - AA21/AA23
+    if r == "elbow" and m in ['extension', 'flexion']:
+        if (m, r) in elbow_movements:
+            idx = elbow_movements.index((m, r))
+            if idx == 0:
+                label_cell, pct_cell, side_cell = "AA21", "AB21", "AA22"
+            elif idx == 1:
+                label_cell, pct_cell, side_cell = "AA23", "AB23", "AA24"
+            else:
+                return None, None, None, None, None
+            
+            if m == 'extension':
+                return label_cell, pct_cell, side_cell, "Right Triceps /\n عضلات التراي سيبس اليمنى", "Left Triceps /\n عضلات التراي سيبس اليسرى"
+            elif m == 'flexion':
+                return label_cell, pct_cell, side_cell, "Right Biceps /\nعضلة الباي سيبس اليمنى", "Left Biceps /\n عضلة الباي سيبس اليسرى"
+    
+    # HAND - AG21 only
+    if r == "hand" and m == 'grip squeeze':
+        if (m, r) in hand_movements:
+            return "AG21", "AH21", "AG22", "Right Grip Squeeze/\nضغط القبضة باليد اليمنى", "Left Grip Squeeze/\nضغط القبضة باليد اليسرى"
+    
+    return None, None, None, None, None
+
+
+def get_full_body_cells(movement, region, shoulder_c_movements, elbow_o_movements, knee_aa_movements, hip_ag_movements):
+    """
+    Get cell addresses for full body based on which movements are present.
+    Returns: (label_cell, pct_cell, side_cell, right_text, left_text)
+    """
+    m = movement.lower().strip()
+    r = region.lower().strip()
+    
+    # SHOULDER rotations/movements - C21/C23/C25/C27
+    if r == "shoulder" and m in ['external rotation', 'internal rotation', 'flexion', 'abduction']:
+        if (m, r) in shoulder_c_movements:
+            idx = shoulder_c_movements.index((m, r))
+            cells = [
+                ("C21", "D21", "C22"),  # idx 0
+                ("C23", "D23", "C24"),  # idx 1
+                ("C25", "D25", "C26"),  # idx 2
+                ("C27", "D27", "C28"),  # idx 3
+            ]
+            if idx < len(cells):
+                label_cell, pct_cell, side_cell = cells[idx]
+                if m == 'external rotation':
+                    return label_cell, pct_cell, side_cell, "Right External Rotation /\nالدوران الخارجي الأيمن ", "Left External Rotation /\nالدوران الخارجي الأيسر "
+                elif m == 'internal rotation':
+                    return label_cell, pct_cell, side_cell, "Right Internal Rotation /\n الدوران الداخلي الأيمن", "Left Internal Rotation / \nالدوران الداخلي الأيسر"
+                elif m == 'flexion':
+                    return label_cell, pct_cell, side_cell, "Right shoulder flexion /\n ثني الكتف الأيمن", "Left shoulder flexion /\n ثني الكتف الأيسر"
+                elif m == 'abduction':
+                    return label_cell, pct_cell, side_cell, "Right shoulder abductor /\nعضلة فتح الكتف الأيمن", "Left shoulder abductor /\nعضلة فتح الكتف الأيسر "
+    
+    # ELBOW - O21/O23
+    if r == "elbow" and m in ['extension', 'flexion']:
+        if (m, r) in elbow_o_movements:
+            idx = elbow_o_movements.index((m, r))
+            if idx == 0:
+                label_cell, pct_cell, side_cell = "O21", "P21", "O22"
+            elif idx == 1:
+                label_cell, pct_cell, side_cell = "O23", "P23", "O24"
+            else:
+                return None, None, None, None, None
+            
+            if m == 'extension':
+                return label_cell, pct_cell, side_cell, "Right Triceps /\n عضلات التراي سيبس اليمنى", "Left Triceps /\n عضلات التراي سيبس اليسرى"
+            elif m == 'flexion':
+                return label_cell, pct_cell, side_cell, "Right Biceps /\nعضلة الباي سيبس اليمنى", "Left Biceps /\n عضلة الباي سيبس اليسرى"
+    
+    # KNEE - AA21/AA23
+    if r == "knee" and m in ['extension', 'flexion']:
+        if (m, r) in knee_aa_movements:
+            idx = knee_aa_movements.index((m, r))
+            if idx == 0:
+                label_cell, pct_cell, side_cell = "AA21", "AB21", "AA22"
+            elif idx == 1:
+                label_cell, pct_cell, side_cell = "AA23", "AB23", "AA24"
+            else:
+                return None, None, None, None, None
+            
+            if m == 'extension':
+                return label_cell, pct_cell, side_cell, "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى", "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
+            elif m == 'flexion':
+                return label_cell, pct_cell, side_cell, "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى", "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
+    
+    # HIP abd/add - AG21/AG23
+    if r == "hip" and m in ['abduction', 'adduction']:
+        if (m, r) in hip_ag_movements:
+            idx = hip_ag_movements.index((m, r))
+            if idx == 0:
+                label_cell, pct_cell, side_cell = "AG21", "AH21", "AG22"
+            elif idx == 1:
+                label_cell, pct_cell, side_cell = "AG23", "AH23", "AG24"
+            else:
+                return None, None, None, None, None
+            
+            if m == 'abduction':
+                return label_cell, pct_cell, side_cell, "Right Abductors /\nعضلات الفخذ الخارجية اليمنى", "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
+            elif m == 'adduction':
+                return label_cell, pct_cell, side_cell, "Right Adductors /\nعضلات الفخذ الداخلي اليمنى", "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
+    
+    return None, None, None, None, None
 
 
 def get_target_info_full_body(movement, region):
@@ -563,60 +748,72 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Determine which body parts are present and populate A11-A17 (or A11-A18)
         body_parts_present = set()
         test_type = patient_data.get('test_type', 'upper')
+        movements_stored = patient_data.get('movements', [])
         
-        for cell_addr in patient_data.get('cells', {}).keys():
-            if test_type == 'lower':
-                # LOWER BODY CELLS
-                if cell_addr in ['D21', 'C22']:
-                    body_parts_present.add('quadriceps')
-                elif cell_addr in ['D23', 'C24']:
-                    body_parts_present.add('hamstring')
-                elif cell_addr in ['P21', 'O22']:
-                    body_parts_present.add('hip_adductors')
-                elif cell_addr in ['P23', 'O24']:
-                    body_parts_present.add('hip_abductors')
-                elif cell_addr in ['AB21', 'AA22']:
+        if test_type == 'lower':
+            # LOWER BODY - check which movements were actually stored
+            for movement, region in movements_stored:
+                if region == 'knee':
+                    if movement == 'extension':
+                        body_parts_present.add('quadriceps')
+                    elif movement == 'flexion':
+                        body_parts_present.add('hamstring')
+                elif region == 'hip':
+                    if movement == 'adduction':
+                        body_parts_present.add('hip_adductors')
+                    elif movement == 'abduction':
+                        body_parts_present.add('hip_abductors')
+                    elif movement == 'flexion':
+                        body_parts_present.add('hip_flexors')
+                    elif movement == 'extension':
+                        body_parts_present.add('hip_extensors')
+                elif region == 'trunk':
                     body_parts_present.add('trunk')
-                elif cell_addr in ['AH21', 'AG22']:
-                    body_parts_present.add('hip_flexors')
-                elif cell_addr in ['AH23', 'AG24']:
-                    body_parts_present.add('hip_extensors')
-                    
-            elif test_type == 'upper':
-                # UPPER BODY CELLS
-                if cell_addr in ['D21', 'C22', 'D23', 'C24']:
-                    body_parts_present.add('rotator_cuff')
-                elif cell_addr in ['D25', 'C26', 'D27', 'C28']:
-                    body_parts_present.add('shoulder')
-                elif cell_addr in ['P21', 'O22']:
-                    body_parts_present.add('chest')
-                elif cell_addr in ['P23', 'O24']:
-                    body_parts_present.add('back')
-                elif cell_addr in ['AB21', 'AA22']:
-                    body_parts_present.add('triceps')
-                elif cell_addr in ['AB23', 'AA24']:
-                    body_parts_present.add('biceps')
-                elif cell_addr in ['AH21', 'AG22']:
-                    body_parts_present.add('hand')
-                    
-            elif test_type == 'full':
-                # FULL BODY CELLS
-                if cell_addr in ['D21', 'C22', 'D23', 'C24']:
-                    body_parts_present.add('rotator_cuff')
-                elif cell_addr in ['D25', 'C26', 'D27', 'C28']:
-                    body_parts_present.add('shoulder')
-                elif cell_addr in ['P21', 'O22']:
-                    body_parts_present.add('triceps')
-                elif cell_addr in ['P23', 'O24']:
-                    body_parts_present.add('biceps')
-                elif cell_addr in ['AB21', 'AA22']:
-                    body_parts_present.add('quadriceps')
-                elif cell_addr in ['AB23', 'AA24']:
-                    body_parts_present.add('hamstring')
-                elif cell_addr in ['AH21', 'AG22']:
-                    body_parts_present.add('hip_abductors')
-                elif cell_addr in ['AH23', 'AG24']:
-                    body_parts_present.add('hip_adductors')
+                
+        elif test_type == 'upper':
+            # UPPER BODY - check which movements were actually stored
+            for movement, region in movements_stored:
+                if region == 'shoulder':
+                    if movement in ['external rotation', 'internal rotation']:
+                        body_parts_present.add('rotator_cuff')
+                    elif movement in ['flexion', 'abduction']:
+                        body_parts_present.add('shoulder')
+                    elif movement == 'push':
+                        body_parts_present.add('chest')
+                    elif movement == 'pull':
+                        body_parts_present.add('back')
+                elif region == 'elbow':
+                    if movement == 'extension':
+                        body_parts_present.add('triceps')
+                    elif movement == 'flexion':
+                        body_parts_present.add('biceps')
+                elif region == 'hand':
+                    if movement == 'grip squeeze':
+                        body_parts_present.add('hand')
+                
+        elif test_type == 'full':
+            # FULL BODY - check which movements were actually stored
+            for movement, region in movements_stored:
+                if region == 'shoulder':
+                    if movement in ['external rotation', 'internal rotation']:
+                        body_parts_present.add('rotator_cuff')
+                    elif movement in ['flexion', 'abduction']:
+                        body_parts_present.add('shoulder')
+                elif region == 'elbow':
+                    if movement == 'extension':
+                        body_parts_present.add('triceps')
+                    elif movement == 'flexion':
+                        body_parts_present.add('biceps')
+                elif region == 'knee':
+                    if movement == 'extension':
+                        body_parts_present.add('quadriceps')
+                    elif movement == 'flexion':
+                        body_parts_present.add('hamstring')
+                elif region == 'hip':
+                    if movement == 'abduction':
+                        body_parts_present.add('hip_abductors')
+                    elif movement == 'adduction':
+                        body_parts_present.add('hip_adductors')
         
         # Map body parts to their bilingual text
         body_part_map = {
@@ -795,10 +992,38 @@ def main():
             patient_data = {
                 'date': None,
                 'cells': {},
-                'test_type': test_type  # Store test type for body parts detection
+                'test_type': test_type,  # Store test type for body parts detection
+                'movements': []  # Track which movements were actually stored
             }
             
             date_set = False
+            
+            # Collect movements present for dynamic cell assignment
+            # Only include movements that have valid asymmetry percentages
+            movements_present = {}
+            if test_type in ['lower', 'upper', 'full']:
+                for row in rows:
+                    movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+                    region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+                    asym_raw = src_ws[f"S{row}"].value
+                    
+                    # Skip if no movement/region or no asymmetry data
+                    if not movement or not region:
+                        continue
+                    if test_type == 'lower' and region == "trunk":  # Trunk handled separately with force calculation
+                        continue
+                    if asym_raw in (None, ""):
+                        continue
+                    
+                    # Try to parse asymmetry - only include if valid
+                    pct_value, side_char = parse_asymmetry(asym_raw)
+                    if pct_value is None:
+                        continue
+                    
+                    key = (movement, region)
+                    if key not in movements_present:
+                        movements_present[key] = []
+                    movements_present[key].append(row)
             
             # Special handling for trunk - calculate asymmetry from force values
             if test_type == 'lower':
@@ -806,11 +1031,99 @@ def main():
                 if trunk_pct is not None:
                     print(f"    Calculated trunk asymmetry: {trunk_pct:.1f}% (weak side: {trunk_weak_side})")
                     # Store trunk data
+                    patient_data['cells']['AA21'] = "Trunk Lateral Flexion /\nالثني الجانبي للجذع"
                     patient_data['cells']['AB21'] = trunk_pct / 100  # Convert to decimal for Excel
                     if trunk_weak_side == "Right":
                         patient_data['cells']['AA22'] = "Right Sides /\nالجانب الأيمن"
                     else:
                         patient_data['cells']['AA22'] = "Left Sides /\nالجانب الأيسر"
+                
+                # Assign knee movements to C21/C23 dynamically
+                knee_movements = []
+                if ('extension', 'knee') in movements_present:
+                    knee_movements.append(('extension', 'knee'))
+                if ('flexion', 'knee') in movements_present:
+                    knee_movements.append(('flexion', 'knee'))
+                
+                # Assign hip abd/add movements to O21/O23 dynamically
+                hip_abd_add_movements = []
+                if ('adduction', 'hip') in movements_present:
+                    hip_abd_add_movements.append(('adduction', 'hip'))
+                if ('abduction', 'hip') in movements_present:
+                    hip_abd_add_movements.append(('abduction', 'hip'))
+                
+                # Assign hip flex/ext movements to AG21/AG23 dynamically
+                hip_flex_ext_movements = []
+                if ('flexion', 'hip') in movements_present:
+                    hip_flex_ext_movements.append(('flexion', 'hip'))
+                if ('extension', 'hip') in movements_present:
+                    hip_flex_ext_movements.append(('extension', 'hip'))
+            
+            # Prepare movement lists for upper body
+            if test_type == 'upper':
+                # Shoulder rotations/movements in C21/C23/C25/C27
+                shoulder_c_movements = []
+                if ('external rotation', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('external rotation', 'shoulder'))
+                if ('internal rotation', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('internal rotation', 'shoulder'))
+                if ('flexion', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('flexion', 'shoulder'))
+                if ('abduction', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('abduction', 'shoulder'))
+                
+                # Shoulder push/pull in O21/O23
+                shoulder_o_movements = []
+                if ('push', 'shoulder') in movements_present:
+                    shoulder_o_movements.append(('push', 'shoulder'))
+                if ('pull', 'shoulder') in movements_present:
+                    shoulder_o_movements.append(('pull', 'shoulder'))
+                
+                # Elbow in AA21/AA23
+                elbow_movements = []
+                if ('extension', 'elbow') in movements_present:
+                    elbow_movements.append(('extension', 'elbow'))
+                if ('flexion', 'elbow') in movements_present:
+                    elbow_movements.append(('flexion', 'elbow'))
+                
+                # Hand/Grip in AG21 only
+                hand_movements = []
+                if ('grip squeeze', 'hand') in movements_present:
+                    hand_movements.append(('grip squeeze', 'hand'))
+            
+            # Prepare movement lists for full body
+            if test_type == 'full':
+                # Shoulder rotations/movements in C21/C23/C25/C27
+                shoulder_c_movements = []
+                if ('external rotation', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('external rotation', 'shoulder'))
+                if ('internal rotation', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('internal rotation', 'shoulder'))
+                if ('flexion', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('flexion', 'shoulder'))
+                if ('abduction', 'shoulder') in movements_present:
+                    shoulder_c_movements.append(('abduction', 'shoulder'))
+                
+                # Elbow in O21/O23
+                elbow_o_movements = []
+                if ('extension', 'elbow') in movements_present:
+                    elbow_o_movements.append(('extension', 'elbow'))
+                if ('flexion', 'elbow') in movements_present:
+                    elbow_o_movements.append(('flexion', 'elbow'))
+                
+                # Knee in AA21/AA23
+                knee_aa_movements = []
+                if ('extension', 'knee') in movements_present:
+                    knee_aa_movements.append(('extension', 'knee'))
+                if ('flexion', 'knee') in movements_present:
+                    knee_aa_movements.append(('flexion', 'knee'))
+                
+                # Hip abd/add in AG21/AG23
+                hip_ag_movements = []
+                if ('abduction', 'hip') in movements_present:
+                    hip_ag_movements.append(('abduction', 'hip'))
+                if ('adduction', 'hip') in movements_present:
+                    hip_ag_movements.append(('adduction', 'hip'))
 
             # For each row belonging to this patient
             for row in rows:
@@ -863,13 +1176,31 @@ def main():
                         continue
 
                 # Use the appropriate mapping function based on body type
-                if is_full_body:
-                    pct_cell_addr, side_cell_addr, right_text, left_text = get_target_info_full_body(movement, region)
+                if test_type == 'lower':
+                    # Lower body uses dynamic cell assignment
+                    label_cell, pct_cell_addr, side_cell_addr, right_text, left_text = get_lower_body_cells(
+                        movement, region, knee_movements, hip_abd_add_movements, hip_flex_ext_movements
+                    )
+                elif test_type == 'upper':
+                    # Upper body uses dynamic cell assignment
+                    label_cell, pct_cell_addr, side_cell_addr, right_text, left_text = get_upper_body_cells(
+                        movement, region, shoulder_c_movements, shoulder_o_movements, elbow_movements, hand_movements
+                    )
+                elif test_type == 'full':
+                    # Full body uses dynamic cell assignment
+                    label_cell, pct_cell_addr, side_cell_addr, right_text, left_text = get_full_body_cells(
+                        movement, region, shoulder_c_movements, elbow_o_movements, knee_aa_movements, hip_ag_movements
+                    )
                 else:
-                    pct_cell_addr, side_cell_addr, right_text, left_text = get_target_info(movement, region)
+                    # Fallback to None if unknown test type
+                    label_cell = None
+                    pct_cell_addr, side_cell_addr, right_text, left_text = None, None, None, None
                 
                 if pct_cell_addr is None:
                     continue
+
+                # Get movement label
+                movement_label = get_movement_label(movement, region)
 
                 # Keep only largest absolute asymmetry
                 existing = patient_data['cells'].get(pct_cell_addr)
@@ -879,6 +1210,10 @@ def main():
                     should_update = abs(pct_value) > abs(nz_float(existing))
 
                 if should_update:
+                    # Store movement label if we have a label cell (lower body)
+                    if label_cell and movement_label:
+                        patient_data['cells'][label_cell] = movement_label
+                    
                     # Store numeric value divided by 100 (Excel will format as percentage)
                     patient_data['cells'][pct_cell_addr] = pct_value / 100
                     
@@ -888,18 +1223,20 @@ def main():
                             patient_data['cells'][side_cell_addr] = right_text
                         else:
                             patient_data['cells'][side_cell_addr] = left_text
+                    
+                    # Track this movement for body parts detection
+                    patient_data['movements'].append((movement.lower().strip(), region.lower().strip()))
 
-            # Create subfolder for this test type
-            test_type_folder = os.path.join(programs_folder, test_type.capitalize())
-            os.makedirs(test_type_folder, exist_ok=True)
+            # Normalize patient name - remove extra spaces
+            normalized_patient_name = re.sub(r'\s+', ' ', patient_name).strip()
             
             # Determine output path for this patient
             # If multiple test types, add test type to filename for clarity
             if len(test_types) > 1:
-                safe_name = make_safe_filename(f"{patient_name} - {test_type.capitalize()} Body")
+                safe_name = make_safe_filename(f"{normalized_patient_name} - {test_type.capitalize()} Body")
             else:
-                safe_name = make_safe_filename(patient_name)
-            out_path = os.path.join(test_type_folder, safe_name)
+                safe_name = make_safe_filename(normalized_patient_name)
+            out_path = os.path.join(programs_folder, safe_name)
             
             # Use xlwings to fill template
             success = fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder)
