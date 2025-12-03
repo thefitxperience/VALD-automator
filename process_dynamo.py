@@ -1,11 +1,10 @@
 import sys
 import os
 import shutil
+import re
 from openpyxl import load_workbook
 import subprocess
 import xlwings as xw
-
-TEMPLATE_SHEET = "Body Masters"
 
 
 def get_movement_test_type(movement, region):
@@ -510,7 +509,7 @@ def make_safe_filename(name):
     return safe + ".xlsm"
 
 
-def fill_template_with_xlwings(template_path, out_path, patient_name, patient_data):
+def fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder):
     """
     Use xlwings to fill data while preserving all Excel features like data validation.
     """
@@ -528,10 +527,13 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Open the copied file
         wb = xw.Book(out_path)
         
+        # Determine sheet name based on gym folder
+        template_sheet = gym_folder  # "Body Masters" or "Body Motions"
+        
         # Find the correct sheet
         ws = None
         for sheet in wb.sheets:
-            if sheet.name == TEMPLATE_SHEET:
+            if sheet.name == template_sheet:
                 ws = sheet
                 break
         
@@ -539,13 +541,16 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
             available_sheets = [s.name for s in wb.sheets]
             wb.close()
             app.quit()
-            raise Exception(f"Sheet '{TEMPLATE_SHEET}' not found. Available sheets: {available_sheets}")
+            raise Exception(f"Sheet '{template_sheet}' not found. Available sheets: {available_sheets}")
         
         # Disable events during data entry
         app.api.EnableEvents = False
         
+        # Normalize patient name - remove extra spaces
+        normalized_name = re.sub(r'\s+', ' ', patient_name).strip()
+        
         # Set name in A6
-        ws.range('A6').value = patient_name
+        ws.range('A6').value = normalized_name
         
         # Set date in A21
         if patient_data.get('date'):
@@ -897,7 +902,7 @@ def main():
             out_path = os.path.join(test_type_folder, safe_name)
             
             # Use xlwings to fill template
-            success = fill_template_with_xlwings(template_path, out_path, patient_name, patient_data)
+            success = fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder)
             
             if success:
                 print(f"    Saved: {out_path}")
