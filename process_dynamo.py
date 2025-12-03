@@ -547,18 +547,38 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Set name in A6
         ws.range('A6').value = patient_name
         
-        # Set date in A21 - convert from MM/DD/YYYY to DD/MM/YYYY
+        # Set date in A21 - ensure it's always DD/MM/YYYY
         if patient_data.get('date'):
             date_val = patient_data['date']
-            # Check if it's a datetime object or string
+            # Check if it's a datetime object
             if hasattr(date_val, 'strftime'):
                 # It's a datetime object, format it as DD/MM/YYYY
                 ws.range('A21').value = date_val.strftime('%d/%m/%Y')
             elif isinstance(date_val, str) and '/' in date_val:
-                # It's a string, try to convert MM/DD/YYYY to DD/MM/YYYY
+                # It's a string, parse and convert to DD/MM/YYYY
                 parts = date_val.split('/')
                 if len(parts) == 3:
-                    ws.range('A21').value = f"{parts[1]}/{parts[0]}/{parts[2]}"
+                    # Try to intelligently detect format
+                    # If first number > 12, it must be DD/MM/YYYY already
+                    # If second number > 12, it must be MM/DD/YYYY
+                    # Otherwise, assume MM/DD/YYYY (US format from Excel)
+                    try:
+                        first = int(parts[0])
+                        second = int(parts[1])
+                        year = parts[2]
+                        
+                        if first > 12:
+                            # Already DD/MM/YYYY
+                            ws.range('A21').value = date_val
+                        elif second > 12:
+                            # Must be MM/DD/YYYY, convert to DD/MM/YYYY
+                            ws.range('A21').value = f"{parts[1]}/{parts[0]}/{year}"
+                        else:
+                            # Ambiguous, assume MM/DD/YYYY and convert
+                            ws.range('A21').value = f"{parts[1]}/{parts[0]}/{year}"
+                    except ValueError:
+                        # Can't parse, use as-is
+                        ws.range('A21').value = date_val
                 else:
                     ws.range('A21').value = date_val
             else:
