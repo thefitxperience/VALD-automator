@@ -696,16 +696,24 @@ def main():
                     continue
 
                 pct_value, side_char = parse_asymmetry(asym_raw)
-                if pct_value is None or side_char is None:
+                if pct_value is None:
                     continue
 
-                side_char = side_char.upper()
-                if side_char == "L":
-                    weak_side = "Right"
-                elif side_char == "R":
-                    weak_side = "Left"
+                # Special handling for 0% asymmetry
+                if pct_value == 0:
+                    pct_value = 0.1
+                    weak_side = None  # Leave weak side empty
                 else:
-                    continue
+                    if side_char is None:
+                        continue
+                    
+                    side_char = side_char.upper()
+                    if side_char == "L":
+                        weak_side = "Right"
+                    elif side_char == "R":
+                        weak_side = "Left"
+                    else:
+                        continue
 
                 # Use the appropriate mapping function based on body type
                 if is_full_body:
@@ -726,10 +734,13 @@ def main():
                 if should_update:
                     # Store numeric value divided by 100 (Excel will format as percentage)
                     patient_data['cells'][pct_cell_addr] = pct_value / 100
-                    if weak_side == "Right":
-                        patient_data['cells'][side_cell_addr] = right_text
-                    else:
-                        patient_data['cells'][side_cell_addr] = left_text
+                    
+                    # Only set weak side if it's not None (i.e., not a 0% asymmetry case)
+                    if weak_side is not None:
+                        if weak_side == "Right":
+                            patient_data['cells'][side_cell_addr] = right_text
+                        else:
+                            patient_data['cells'][side_cell_addr] = left_text
 
             # Create subfolder for this test type
             test_type_folder = os.path.join(programs_folder, test_type.capitalize())
