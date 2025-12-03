@@ -8,6 +8,36 @@ import xlwings as xw
 TEMPLATE_SHEET = "Body Masters"
 
 
+def get_movement_test_type(movement, region):
+    """
+    Determine which test type a specific movement belongs to.
+    Returns: 'upper', 'lower', or 'full'
+    """
+    m = movement.lower().strip()
+    r = region.lower().strip()
+    
+    # Upper body movements
+    upper_movements = [
+        (r == "shoulder"),
+        (r == "hand"),
+        (r == "elbow" and m in ["extension", "flexion"])
+    ]
+    
+    # Lower body movements
+    lower_movements = [
+        (r == "trunk"),
+        (r == "knee"),
+        (r == "hip" and m in ["flexion", "extension", "abduction", "adduction"])
+    ]
+    
+    if any(upper_movements):
+        return 'upper'
+    elif any(lower_movements):
+        return 'lower'
+    
+    return None
+
+
 def detect_test_type(patient_rows, src_ws):
     """
     Analyze the actual movements and regions in the data to determine test type.
@@ -63,33 +93,30 @@ def detect_test_type(patient_rows, src_ws):
     # Detection logic
     test_types = []
     
-    # Full Body: Has upper (shoulder) + elbow + knee + hip abduction/adduction
+    # Full Body: Has upper (shoulder) + elbow + knee + hip abduction/adduction (but NOT hip flexion/extension or trunk)
     if has_upper and has_elbow and has_knee and has_hip_abd_add and not has_lower_specific:
-        test_types.append('full')
+        return 'full'
     
-    # Upper Body: Has shoulder/hand movements and/or elbow, but no knee/hip
-    if (has_upper or has_elbow) and not has_knee and not has_hip_abd_add and not has_lower_specific:
-        test_types.append('upper')
+    # Check if we have upper movements
+    has_any_upper = has_upper or has_elbow
     
-    # Lower Body: Has knee and/or hip movements with lower-specific tests
-    if (has_knee or has_hip_abd_add or has_lower_specific):
-        # If it also has upper, it's both tests
-        if not has_upper and not test_types:  # Only lower body movements
-            test_types.append('lower')
-        elif 'full' not in test_types:  # Has lower movements but not full body
-            test_types.append('lower')
+    # Check if we have lower movements
+    has_any_lower = has_knee or has_hip_abd_add or has_lower_specific
     
-    # If we have both upper and lower indicators but not full, it's multiple tests
-    if not test_types:
-        if has_upper or has_elbow:
-            test_types.append('upper')
-        if has_knee or has_hip_abd_add or has_lower_specific:
-            test_types.append('lower')
+    # If we have both upper and lower, return both as separate tests
+    if has_any_upper and has_any_lower:
+        return ['upper', 'lower']
     
-    # Return single type if only one, otherwise return list
-    if len(test_types) == 1:
-        return test_types[0]
-    return test_types if test_types else 'upper'  # Default to upper
+    # If only upper
+    if has_any_upper:
+        return 'upper'
+    
+    # If only lower
+    if has_any_lower:
+        return 'lower'
+    
+    # Default
+    return 'upper'
 
 
 def get_template_for_test_type(test_type, gym_folder, base_dir):
@@ -160,6 +187,52 @@ def nz_float(v):
         return float(v)
     except Exception:
         return 0.0
+
+
+def calculate_trunk_asymmetry(patient_rows, src_ws):
+    """
+    Calculate trunk asymmetry from Lateral Flexion Right and Left.
+    Returns: (percentage, weak_side) or (None, None) if not enough data.
+    Formula: Asymmetry(%) = ((L - R) / ((L + R) / 2)) * 100
+    """
+    trunk_data = {}
+    
+    for row in patient_rows:
+        movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+        region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+        
+        # Look for trunk lateral flexion movements
+        if region == "trunk" and "lateral flexion" in movement:
+            force = nz_float(src_ws[f"R{row}"].value)  # N Avg Force (N)
+            
+            if "right" in movement:
+                trunk_data['right'] = force
+            elif "left" in movement:
+                trunk_data['left'] = force
+    
+    # Need both right and left to calculate
+    if 'right' not in trunk_data or 'left' not in trunk_data:
+        return None, None
+    
+    right_force = trunk_data['right']
+    left_force = trunk_data['left']
+    
+    # Skip if either is zero or invalid
+    if right_force <= 0 or left_force <= 0:
+        return None, None
+    
+    # Calculate asymmetry using the formula: ((L - R) / ((L + R) / 2)) * 100
+    avg_force = (left_force + right_force) / 2
+    asymmetry_pct = ((left_force - right_force) / avg_force) * 100
+    
+    # Determine weak side (smaller force value)
+    if right_force < left_force:
+        weak_side = "Right"
+    else:
+        weak_side = "Left"
+    
+    # Return absolute value of percentage
+    return abs(asymmetry_pct), weak_side
 
 
 def parse_asymmetry(raw):
@@ -281,39 +354,39 @@ def get_target_info(movement, region):
     
     # KNEE – Extension (Quadriceps)
     if r == "knee" and m == "extension":
-        pct_cell = "AA21"  # Lower body: C21, Full body: AA21
-        side_cell = "AA22"
+        pct_cell = "D21"
+        side_cell = "C22"
         right_text = "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى"
         left_text  = "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
         return pct_cell, side_cell, right_text, left_text
 
     # KNEE – Flexion (Hamstring)
     if r == "knee" and m == "flexion":
-        pct_cell = "AA23"  # Lower body: C23, Full body: AA23
-        side_cell = "AA24"
+        pct_cell = "D23"
+        side_cell = "C24"
         right_text = "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى"
         left_text  = "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
         return pct_cell, side_cell, right_text, left_text
 
     # HIP – Adduction
     if r == "hip" and m == "adduction":
-        pct_cell = "AG23"  # Lower body: O21, Full body: AG23
-        side_cell = "AG24"
+        pct_cell = "P21"
+        side_cell = "O22"
         right_text = "Right Adductors /\nعضلات الفخذ الداخلي اليمنى"
         left_text  = "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
         return pct_cell, side_cell, right_text, left_text
 
     # HIP – Abduction
     if r == "hip" and m == "abduction":
-        pct_cell = "AG21"  # Lower body: O23, Full body: AG21
-        side_cell = "AG22"
+        pct_cell = "P23"
+        side_cell = "O24"
         right_text = "Right Abductors /\nعضلات الفخذ الخارجية اليمنى"
         left_text  = "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
         return pct_cell, side_cell, right_text, left_text
 
     # TRUNK – Lateral Flexion (Lower Body only)
     if r == "trunk" and m == "lateral flexion":
-        pct_cell = "AA21"
+        pct_cell = "AB21"
         side_cell = "AA22"
         right_text = "Right Sides /\nالجانب الأيمن"
         left_text  = "Left Sides /\nالجانب الأيسر"
@@ -321,7 +394,7 @@ def get_target_info(movement, region):
 
     # HIP – Flexion (Lower Body only)
     if r == "hip" and m == "flexion":
-        pct_cell = "AG21"
+        pct_cell = "AH21"
         side_cell = "AG22"
         right_text = "Right Hip Flexors /\nعضلات مثنية الورك اليمنى"
         left_text  = "Left Hip Flexors /\nعضلات مثنية الورك اليسرى"
@@ -329,7 +402,7 @@ def get_target_info(movement, region):
 
     # HIP – Extension (Lower Body only)
     if r == "hip" and m == "extension":
-        pct_cell = "AG23"
+        pct_cell = "AH23"
         side_cell = "AG24"
         right_text = "Right Hip Extensors /\nعضلات باسطة الورك اليمنى"
         left_text  = "Left Hip Extensors /\nعضلات باسطة الورك اليسرى"
@@ -358,7 +431,7 @@ def get_target_info_full_body(movement, region):
     
     # ELBOW – Extension (Triceps) - Full Body position
     if r == "elbow" and m == "extension":
-        pct_cell = "O21"
+        pct_cell = "P21"
         side_cell = "O22"
         right_text = "Right Triceps /\n عضلات التراي سيبس اليمنى"
         left_text  = "Left Triceps /\n عضلات التراي سيبس اليسرى"
@@ -366,10 +439,42 @@ def get_target_info_full_body(movement, region):
 
     # ELBOW – Flexion (Biceps) - Full Body position
     if r == "elbow" and m == "flexion":
-        pct_cell = "O23"
+        pct_cell = "P23"
         side_cell = "O24"
         right_text = "Right Biceps /\nعضلة الباي سيبس اليمنى"
         left_text  = "Left Biceps /\n عضلة الباي سيبس اليسرى"
+        return pct_cell, side_cell, right_text, left_text
+    
+    # KNEE – Extension (Quadriceps) - Full Body position
+    if r == "knee" and m == "extension":
+        pct_cell = "AB21"
+        side_cell = "AA22"
+        right_text = "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى"
+        left_text  = "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"
+        return pct_cell, side_cell, right_text, left_text
+
+    # KNEE – Flexion (Hamstring) - Full Body position
+    if r == "knee" and m == "flexion":
+        pct_cell = "AB23"
+        side_cell = "AA24"
+        right_text = "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى"
+        left_text  = "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"
+        return pct_cell, side_cell, right_text, left_text
+
+    # HIP – Abduction - Full Body position
+    if r == "hip" and m == "abduction":
+        pct_cell = "AH21"
+        side_cell = "AG22"
+        right_text = "Right Abductors /\nعضلات الفخذ الخارجية اليمنى"
+        left_text  = "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"
+        return pct_cell, side_cell, right_text, left_text
+
+    # HIP – Adduction - Full Body position
+    if r == "hip" and m == "adduction":
+        pct_cell = "AH23"
+        side_cell = "AG24"
+        right_text = "Right Adductors /\nعضلات الفخذ الداخلي اليمنى"
+        left_text  = "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"
         return pct_cell, side_cell, right_text, left_text
     
     # For all other movements in full body, use standard mapping
@@ -381,10 +486,12 @@ def clear_fields(ws):
     Clears only the cells we are controlling.
     """
     addresses = [
-        "AH21", "AG22",
-        "AB21", "AA22", "AB23", "AA24",
-        "P21", "O22", "P23", "O24",
+        "AH21", "AH22", "AH23", "AH24",
+        "AB21", "AB22", "AB23", "AB24",
+        "P21", "P22", "P23", "P24",
         "D21", "C22", "D23", "C24", "D25", "C26", "D27", "C28",
+        "AA21", "AA22", "AA23", "AA24",
+        "AG21", "AG22", "AG23", "AG24",
         "A6", "A21"
     ]
     for addr in addresses:
@@ -450,54 +557,60 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         
         # Determine which body parts are present and populate A11-A17 (or A11-A18)
         body_parts_present = set()
+        test_type = patient_data.get('test_type', 'upper')
+        
         for cell_addr in patient_data.get('cells', {}).keys():
-            # UPPER BODY & FULL BODY
-            if cell_addr.startswith('D2'):  # Shoulder rotation (D21-D28)
-                # D21-D24: rotator cuff (ER, IR)
-                # D25-D28: shoulder (flexion, abduction)
+            if test_type == 'lower':
+                # LOWER BODY CELLS
+                if cell_addr in ['D21', 'C22']:
+                    body_parts_present.add('quadriceps')
+                elif cell_addr in ['D23', 'C24']:
+                    body_parts_present.add('hamstring')
+                elif cell_addr in ['P21', 'O22']:
+                    body_parts_present.add('hip_adductors')
+                elif cell_addr in ['P23', 'O24']:
+                    body_parts_present.add('hip_abductors')
+                elif cell_addr in ['AB21', 'AA22']:
+                    body_parts_present.add('trunk')
+                elif cell_addr in ['AH21', 'AG22']:
+                    body_parts_present.add('hip_flexors')
+                elif cell_addr in ['AH23', 'AG24']:
+                    body_parts_present.add('hip_extensors')
+                    
+            elif test_type == 'upper':
+                # UPPER BODY CELLS
                 if cell_addr in ['D21', 'C22', 'D23', 'C24']:
                     body_parts_present.add('rotator_cuff')
                 elif cell_addr in ['D25', 'C26', 'D27', 'C28']:
                     body_parts_present.add('shoulder')
-            elif cell_addr.startswith('P2'):  # Shoulder push/pull OR Full Body Chest/Back
-                if cell_addr in ['P21', 'O22']:
+                elif cell_addr in ['P21', 'O22']:
                     body_parts_present.add('chest')
                 elif cell_addr in ['P23', 'O24']:
                     body_parts_present.add('back')
-            elif cell_addr.startswith('AB2'):  # Upper Body Elbow only
-                if cell_addr in ['AB21', 'AA22']:
+                elif cell_addr in ['AB21', 'AA22']:
                     body_parts_present.add('triceps')
                 elif cell_addr in ['AB23', 'AA24']:
                     body_parts_present.add('biceps')
-            elif cell_addr.startswith('AH2'):  # Hand (Upper Body only)
-                body_parts_present.add('hand')
-            
-            # LOWER BODY SPECIFIC
-            if cell_addr.startswith('C2') and cell_addr not in ['C22', 'C24', 'C26', 'C28']:  # Knee (Lower Body: C21-C24)
-                if cell_addr in ['C21', 'C22']:
-                    body_parts_present.add('quadriceps')
-                elif cell_addr in ['C23', 'C24']:
-                    body_parts_present.add('hamstring')
-            
-            # FULL BODY SPECIFIC
-            elif cell_addr.startswith('O2') and cell_addr not in ['P21', 'P23']:  # Full Body: Elbow
-                if cell_addr in ['O21', 'O22']:
+                elif cell_addr in ['AH21', 'AG22']:
+                    body_parts_present.add('hand')
+                    
+            elif test_type == 'full':
+                # FULL BODY CELLS
+                if cell_addr in ['D21', 'C22', 'D23', 'C24']:
+                    body_parts_present.add('rotator_cuff')
+                elif cell_addr in ['D25', 'C26', 'D27', 'C28']:
+                    body_parts_present.add('shoulder')
+                elif cell_addr in ['P21', 'O22']:
                     body_parts_present.add('triceps')
-                elif cell_addr in ['O23', 'O24']:
+                elif cell_addr in ['P23', 'O24']:
                     body_parts_present.add('biceps')
-            elif cell_addr.startswith('AA2'):  # Full Body: Knee OR Lower Body: Trunk
-                if cell_addr in ['AA21', 'AA22']:
-                    # Could be quadriceps OR trunk - need to check context
-                    # For now, assume knee in full body, trunk in lower
+                elif cell_addr in ['AB21', 'AA22']:
                     body_parts_present.add('quadriceps')
-                elif cell_addr in ['AA23', 'AA24']:
+                elif cell_addr in ['AB23', 'AA24']:
                     body_parts_present.add('hamstring')
-            elif cell_addr.startswith('AG2'):  # Full Body: Hip OR Lower Body: Hip
-                if cell_addr in ['AG21', 'AG22']:
-                    # Full Body: Abductors, Lower Body: Flexors
+                elif cell_addr in ['AH21', 'AG22']:
                     body_parts_present.add('hip_abductors')
-                elif cell_addr in ['AG23', 'AG24']:
-                    # Full Body: Adductors, Lower Body: Extensors
+                elif cell_addr in ['AH23', 'AG24']:
                     body_parts_present.add('hip_adductors')
         
         # Map body parts to their bilingual text
@@ -511,10 +624,10 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
             'biceps': "Biceps /الباي سيبس",
             'hand': "Hand/ اليد",
             # Lower Body
-            'quadriceps': "Quadriceps /الفخذ الأمامي",
-            'hamstring': "Hamstring /الفخذ الخلفي",
-            'hip_abductors': "Abductors /الفخذ  الخارجي",
-            'hip_adductors': "Adductors /الفخذ الداخلي",
+            'quadriceps': "Quadriceps / الفخذ الأمامي",
+            'hamstring': "Hamstring / الفخذ الخلفي",
+            'hip_abductors': "Hip Abductors / الفخذ  الخارجي",
+            'hip_adductors': "Hip Adductors / الفخذ الداخلي",
             'hip_flexors': "Hip Flexors / عضلات ثني الورك",
             'hip_extensors': "Hip Extensors/عضلات بسط الورك",
             'trunk': "Trunk / الجذع"
@@ -522,30 +635,22 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         
         # Fill A11-A18 with the body parts present
         body_parts_list = []
-        # Order for upper body
-        upper_parts = ['shoulder', 'rotator_cuff', 'chest', 'back', 'triceps', 'biceps', 'hand']
-        # Order for lower body
-        lower_parts = ['quadriceps', 'hamstring', 'hip_abductors', 'hip_adductors', 'hip_flexors', 'hip_extensors', 'trunk']
-        # Order for full body
-        full_parts = ['shoulder', 'rotator_cuff', 'triceps', 'biceps', 'hamstring', 'quadriceps', 'hip_abductors', 'hip_adductors']
         
-        # Determine which list to use based on what's present
-        # Check if this is full body by looking for knee in AA cells
-        has_knee_in_aa = any(addr.startswith('AA2') for addr in patient_data.get('cells', {}).keys())
-        has_shoulder = 'shoulder' in body_parts_present or 'rotator_cuff' in body_parts_present
+        # Use test_type from patient_data to determine correct order
+        test_type = patient_data.get('test_type', 'upper')
         
-        if has_knee_in_aa and has_shoulder:
-            # Full body - has both upper and lower in specific positions
-            ordered_parts = full_parts
-            max_slots = 8
-        elif any(part in body_parts_present for part in ['quadriceps', 'hamstring', 'hip_flexors', 'hip_extensors', 'trunk']):
-            # Lower body
-            ordered_parts = lower_parts
-            max_slots = 8
-        else:
-            # Upper body
-            ordered_parts = upper_parts
+        if test_type == 'upper':
+            # Order for upper body
+            ordered_parts = ['shoulder', 'rotator_cuff', 'chest', 'back', 'triceps', 'biceps', 'hand']
             max_slots = 7
+        elif test_type == 'lower':
+            # Order for lower body
+            ordered_parts = ['quadriceps', 'hamstring', 'hip_abductors', 'hip_adductors', 'hip_flexors', 'hip_extensors', 'trunk']
+            max_slots = 8
+        else:  # full body
+            # Order for full body
+            ordered_parts = ['shoulder', 'rotator_cuff', 'triceps', 'biceps', 'hamstring', 'quadriceps', 'hip_abductors', 'hip_adductors']
+            max_slots = 8
         
         for part in ordered_parts:
             if part in body_parts_present:
@@ -599,6 +704,15 @@ def main():
     if not os.path.isfile(export_path):
         print(f"File not found: {export_path}")
         sys.exit(1)
+    
+    # Request automation permissions upfront to avoid repeated prompts
+    try:
+        subprocess.run([
+            'osascript', '-e',
+            'tell application "System Events" to get name of every process'
+        ], capture_output=True, timeout=5)
+    except:
+        pass  # If this fails, xlwings will handle permissions itself
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
@@ -675,10 +789,23 @@ def main():
             # Collect all data for this patient and test type
             patient_data = {
                 'date': None,
-                'cells': {}
+                'cells': {},
+                'test_type': test_type  # Store test type for body parts detection
             }
             
             date_set = False
+            
+            # Special handling for trunk - calculate asymmetry from force values
+            if test_type == 'lower':
+                trunk_pct, trunk_weak_side = calculate_trunk_asymmetry(rows, src_ws)
+                if trunk_pct is not None:
+                    print(f"    Calculated trunk asymmetry: {trunk_pct:.1f}% (weak side: {trunk_weak_side})")
+                    # Store trunk data
+                    patient_data['cells']['AB21'] = trunk_pct / 100  # Convert to decimal for Excel
+                    if trunk_weak_side == "Right":
+                        patient_data['cells']['AA22'] = "Right Sides /\nالجانب الأيمن"
+                    else:
+                        patient_data['cells']['AA22'] = "Left Sides /\nالجانب الأيسر"
 
             # For each row belonging to this patient
             for row in rows:
@@ -692,8 +819,23 @@ def main():
                     patient_data['date'] = date_val
                     date_set = True
 
-                if not movement.strip() or not region.strip() or asym_raw in (None, ""):
+                if not movement.strip() or not region.strip():
                     continue
+                
+                # Skip trunk for normal processing since we handle it specially
+                if region.lower().strip() == "trunk":
+                    continue
+                
+                if asym_raw in (None, ""):
+                    continue
+                
+                # Filter rows by test type if multiple test types exist
+                if len(test_types) > 1:
+                    row_test_type = get_movement_test_type(movement, region)
+                    # Skip if this movement doesn't belong to current test type
+                    if row_test_type and row_test_type != test_type:
+                        print(f"    Skipping {region} {movement} (belongs to {row_test_type}, processing {test_type})")
+                        continue
 
                 pct_value, side_char = parse_asymmetry(asym_raw)
                 if pct_value is None:
@@ -747,7 +889,11 @@ def main():
             os.makedirs(test_type_folder, exist_ok=True)
             
             # Determine output path for this patient
-            safe_name = make_safe_filename(patient_name)
+            # If multiple test types, add test type to filename for clarity
+            if len(test_types) > 1:
+                safe_name = make_safe_filename(f"{patient_name} - {test_type.capitalize()} Body")
+            else:
+                safe_name = make_safe_filename(patient_name)
             out_path = os.path.join(test_type_folder, safe_name)
             
             # Use xlwings to fill template
