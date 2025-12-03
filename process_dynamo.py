@@ -547,9 +547,22 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Set name in A6
         ws.range('A6').value = patient_name
         
-        # Set date in A21
+        # Set date in A21 - convert from MM/DD/YYYY to DD/MM/YYYY
         if patient_data.get('date'):
-            ws.range('A21').value = patient_data['date']
+            date_val = patient_data['date']
+            # Check if it's a datetime object or string
+            if hasattr(date_val, 'strftime'):
+                # It's a datetime object, format it as DD/MM/YYYY
+                ws.range('A21').value = date_val.strftime('%d/%m/%Y')
+            elif isinstance(date_val, str) and '/' in date_val:
+                # It's a string, try to convert MM/DD/YYYY to DD/MM/YYYY
+                parts = date_val.split('/')
+                if len(parts) == 3:
+                    ws.range('A21').value = f"{parts[1]}/{parts[0]}/{parts[2]}"
+                else:
+                    ws.range('A21').value = date_val
+            else:
+                ws.range('A21').value = date_val
         
         # Set all other cells
         for cell_addr, cell_value in patient_data.get('cells', {}).items():
