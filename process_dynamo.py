@@ -694,6 +694,31 @@ def make_safe_filename(name):
     return safe + ".xlsm"
 
 
+def get_remark_for_percentage(pct_value):
+    """
+    Return bilingual remark based on asymmetry percentage.
+    """
+    if pct_value is None:
+        return ""
+    
+    pct = abs(pct_value) * 100  # Convert to percentage
+    
+    if 0.1 <= pct <= 3.9:
+        return "Perfect Symmetry / \nتناظر مثالي"
+    elif 4 <= pct <= 7.9:
+        return "Normal Symmetry / \nتناظر طبيعي"
+    elif 8 <= pct <= 14.9:
+        return "Weakness / \nضعف"
+    elif 15 <= pct <= 19.9:
+        return "Problem / \nمشكلة"
+    elif 20 <= pct <= 29.9:
+        return "Major Problem / \nمشكلة كبيرة"
+    elif pct >= 30:
+        return "Risk Of Injury / \nخطر الإصابة"
+    else:
+        return ""
+
+
 def fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder):
     """
     Use xlwings to fill data while preserving all Excel features like data validation.
@@ -704,13 +729,16 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Copy the template to the output location first
         shutil.copy2(template_path, out_path)
         
-        # Open Excel invisibly
+        # Open Excel invisibly with all alerts/prompts disabled
         app = xw.App(visible=False, add_book=False)
         app.display_alerts = False
         app.screen_updating = False
+        app.api.AskToUpdateLinks = False
+        app.api.DisplayAlerts = False
+        app.api.AlertBeforeOverwriting = False
         
         # Open the copied file
-        wb = xw.Book(out_path)
+        wb = app.books.open(out_path, update_links=False, read_only=False, ignore_read_only_recommended=True)
         
         # Determine sheet name based on gym folder
         template_sheet = gym_folder  # "Body Masters" or "Body Motions"
@@ -744,6 +772,21 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Set all other cells
         for cell_addr, cell_value in patient_data.get('cells', {}).items():
             ws.range(cell_addr).value = cell_value
+        
+        # Add remarks for all percentage cells
+        percentage_cells = [
+            ('D21', 'D22'), ('D23', 'D24'), ('D25', 'D26'), ('D27', 'D28'),
+            ('P21', 'P22'), ('P23', 'P24'), ('P25', 'P26'), ('P27', 'P28'),
+            ('AB21', 'AB22'), ('AB23', 'AB24'), ('AB25', 'AB26'), ('AB27', 'AB28'),
+            ('AH21', 'AH22'), ('AH23', 'AH24'), ('AH25', 'AH26'), ('AH27', 'AH28')
+        ]
+        
+        for pct_cell, remark_cell in percentage_cells:
+            pct_value = ws.range(pct_cell).value
+            if pct_value is not None and pct_value != "":
+                remark = get_remark_for_percentage(pct_value)
+                if remark:
+                    ws.range(remark_cell).value = remark
         
         # Determine which body parts are present and populate A11-A17 (or A11-A18)
         body_parts_present = set()
@@ -863,21 +906,10 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
             if i < max_slots:
                 ws.range(f'A{11+i}').value = body_part_text
         
-        # Re-enable events to trigger macros
-        app.api.EnableEvents = True
-        
-        # Trigger macros by simulating cell changes
-        for cell_addr in ['D21', 'D23', 'D25', 'D27', 'P21', 'P23', 'AB21', 'AB23', 'AH21']:
-            try:
-                current_val = ws.range(cell_addr).value
-                if current_val is not None and current_val != "":
-                    ws.range(cell_addr).value = current_val
-            except:
-                pass
-        
-        # Save and close
+        # Save and close (no need to trigger VBA - everything is done in Python)
         wb.save()
         wb.close()
+        app.quit()
         app.quit()
         
         return True
@@ -1037,6 +1069,9 @@ def main():
                         patient_data['cells']['AA22'] = "Right Sides /\nالجانب الأيمن"
                     else:
                         patient_data['cells']['AA22'] = "Left Sides /\nالجانب الأيسر"
+                    
+                    # Track trunk movement for body parts detection
+                    patient_data['movements'].append(('lateral flexion', 'trunk'))
                 
                 # Assign knee movements to C21/C23 dynamically
                 knee_movements = []
@@ -1231,11 +1266,8 @@ def main():
             normalized_patient_name = re.sub(r'\s+', ' ', patient_name).strip()
             
             # Determine output path for this patient
-            # If multiple test types, add test type to filename for clarity
-            if len(test_types) > 1:
-                safe_name = make_safe_filename(f"{normalized_patient_name} - {test_type.capitalize()} Body")
-            else:
-                safe_name = make_safe_filename(normalized_patient_name)
+            # Always include test type in filename
+            safe_name = make_safe_filename(f"{normalized_patient_name} - {test_type.capitalize()} Body")
             out_path = os.path.join(programs_folder, safe_name)
             
             # Use xlwings to fill template
