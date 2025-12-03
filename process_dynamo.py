@@ -104,6 +104,9 @@ def get_template_for_test_type(test_type, gym_folder, base_dir):
     body_type = body_type_map.get(test_type, 'Upper Body')
     template_filename = f"{gym_folder} {body_type}.xlsm"
     return os.path.join(base_dir, gym_folder, template_filename)
+
+
+def get_template_info(export_filename):
     """
     Determine which gym and body type based on the export filename.
     Returns: (gym_folder, template_filename)
