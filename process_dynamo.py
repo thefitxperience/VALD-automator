@@ -739,6 +739,7 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         
         # Open the copied file
         wb = app.books.open(out_path, update_links=False, read_only=False, ignore_read_only_recommended=True)
+        workbook_name = wb.name
         
         # Determine sheet name based on gym folder
         template_sheet = gym_folder  # "Body Masters" or "Body Motions"
@@ -906,8 +907,28 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
             if i < max_slots:
                 ws.range(f'A{11+i}').value = body_part_text
         
-        # Save and close (no need to trigger VBA - everything is done in Python)
+        # Save the Excel file
         wb.save()
+        
+        # Export to PDF using AppleScript while workbook is still open
+        pdf_path = out_path.replace('.xlsm', '.pdf')
+        try:
+            applescript = f'''
+            tell application "Microsoft Excel"
+                set visible to false
+                if not (exists workbook "{workbook_name}") then
+                    open "{out_path}"
+                end if
+                tell workbook "{workbook_name}"
+                    save active sheet in POSIX file "{pdf_path}" as PDF file format
+                end tell
+            end tell
+            '''
+            subprocess.run(['osascript', '-e', applescript], capture_output=True, timeout=30, text=True)
+        except Exception:
+            pass
+        
+        # Close workbook and quit Excel
         wb.close()
         app.quit()
         app.quit()
@@ -1265,10 +1286,14 @@ def main():
             # Normalize patient name - remove extra spaces
             normalized_patient_name = re.sub(r'\s+', ' ', patient_name).strip()
             
+            # Create subfolder based on gym (Body Masters or Body Motions)
+            gym_subfolder = os.path.join(programs_folder, gym_folder)
+            os.makedirs(gym_subfolder, exist_ok=True)
+            
             # Determine output path for this patient
             # Always include test type in filename
             safe_name = make_safe_filename(f"{normalized_patient_name} - {test_type.capitalize()} Body")
-            out_path = os.path.join(programs_folder, safe_name)
+            out_path = os.path.join(gym_subfolder, safe_name)
             
             # Use xlwings to fill template
             success = fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder)
