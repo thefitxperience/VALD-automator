@@ -5,6 +5,8 @@ import re
 from openpyxl import load_workbook
 import subprocess
 import xlwings as xw
+from datetime import datetime
+import json
 
 
 def get_movement_test_type(movement, region):
@@ -719,6 +721,134 @@ def get_remark_for_percentage(pct_value):
         return ""
 
 
+def load_test_log(gym_folder, base_dir):
+    """
+    Load the test log for the specified gym.
+    Returns a dict: {patient_name: {test_type: {date: True}}}
+    """
+    log_file = os.path.join(base_dir, f"{gym_folder}_test_log.json")
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+
+def save_test_log(gym_folder, base_dir, log_data):
+    """
+    Save the test log for the specified gym.
+    """
+    log_file = os.path.join(base_dir, f"{gym_folder}_test_log.json")
+    with open(log_file, 'w', encoding='utf-8') as f:
+        json.dump(log_data, f, ensure_ascii=False, indent=2)
+
+
+def log_test(gym_folder, base_dir, patient_name, test_type, test_date, movement_count=0):
+    """
+    Log a test to the gym's test log with movement count.
+    """
+    log_data = load_test_log(gym_folder, base_dir)
+    
+    # Normalize patient name
+    patient_name = re.sub(r'\s+', ' ', patient_name).strip()
+    
+    # Convert date to string if needed
+    if isinstance(test_date, datetime):
+        date_str = test_date.strftime('%Y-%m-%d')
+    else:
+        date_str = str(test_date)
+    
+    # Create structure if needed
+    if patient_name not in log_data:
+        log_data[patient_name] = {}
+    if test_type not in log_data[patient_name]:
+        log_data[patient_name][test_type] = {}
+    
+    # Log this date with movement count
+    log_data[patient_name][test_type][date_str] = movement_count
+    
+    save_test_log(gym_folder, base_dir, log_data)
+
+
+def check_for_new_tests(export_path, gym_folder, base_dir):
+    """
+    Check export file against existing logs and report new tests or updated tests.
+    Returns a list of new/updated tests found.
+    """
+    log_data = load_test_log(gym_folder, base_dir)
+    new_tests = []
+    
+    # Load export file
+    wb = load_workbook(export_path, data_only=True)
+    src_ws = wb.active
+    
+    # Collect patients and their tests from export with movement counts
+    patients = {}
+    for row_idx in range(2, src_ws.max_row + 1):
+        name_val = src_ws[f"A{row_idx}"].value
+        if not name_val or str(name_val).strip() == "":
+            continue
+        
+        patient_name = re.sub(r'\s+', ' ', str(name_val)).strip()
+        date_val = src_ws[f"C{row_idx}"].value
+        
+        if patient_name not in patients:
+            patients[patient_name] = {}
+        
+        # Get movement info to determine test type
+        movement = str(src_ws[f"F{row_idx}"].value or "").lower().strip()
+        region = str(src_ws[f"H{row_idx}"].value or "").lower().strip()
+        test_type = get_movement_test_type(movement, region) or 'unknown'
+        
+        if test_type not in patients[patient_name]:
+            patients[patient_name][test_type] = {}
+        
+        if date_val:
+            if isinstance(date_val, datetime):
+                date_str = date_val.strftime('%Y-%m-%d')
+            else:
+                date_str = str(date_val)
+            
+            # Count movements per date
+            if date_str not in patients[patient_name][test_type]:
+                patients[patient_name][test_type][date_str] = 0
+            patients[patient_name][test_type][date_str] += 1
+    
+    wb.close()
+    
+    # Compare against log
+    for patient_name, test_types in patients.items():
+        for test_type, dates in test_types.items():
+            for date_str, movement_count in dates.items():
+                # Check if this test exists in log
+                is_new = True
+                is_updated = False
+                old_count = 0
+                
+                if patient_name in log_data:
+                    if test_type in log_data[patient_name]:
+                        if date_str in log_data[patient_name][test_type]:
+                            old_count = log_data[patient_name][test_type][date_str]
+                            is_new = False
+                            # Check if movement count increased
+                            if movement_count > old_count:
+                                is_updated = True
+                
+                if is_new or is_updated:
+                    new_tests.append({
+                        'patient': patient_name,
+                        'test_type': test_type,
+                        'date': date_str,
+                        'movement_count': movement_count,
+                        'old_count': old_count,
+                        'status': 'NEW' if is_new else 'UPDATED'
+                    })
+    
+    return new_tests
+
+
 def fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder):
     """
     Use xlwings to fill data while preserving all Excel features like data validation.
@@ -953,13 +1083,206 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
 def main():
     if len(sys.argv) < 2:
         print("Usage: process_dynamo.py <export_file.xlsx>")
+        print("   or: process_dynamo.py --report <masters|motions>")
         sys.exit(1)
+
+    # Check for report-only mode
+    if sys.argv[1] == "--report":
+        if len(sys.argv) < 3 or sys.argv[2].lower() not in ['masters', 'motions', 'all']:
+            print("Usage: process_dynamo.py --report <masters|motions|all>")
+            sys.exit(1)
+        
+        gym_choice = sys.argv[2].lower()
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        if gym_choice == 'all':
+            # Generate combined report for both gyms
+            gyms = ['Body Masters', 'Body Motions']
+            report_path = os.path.join(base_dir, f"Combined_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+            
+            # Calculate total across both gyms
+            total_all = 0
+            total_patients_all = 0
+            for gym in gyms:
+                log_data = load_test_log(gym, base_dir)
+                total_all += sum(
+                    len(dates)
+                    for patient in log_data.values()
+                    for test_type in patient.values()
+                    for dates in [test_type]
+                )
+                total_patients_all += len(log_data)
+            
+            with open(report_path, 'w', encoding='utf-8') as f:
+                f.write(f"Combined Test Database Summary\n")
+                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write("="*60 + "\n")
+                f.write(f"Total tests (both gyms): {total_all}\n")
+                f.write(f"Total patients (both gyms): {total_patients_all}\n")
+                f.write("="*60 + "\n\n")
+                
+                for gym_folder in gyms:
+                    log_data = load_test_log(gym_folder, base_dir)
+                    
+                    if not log_data:
+                        f.write(f"\n{gym_folder}\n")
+                        f.write("-"*60 + "\n")
+                        f.write("No data found\n\n")
+                        continue
+                    
+                    total_count = sum(
+                        len(dates) 
+                        for patient in log_data.values() 
+                        for test_type in patient.values() 
+                        for dates in [test_type]
+                    )
+                    
+                    f.write(f"\n{gym_folder}\n")
+                    f.write("-"*60 + "\n")
+                    f.write(f"Total tests: {total_count}\n")
+                    f.write(f"Total patients: {len(log_data)}\n")
+                    f.write("-"*60 + "\n")
+                    
+                    for patient_name in sorted(log_data.keys()):
+                        patient_tests = log_data[patient_name]
+                        patient_total = sum(len(dates) for dates in patient_tests.values())
+                        f.write(f"\n{patient_name} ({patient_total} test(s))\n")
+                        for test_type, dates in patient_tests.items():
+                            f.write(f"  {test_type.capitalize()} Body: {len(dates)} test(s)\n")
+                            for date_str, movement_count in sorted(dates.items()):
+                                f.write(f"    - {date_str} ({movement_count} movements)\n")
+                    
+                    f.write("\n")
+            
+            print(f"Summary report saved: {report_path}")
+            total_all = sum(
+                len(dates)
+                for gym in gyms
+                for patient in load_test_log(gym, base_dir).values()
+                for test_type in patient.values()
+                for dates in [test_type]
+            )
+            print(f"Total tests across both gyms: {total_all}")
+            sys.exit(0)
+        
+        gym_folder = "Body Masters" if gym_choice == "masters" else "Body Motions"
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Load log data
+        log_data = load_test_log(gym_folder, base_dir)
+        
+        if not log_data:
+            print(f"No data found for {gym_folder}")
+            sys.exit(0)
+        
+        # Count totals
+        total_count = sum(
+            len(dates) 
+            for patient in log_data.values() 
+            for test_type in patient.values() 
+            for dates in [test_type]
+        )
+        
+        # Create summary report
+        report_path = os.path.join(base_dir, f"{gym_folder}_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+        
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write(f"Test Database Summary - {gym_folder}\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("="*60 + "\n")
+            f.write(f"Total tests in database: {total_count}\n")
+            f.write(f"Total patients: {len(log_data)}\n")
+            f.write("="*60 + "\n\n")
+            
+            # List all patients with their test counts
+            for patient_name in sorted(log_data.keys()):
+                patient_tests = log_data[patient_name]
+                patient_total = sum(len(dates) for dates in patient_tests.values())
+                f.write(f"\n{patient_name} ({patient_total} test(s))\n")
+                for test_type, dates in patient_tests.items():
+                    f.write(f"  {test_type.capitalize()} Body: {len(dates)} test(s)\n")
+                    for date_str, movement_count in sorted(dates.items()):
+                        f.write(f"    - {date_str} ({movement_count} movements)\n")
+        
+        print(f"Summary report saved: {report_path}")
+        print(f"Total tests in database: {total_count}")
+        print(f"Total patients: {len(log_data)}")
+        sys.exit(0)
 
     export_path = sys.argv[1]
     if not os.path.isfile(export_path):
         print(f"File not found: {export_path}")
         sys.exit(1)
     
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Determine which template to use based on export filename
+    export_filename = os.path.basename(export_path)
+    gym_folder, template_filename = get_template_info(export_filename)
+    
+    # Check if this is a "check" mode (filename contains "check")
+    is_check_mode = "check" in export_filename.lower()
+    
+    if is_check_mode:
+        print(f"CHECK MODE: Comparing against existing logs for {gym_folder}...")
+        new_tests = check_for_new_tests(export_path, gym_folder, base_dir)
+        
+        # Create output report
+        desktop_path = os.path.expanduser("~/Desktop")
+        report_path = os.path.join(desktop_path, f"{gym_folder}_new_tests_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+        
+        # Count total tests in log after adding new ones
+        log_data = load_test_log(gym_folder, base_dir)
+        
+        # Add new tests to count
+        for test in new_tests:
+            log_test(gym_folder, base_dir, test['patient'], test['test_type'], test['date'], test['movement_count'])
+        
+        # Reload to get updated count
+        log_data = load_test_log(gym_folder, base_dir)
+        total_count = sum(
+            len(dates) 
+            for patient in log_data.values() 
+            for test_type in patient.values() 
+            for dates in [test_type]
+        )
+        
+        # Count new vs updated
+        new_count = sum(1 for test in new_tests if test['status'] == 'NEW')
+        updated_count = sum(1 for test in new_tests if test['status'] == 'UPDATED')
+        
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write(f"New Tests Report - {gym_folder}\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("="*60 + "\n")
+            f.write(f"Total tests in database: {total_count}\n")
+            f.write(f"New tests: {new_count}\n")
+            f.write(f"Updated tests: {updated_count}\n")
+            f.write("="*60 + "\n\n")
+            
+            if new_tests:
+                f.write(f"New/Updated test details:\n\n")
+                for test in new_tests:
+                    f.write(f"Status: {test['status']}\n")
+                    f.write(f"Patient: {test['patient']}\n")
+                    f.write(f"Test Type: {test['test_type'].capitalize()} Body\n")
+                    f.write(f"Test Date: {test['date']}\n")
+                    f.write(f"Movements: {test['movement_count']}")
+                    if test['status'] == 'UPDATED':
+                        f.write(f" (was {test['old_count']})")
+                    f.write("\n")
+                    f.write("-"*40 + "\n")
+            else:
+                f.write("No new tests found. All tests in export have been processed before.\n")
+        
+        print(f"\nReport saved: {report_path}")
+        print(f"Total tests in database: {total_count}")
+        print(f"Found {len(new_tests)} new test(s)")
+        if new_tests:
+            print(f"Logged {len(new_tests)} new test(s) to prevent duplicates in future checks.")
+        sys.exit(0)
+    
+    # Normal processing mode
     # Request automation permissions upfront to avoid repeated prompts
     try:
         subprocess.run([
@@ -1300,6 +1623,12 @@ def main():
             
             if success:
                 print(f"    Saved: {out_path}")
+                
+                # Log this test with movement count
+                test_date = patient_data.get('date')
+                movement_count = len(patient_data.get('movements', []))
+                if test_date:
+                    log_test(gym_folder, base_dir, patient_name, test_type, test_date, movement_count)
             else:
                 print(f"    Failed to save: {out_path}")
 
