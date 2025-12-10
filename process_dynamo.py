@@ -791,6 +791,8 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
         name_val = nz_str(src_ws[f"A{row}"].value).strip()
         if not name_val:
             continue
+        # Normalize patient name - remove extra spaces (same as normal processing)
+        name_val = re.sub(r'\s+', ' ', name_val).strip()
         if name_val not in patients_rows:
             patients_rows[name_val] = []
         patients_rows[name_val].append(row)
@@ -1289,14 +1291,7 @@ def main():
         desktop_path = os.path.expanduser("~/Desktop")
         report_path = os.path.join(desktop_path, f"{gym_folder}_new_tests_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
         
-        # Count total tests in log after adding new ones
-        log_data = load_test_log(gym_folder, base_dir)
-        
-        # Add new tests to count
-        for test in new_tests:
-            log_test(gym_folder, base_dir, test['patient'], test['test_type'], test['date'], test['movement_count'])
-        
-        # Reload to get updated count
+        # Count total tests in log (don't modify log during check)
         log_data = load_test_log(gym_folder, base_dir)
         total_count = sum(
             len(dates) 
@@ -1335,9 +1330,9 @@ def main():
         
         print(f"\nReport saved: {report_path}")
         print(f"Total tests in database: {total_count}")
-        print(f"Found {len(new_tests)} new test(s)")
+        print(f"Found {len(new_tests)} new/updated test(s)")
         if new_tests:
-            print(f"Logged {len(new_tests)} new test(s) to prevent duplicates in future checks.")
+            print(f"Note: Run these tests normally (without 'check' in filename) to add them to the database.")
         sys.exit(0)
     
     # Normal processing mode
