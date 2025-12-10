@@ -776,6 +776,7 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
     """
     Check export file against existing logs and report new tests or updated tests.
     Returns a list of new/updated tests found.
+    Uses the same test type detection and movement filtering logic as normal processing.
     """
     log_data = load_test_log(gym_folder, base_dir)
     new_tests = []
@@ -784,43 +785,100 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
     wb = load_workbook(export_path, data_only=True)
     src_ws = wb.active
     
-    # Collect patients and their tests from export with movement counts
-    patients = {}
-    for row_idx in range(2, src_ws.max_row + 1):
-        name_val = src_ws[f"A{row_idx}"].value
-        if not name_val or str(name_val).strip() == "":
+    # Collect rows per patient name (same as normal processing)
+    patients_rows = {}
+    for row in range(2, src_ws.max_row + 1):
+        name_val = nz_str(src_ws[f"A{row}"].value).strip()
+        if not name_val:
             continue
+        if name_val not in patients_rows:
+            patients_rows[name_val] = []
+        patients_rows[name_val].append(row)
+    
+    # Process each patient using same logic as normal processing
+    patients_tests = {}  # patient_name -> {test_type: {date: movement_count}}
+    
+    for patient_name, rows in patients_rows.items():
+        # Use detect_test_type to determine test types (same as normal processing)
+        test_types = detect_test_type(rows, src_ws)
+        if isinstance(test_types, str):
+            test_types = [test_types]
         
-        patient_name = re.sub(r'\s+', ' ', str(name_val)).strip()
-        date_val = src_ws[f"C{row_idx}"].value
+        patients_tests[patient_name] = {}
         
-        if patient_name not in patients:
-            patients[patient_name] = {}
-        
-        # Get movement info to determine test type
-        movement = str(src_ws[f"F{row_idx}"].value or "").lower().strip()
-        region = str(src_ws[f"H{row_idx}"].value or "").lower().strip()
-        test_type = get_movement_test_type(movement, region) or 'unknown'
-        
-        if test_type not in patients[patient_name]:
-            patients[patient_name][test_type] = {}
-        
-        if date_val:
-            if isinstance(date_val, datetime):
-                date_str = date_val.strftime('%Y-%m-%d')
-            else:
-                date_str = str(date_val)
+        # Process each test type for this patient
+        for test_type in test_types:
+            # Collect movements with valid asymmetry data (same filtering as normal processing)
+            movements_present = {}
+            valid_movements = []  # Track movements that will actually be stored
             
-            # Count movements per date
-            if date_str not in patients[patient_name][test_type]:
-                patients[patient_name][test_type][date_str] = 0
-            patients[patient_name][test_type][date_str] += 1
+            for row in rows:
+                movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+                region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+                asym_raw = src_ws[f"S{row}"].value
+                
+                # Skip if no movement/region
+                if not movement or not region:
+                    continue
+                
+                # Filter by test type if multiple test types exist
+                if len(test_types) > 1:
+                    row_test_type = get_movement_test_type(movement, region)
+                    if row_test_type and row_test_type != test_type:
+                        continue
+                
+                # Skip trunk for normal movements (it's handled separately in lower body)
+                if test_type == 'lower' and region == "trunk":
+                    # Check if trunk will be calculated
+                    trunk_pct, _ = calculate_trunk_asymmetry(rows, src_ws)
+                    if trunk_pct is not None:
+                        # Trunk will be included, add it once
+                        if ('lateral flexion', 'trunk') not in valid_movements:
+                            valid_movements.append(('lateral flexion', 'trunk'))
+                    continue
+                
+                # Skip if no asymmetry data
+                if asym_raw in (None, ""):
+                    continue
+                
+                # Only include if valid asymmetry can be parsed
+                pct_value, side_char = parse_asymmetry(asym_raw)
+                if pct_value is None:
+                    continue
+                
+                # Track this movement
+                key = (movement, region)
+                if key not in movements_present:
+                    movements_present[key] = []
+                    valid_movements.append(key)
+                movements_present[key].append(row)
+            
+            # Get date from first row
+            date_val = None
+            for row in rows:
+                date_val = src_ws[f"C{row}"].value
+                if date_val:
+                    break
+            
+            if date_val:
+                if isinstance(date_val, datetime):
+                    date_str = date_val.strftime('%Y-%m-%d')
+                else:
+                    date_str = str(date_val)
+                
+                # Count only movements that would actually be stored
+                movement_count = len(valid_movements)
+                
+                if test_type not in patients_tests[patient_name]:
+                    patients_tests[patient_name][test_type] = {}
+                
+                patients_tests[patient_name][test_type][date_str] = movement_count
     
     wb.close()
     
     # Compare against log
-    for patient_name, test_types in patients.items():
-        for test_type, dates in test_types.items():
+    for patient_name, test_types_data in patients_tests.items():
+        for test_type, dates in test_types_data.items():
             for date_str, movement_count in dates.items():
                 # Check if this test exists in log
                 is_new = True
