@@ -812,7 +812,7 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
         for test_type in test_types:
             # Collect movements with valid asymmetry data (same filtering as normal processing)
             movements_present = {}
-            valid_movements = []  # Track movements that will actually be stored
+            movements_stored = {}  # Track which movements would actually be stored (highest asymmetry only)
             
             for row in rows:
                 movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
@@ -835,8 +835,8 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                     trunk_pct, _ = calculate_trunk_asymmetry(rows, src_ws)
                     if trunk_pct is not None:
                         # Trunk will be included, add it once
-                        if ('lateral flexion', 'trunk') not in valid_movements:
-                            valid_movements.append(('lateral flexion', 'trunk'))
+                        if ('lateral flexion', 'trunk') not in movements_stored:
+                            movements_stored[('lateral flexion', 'trunk')] = trunk_pct
                     continue
                 
                 # Skip if no asymmetry data
@@ -848,12 +848,16 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 if pct_value is None:
                     continue
                 
-                # Track this movement
+                # Track this movement with its asymmetry value
                 key = (movement, region)
                 if key not in movements_present:
                     movements_present[key] = []
-                    valid_movements.append(key)
-                movements_present[key].append(row)
+                movements_present[key].append(abs(pct_value))
+            
+            # Now determine which movements would actually be stored (only largest asymmetry per movement)
+            for key, asymmetry_values in movements_present.items():
+                # Only store the movement with the largest asymmetry (same logic as normal processing)
+                movements_stored[key] = max(asymmetry_values)
             
             # Get date from first row
             date_val = None
@@ -868,8 +872,8 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 else:
                     date_str = str(date_val)
                 
-                # Count only movements that would actually be stored
-                movement_count = len(valid_movements)
+                # Count only movements that would actually be stored (one per unique movement/region pair)
+                movement_count = len(movements_stored)
                 
                 if test_type not in patients_tests[patient_name]:
                     patients_tests[patient_name][test_type] = {}
