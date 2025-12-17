@@ -17,9 +17,9 @@ def get_movement_test_type(movement, region):
     m = movement.lower().strip()
     r = region.lower().strip()
     
-    # Upper body movements
+    # Upper body movements (specific shoulder movements only, not adduction)
     upper_movements = [
-        (r == "shoulder"),
+        (r == "shoulder" and m in ["external rotation", "internal rotation", "flexion", "abduction", "push", "pull"]),
         (r == "hand"),
         (r == "elbow" and m in ["extension", "flexion"])
     ]
@@ -823,12 +823,6 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 if not movement or not region:
                     continue
                 
-                # Filter by test type if multiple test types exist
-                if len(test_types) > 1:
-                    row_test_type = get_movement_test_type(movement, region)
-                    if row_test_type and row_test_type != test_type:
-                        continue
-                
                 # Skip trunk for normal movements (it's handled separately in lower body)
                 if test_type == 'lower' and region == "trunk":
                     # Check if trunk will be calculated
@@ -846,6 +840,46 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 # Only include if valid asymmetry can be parsed
                 pct_value, side_char = parse_asymmetry(asym_raw)
                 if pct_value is None:
+                    continue
+                
+                # Filter by test type ONLY if multiple test types exist (same as normal mode)
+                if len(test_types) > 1:
+                    row_test_type = get_movement_test_type(movement, region)
+                    if row_test_type and row_test_type != test_type:
+                        continue
+                
+                # Check if this movement would actually be stored based on test type
+                # This mimics the cell assignment logic in normal mode
+                would_be_stored = False
+                
+                if test_type == 'lower':
+                    # Lower body: knee, hip abd/add, hip flex/ext
+                    if region == 'knee' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hip' and movement in ['abduction', 'adduction', 'flexion', 'extension']:
+                        would_be_stored = True
+                        
+                elif test_type == 'upper':
+                    # Upper body: shoulder rotations/movements, push/pull, elbow, hand
+                    if region == 'shoulder' and movement in ['external rotation', 'internal rotation', 'flexion', 'abduction', 'push', 'pull']:
+                        would_be_stored = True
+                    elif region == 'elbow' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hand' and movement == 'grip squeeze':
+                        would_be_stored = True
+                        
+                elif test_type == 'full':
+                    # Full body: shoulder rotations/movements, elbow, knee, hip abd/add
+                    if region == 'shoulder' and movement in ['external rotation', 'internal rotation', 'flexion', 'abduction']:
+                        would_be_stored = True
+                    elif region == 'elbow' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'knee' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hip' and movement in ['abduction', 'adduction']:
+                        would_be_stored = True
+                
+                if not would_be_stored:
                     continue
                 
                 # Track this movement with its asymmetry value
@@ -874,6 +908,10 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 
                 # Count only movements that would actually be stored (one per unique movement/region pair)
                 movement_count = len(movements_stored)
+                
+                # Skip if no movements (don't add to results)
+                if movement_count == 0:
+                    continue
                 
                 if test_type not in patients_tests[patient_name]:
                     patients_tests[patient_name][test_type] = {}
@@ -924,7 +962,7 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         shutil.copy2(template_path, out_path)
         
         # Open Excel invisibly with all alerts/prompts disabled
-        app = xw.App(visible=False, add_book=False)
+        app = xw.App(visible=True, add_book=False)
         app.display_alerts = False
         app.screen_updating = False
         app.api.AskToUpdateLinks = False
