@@ -893,9 +893,18 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 # Only store the movement with the largest asymmetry (same logic as normal processing)
                 movements_stored[key] = max(asymmetry_values)
             
-            # Get date from first row
+            # Get date from first row that belongs to this test type
             date_val = None
             for row in rows:
+                movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+                region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+                
+                # Check if this row's movement belongs to current test type
+                if len(test_types) > 1:
+                    row_test_type = get_movement_test_type(movement, region)
+                    if row_test_type and row_test_type != test_type:
+                        continue  # Skip rows that don't belong to this test type
+                
                 date_val = src_ws[f"C{row}"].value
                 if date_val:
                     break
