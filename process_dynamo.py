@@ -813,6 +813,7 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
             # Collect movements with valid asymmetry data (same filtering as normal processing)
             movements_present = {}
             movements_stored = {}  # Track which movements would actually be stored (highest asymmetry only)
+            rows_with_stored_movements = set()  # Track which rows contributed to stored movements
             
             for row in rows:
                 movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
@@ -882,29 +883,27 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 if not would_be_stored:
                     continue
                 
-                # Track this movement with its asymmetry value
+                # Track this movement with its asymmetry value and the row it came from
                 key = (movement, region)
                 if key not in movements_present:
                     movements_present[key] = []
-                movements_present[key].append(abs(pct_value))
+                movements_present[key].append((abs(pct_value), row))  # Store value AND row number
             
             # Now determine which movements would actually be stored (only largest asymmetry per movement)
-            for key, asymmetry_values in movements_present.items():
-                # Only store the movement with the largest asymmetry (same logic as normal processing)
-                movements_stored[key] = max(asymmetry_values)
+            for key, value_row_pairs in movements_present.items():
+                # Find the row with the largest asymmetry (same logic as normal processing)
+                max_value, max_row = max(value_row_pairs, key=lambda x: x[0])
+                movements_stored[key] = max_value
+                rows_with_stored_movements.add(max_row)  # Track which row was actually used
             
-            # Get date from first row that belongs to this test type
+            # Skip if no movements found for this test type
+            if len(movements_stored) == 0:
+                continue
+            
+            # Get date from the FIRST row that actually contributed a stored movement
+            # Sort the rows to get the earliest one
             date_val = None
-            for row in rows:
-                movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
-                region = nz_str(src_ws[f"H{row}"].value).lower().strip()
-                
-                # Check if this row's movement belongs to current test type
-                if len(test_types) > 1:
-                    row_test_type = get_movement_test_type(movement, region)
-                    if row_test_type and row_test_type != test_type:
-                        continue  # Skip rows that don't belong to this test type
-                
+            for row in sorted(rows_with_stored_movements):
                 date_val = src_ws[f"C{row}"].value
                 if date_val:
                     break
@@ -917,10 +916,6 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 
                 # Count only movements that would actually be stored (one per unique movement/region pair)
                 movement_count = len(movements_stored)
-                
-                # Skip if no movements (don't add to results)
-                if movement_count == 0:
-                    continue
                 
                 if test_type not in patients_tests[patient_name]:
                     patients_tests[patient_name][test_type] = {}
