@@ -889,10 +889,10 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                     movements_present[key] = []
                 movements_present[key].append((abs(pct_value), row))  # Store value AND row number
             
-            # Now determine which movements would actually be stored (only latest per movement)
+            # Now determine which movements would actually be stored (only largest asymmetry per movement)
             for key, value_row_pairs in movements_present.items():
-                # Find the row with the LATEST measurement (lowest row number = latest in descending file)
-                max_value, max_row = min(value_row_pairs, key=lambda x: x[1])  # Min row number = latest
+                # Find the row with the largest asymmetry (same logic as normal processing)
+                max_value, max_row = max(value_row_pairs, key=lambda x: x[0])  # x[0] is asymmetry value
                 movements_stored[key] = max_value
                 rows_with_stored_movements.add(max_row)  # Track which row was actually used
             
