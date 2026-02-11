@@ -889,10 +889,10 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                     movements_present[key] = []
                 movements_present[key].append((abs(pct_value), row))  # Store value AND row number
             
-            # Now determine which movements would actually be stored (only largest asymmetry per movement)
+            # Now determine which movements would actually be stored (only latest per movement)
             for key, value_row_pairs in movements_present.items():
-                # Find the row with the largest asymmetry (same logic as normal processing)
-                max_value, max_row = max(value_row_pairs, key=lambda x: x[0])
+                # Find the row with the LATEST measurement (lowest row number = latest in descending file)
+                max_value, max_row = min(value_row_pairs, key=lambda x: x[1])  # Min row number = latest
                 movements_stored[key] = max_value
                 rows_with_stored_movements.add(max_row)  # Track which row was actually used
             
@@ -1467,6 +1467,7 @@ def main():
             patient_data = {
                 'date': None,
                 'cells': {},
+                'cell_rows': {},  # Track which row each cell came from
                 'test_type': test_type,  # Store test type for body parts detection
                 'movements': []  # Track which movements were actually stored
             }
@@ -1680,12 +1681,13 @@ def main():
                 # Get movement label
                 movement_label = get_movement_label(movement, region)
 
-                # Keep only largest absolute asymmetry
-                existing = patient_data['cells'].get(pct_cell_addr)
-                if existing is None:
+                # Always keep the latest measurement (file is in descending order, so lower row = later)
+                existing_row = patient_data['cell_rows'].get(pct_cell_addr)
+                if existing_row is None:
                     should_update = True
                 else:
-                    should_update = abs(pct_value) > abs(nz_float(existing))
+                    # Update if current row is earlier in file (lower row number = later measurement)
+                    should_update = row < existing_row
 
                 if should_update:
                     # Store movement label if we have a label cell (lower body)
@@ -1694,6 +1696,9 @@ def main():
                     
                     # Store numeric value divided by 100 (Excel will format as percentage)
                     patient_data['cells'][pct_cell_addr] = pct_value / 100
+                    
+                    # Track which row this cell came from
+                    patient_data['cell_rows'][pct_cell_addr] = row
                     
                     # Only set weak side if it's not None (i.e., not a 0% asymmetry case)
                     if weak_side is not None:
