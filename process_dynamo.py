@@ -224,6 +224,7 @@ def calculate_trunk_asymmetry(patient_rows, src_ws):
     Calculate trunk asymmetry from Lateral Flexion Right and Left.
     Returns: (percentage, weak_side) or (None, None) if not enough data.
     Formula: Asymmetry(%) = ((L - R) / ((L + R) / 2)) * 100
+    Uses N Max Force (N) from column O.
     """
     trunk_data = {}
     
@@ -233,7 +234,7 @@ def calculate_trunk_asymmetry(patient_rows, src_ws):
         
         # Look for trunk lateral flexion movements
         if region == "trunk" and "lateral flexion" in movement:
-            force = nz_float(src_ws[f"R{row}"].value)  # N Avg Force (N)
+            force = nz_float(src_ws[f"O{row}"].value)  # N Max Force (N)
             
             if "right" in movement:
                 trunk_data['right'] = force
