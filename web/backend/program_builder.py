@@ -146,16 +146,21 @@ def _bilingual_label(s: str) -> str:
     Demo data:  'Knee Extension Asymmetry / Quadriceps'               → lookup Arabic
     """
     en, rest = _split_slash(s)
+    _STRIP_ASYMMETRY = {
+        "Shoulder IR Standing Asymmetry",
+        "Shoulder External Rotation Asymmetry",
+    }
+    en_disp = en.replace(" Asymmetry", "") if en in _STRIP_ASYMMETRY else en
     if rest:
         if _has_arabic(rest):
             # Already bilingual — just format
-            return f"{en} /<br>{rest}"
+            return f"{en_disp} /<br>{rest}"
         else:
             # English region — replace with Arabic lookup, drop the English region
             ar = _LABEL_AR.get(en, '')
-            return f"{en} /<br>{ar}" if ar else f"{en} / {rest}"
+            return f"{en_disp} /<br>{ar}" if ar else f"{en_disp} / {rest}"
     ar = _LABEL_AR.get(en, '')
-    return f"{en}<br>{ar}" if ar else en
+    return f"{en_disp}<br>{ar}" if ar else en_disp
 
 def _bilingual_side(s: str) -> str:
     """Format side string for bilingual display.
@@ -474,6 +479,7 @@ def generate_program_html(gym: str, test_type: str, patient_name: str,
 
         secs_html += f"""
 <div class="sec">
+  <div class="sec-ex">
   <table class="ex-table">
     <colgroup>
       <col class="cx"><col class="cn"><col class="cn"><col class="cn"><col class="cn">
@@ -492,6 +498,7 @@ def generate_program_html(gym: str, test_type: str, patient_name: str,
       {ex_rows}
     </tbody>
   </table>
+  </div>
   <div class="rem-hdr"><span>REMARKS</span><span>ملاحظات</span></div>
   <table class="rem-table">
     <tbody>
@@ -527,6 +534,8 @@ body {{ font-family: Arial, Helvetica, sans-serif; width: 320mm; background: #ff
 /* ── Section layout ── */
 .sections {{ display:flex; gap:2mm; align-items:stretch; }}
 .sec {{ flex:0 0 230px; width:230px; display:flex; flex-direction:column; }}
+.sec-ex {{ flex:1; display:flex; flex-direction:column; }}
+.sec-ex .ex-table {{ flex:1; }}
 /* ── Exercise table ── */
 .ex-table {{ width:100%; border-collapse:separate; border-spacing:1px; background:#fff; table-layout:fixed; }}
 col.cx {{ width:122px; }}
