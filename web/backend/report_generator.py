@@ -176,15 +176,21 @@ def generate_report(
 
             full_name = f"{client_name} - {test_type_label}" if test_type_label else client_name
 
-            ws.cell(row=dest_row, column=1, value=client_id)
+            # Store client_id as a number when possible
+            try:
+                client_id_val = int(client_id) if str(client_id).strip() else ""
+            except (ValueError, TypeError):
+                client_id_val = client_id
+
+            ws.cell(row=dest_row, column=1, value=client_id_val)
             ws.cell(row=dest_row, column=2, value=full_name)
             ws.cell(row=dest_row, column=3, value=trainer)
             ws.cell(row=dest_row, column=4, value=test_date)
             ws.cell(row=dest_row, column=5, value=dispatch_date)
 
             # Format date cells
-            ws.cell(row=dest_row, column=4).number_format = "YYYY-MM-DD"
-            ws.cell(row=dest_row, column=5).number_format = "YYYY-MM-DD"
+            ws.cell(row=dest_row, column=4).number_format = "DD/MM/YYYY"
+            ws.cell(row=dest_row, column=5).number_format = "DD/MM/YYYY"
 
     # Save to bytes
     buf = io.BytesIO()
