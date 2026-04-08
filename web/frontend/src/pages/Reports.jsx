@@ -26,6 +26,22 @@ export default function Reports() {
 
   const totalWeeks = weeksInMonth(year, month)
 
+  // Determine if selected period is in the future
+  const isFuture = (() => {
+    const todayYear = now.getFullYear()
+    const todayMonth = now.getMonth() + 1
+    if (year > todayYear) return true
+    if (year < todayYear) return false
+    if (month > todayMonth) return true
+    if (month < todayMonth) return false
+    // Same month — for weekly, check if week start is after today
+    if (periodType === 'weekly') {
+      const weekStart = (weekNumber - 1) * 7 + 1
+      return weekStart > now.getDate()
+    }
+    return false
+  })()
+
   const handleGenerate = async () => {
     setLoading(true)
     setError(null)
@@ -168,11 +184,17 @@ export default function Reports() {
       {/* Generate button */}
       <button
         onClick={handleGenerate}
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold text-sm transition-colors"
+        disabled={loading || isFuture}
+        className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
       >
         {loading ? 'Generating…' : 'Generate & Download Report'}
       </button>
+
+      {isFuture && (
+        <p className="text-xs text-amber-500 text-center">
+          Cannot generate a report for a future period.
+        </p>
+      )}
 
       <p className="text-xs text-gray-500 text-center">
         Report pulls all <strong className="text-gray-400">approved</strong> programs
