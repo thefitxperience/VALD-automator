@@ -3,12 +3,13 @@ FastAPI backend for VALD Automator web app.
 """
 import os
 import io
+import traceback
 from datetime import date, datetime
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
 from supabase import create_client, Client
@@ -35,6 +36,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "traceback": traceback.format_exc()},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
