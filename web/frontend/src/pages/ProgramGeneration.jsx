@@ -91,18 +91,20 @@ export default function ProgramGeneration() {
         ))}
       </div>
 
-      {/* Upload areas — side by side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Upload areas — full width before results, split after */}
+      <div className={results !== null ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : ''}>
         {/* Check file */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Check File
-          </label>
+          {results !== null && (
+            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Check File
+            </label>
+          )}
           <CheckDropzone onFile={handleFile} loading={loading} />
         </div>
 
-        {/* Bulk results PDFs */}
-        <div className="space-y-2">
+        {/* Bulk results PDFs — only shown after check */}
+        {results !== null && <div className="space-y-2">
           <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Bulk Results PDFs
             <span className="ml-2 text-gray-600 normal-case font-normal">
@@ -149,7 +151,7 @@ export default function ProgramGeneration() {
               </>
             )}
           </div>
-        </div>
+        </div>}
       </div>
 
       {error && (
