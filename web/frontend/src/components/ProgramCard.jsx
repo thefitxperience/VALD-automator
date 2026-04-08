@@ -126,6 +126,17 @@ export default function ProgramCard({ test, gym }) {
             )}
           </div>
         </div>
+        {/* Copy client name */}
+        <button
+          onClick={() => navigator.clipboard.writeText(test.patient)}
+          title="Copy client name"
+          className="text-gray-600 hover:text-gray-300 transition-colors p-1 rounded"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </button>
       </div>
 
       {/* Assignment row */}
@@ -178,7 +189,18 @@ export default function ProgramCard({ test, gym }) {
           {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
 
-        {/* 2 — WhatsApp */}
+        {/* 2 — Copy File Name (for results PDF) */}
+        <button
+          onClick={() => {
+            const label = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }[test.test_type] || test.test_type
+            navigator.clipboard.writeText(`${test.patient} - ${label}`)
+          }}
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
+        >
+          📋 Copy File Name
+        </button>
+
+        {/* 3 — WhatsApp */}
         <button
           onClick={openWhatsapp}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"

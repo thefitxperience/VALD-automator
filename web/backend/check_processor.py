@@ -4,7 +4,55 @@ Extracted from process_dynamo.py — pure openpyxl, no xlwings.
 """
 import re
 from datetime import datetime
-from openpyxl import load_workbook
+
+
+# ── fast xlsx loading via calamine (Rust) ────────────────────────────────────
+
+def _col_letter(n: int) -> str:
+    """Convert 1-based column index to Excel column letter(s): 1→A, 27→AA."""
+    result = ''
+    while n:
+        n, r = divmod(n - 1, 26)
+        result = chr(65 + r) + result
+    return result
+
+
+def _make_ws_adapter(rows_data: list):
+    """Build a minimal openpyxl-compatible worksheet from calamine row data."""
+    cells = {}
+    for r_idx, row in enumerate(rows_data):
+        row_num = r_idx + 1
+        for c_idx, val in enumerate(row):
+            if val != '':   # calamine uses '' for empty, openpyxl uses None
+                cells[f"{_col_letter(c_idx + 1)}{row_num}"] = val
+    _max_row = len(rows_data)
+
+    class _Cell:
+        __slots__ = ('value',)
+        def __init__(self, v): self.value = v
+
+    class _Ws:
+        def __getitem__(self, key): return _Cell(cells.get(key))
+        @property
+        def max_row(self): return _max_row
+
+    return _Ws()
+
+
+def _load_worksheet(file_bytes: bytes):
+    """Load the first sheet. Uses calamine (fast) if available, openpyxl otherwise."""
+    try:
+        from python_calamine import CalamineWorkbook
+        import io
+        cal = CalamineWorkbook.from_filelike(io.BytesIO(file_bytes))
+        ws = _make_ws_adapter(cal.get_sheet_by_index(0).to_python())
+        cal.close()
+        return ws, None          # (worksheet, workbook_or_None)
+    except ImportError:
+        import io
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(file_bytes), data_only=True)
+        return wb.active, wb
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -457,8 +505,7 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
         status, patient, external_id, test_type, date, movement_count, old_count
     """
     import io
-    wb = load_workbook(io.BytesIO(file_bytes), data_only=True)
-    src_ws = wb.active
+    src_ws, _wb = _load_worksheet(file_bytes)
 
     # Build lookup from existing approved programs
     # key: (normalized_client_name, test_type, date_str) → movement_count
@@ -621,5 +668,6 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
                     "prev_asymmetries": prev_av if prev_av else None,
                 })
 
-    wb.close()
+    if _wb:
+        _wb.close()
     return new_tests
