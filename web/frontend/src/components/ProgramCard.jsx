@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
+import { approveProgram, unapproveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -126,6 +126,21 @@ export default function ProgramCard({ test, gym }) {
     }
   }
 
+  const handleUnapprove = async () => {
+    try {
+      await unapproveProgram({
+        gym,
+        client_name: test.patient,
+        test_type: test.test_type,
+        test_date: test.date,
+        movements: test.movement_count,
+      })
+      setApproved(false)
+    } catch (e) {
+      alert('Error undoing approval: ' + (e.response?.data?.detail || e.message))
+    }
+  }
+
   const openWhatsapp = () => {
     if (!whatsappNum) {
       alert('No WhatsApp number set for this trainer.')
@@ -135,24 +150,9 @@ export default function ProgramCard({ test, gym }) {
     window.open(`https://wa.me/${clean}`, '_blank')
   }
 
-  if (ignored) return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900/40 px-5 py-3 flex items-center justify-between opacity-50">
-      <span className="text-sm text-gray-500">
-        <span className="font-medium text-gray-400">{test.patient}</span>
-        {' '}· {TYPE_LABEL[test.test_type]} · {test.date} · <span className="italic">ignored</span>
-      </span>
-      <button
-        onClick={handleUnignore}
-        className="text-xs px-3 py-1 rounded-lg border border-gray-700 text-gray-400 hover:border-gray-400 hover:text-gray-200 transition-colors"
-      >
-        Undo
-      </button>
-    </div>
-  )
-
   return (
     <div className={`rounded-xl border p-5 space-y-4 transition-all
-      ${approved ? 'border-emerald-700 bg-emerald-950/20' : 'border-gray-700 bg-gray-900'}`}
+      ${approved ? 'border-emerald-700 bg-emerald-950/20' : ignored ? 'border-red-900 bg-red-950/20' : 'border-gray-700 bg-gray-900'}`}
     >
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -198,7 +198,7 @@ export default function ProgramCard({ test, gym }) {
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={branch}
             onChange={(e) => { setBranch(e.target.value); setTrainer('') }}
-            disabled={approved}
+            disabled={approved || ignored}
           >
             <option value="">Select branch…</option>
             {branches.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -210,7 +210,7 @@ export default function ProgramCard({ test, gym }) {
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={trainer}
             onChange={(e) => setTrainer(e.target.value)}
-            disabled={!branch || approved}
+            disabled={!branch || approved || ignored}
           >
             <option value="">Select trainer…</option>
             {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -223,7 +223,7 @@ export default function ProgramCard({ test, gym }) {
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={dispatchDate}
             onChange={(e) => setDispatchDate(e.target.value)}
-            disabled={approved}
+            disabled={approved || ignored}
           />
         </div>
       </div>
@@ -252,7 +252,7 @@ export default function ProgramCard({ test, gym }) {
         </button>
 
         {/* 3 — Ignore */}
-        {!approved && (
+        {!approved && !ignored && (
           <button
             onClick={handleIgnore}
             disabled={ignoring}
@@ -275,8 +275,32 @@ export default function ProgramCard({ test, gym }) {
           WhatsApp
         </button>
 
-        {/* 5 — Approve */}
-        {!approved ? (
+        {/* 5 — Approve / status badge */}
+        {approved ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-4 py-1.5 rounded-lg bg-emerald-700/40 text-emerald-400 font-semibold border border-emerald-700">
+              ✓ Approved
+            </span>
+            <button
+              onClick={handleUnapprove}
+              className="text-xs px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:border-gray-400 hover:text-gray-200 transition-colors"
+            >
+              Undo
+            </button>
+          </div>
+        ) : ignored ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-4 py-1.5 rounded-lg bg-red-900/40 text-red-400 font-semibold border border-red-800">
+              ✗ Ignored
+            </span>
+            <button
+              onClick={handleUnignore}
+              className="text-xs px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:border-gray-400 hover:text-gray-200 transition-colors"
+            >
+              Undo
+            </button>
+          </div>
+        ) : (
           <button
             onClick={handleApprove}
             disabled={saving}
@@ -284,10 +308,6 @@ export default function ProgramCard({ test, gym }) {
           >
             {saving ? 'Saving…' : 'Approve'}
           </button>
-        ) : (
-          <span className="text-xs px-4 py-1.5 rounded-lg bg-emerald-700/40 text-emerald-400 font-semibold border border-emerald-700">
-            ✓ Approved
-          </span>
         )}
       </div>
     </div>

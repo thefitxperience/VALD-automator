@@ -267,6 +267,22 @@ def api_unignore(payload: IgnorePayload):
     raise HTTPException(status_code=404, detail="Record not found")
 
 
+@app.post("/api/programs/unapprove")
+def api_unapprove(payload: IgnorePayload):
+    res = (
+        supabase.table("programs")
+        .update({"approved": False, "approved_at": None})
+        .eq("gym", payload.gym)
+        .eq("client_name", payload.client_name)
+        .eq("test_type", payload.test_type)
+        .eq("test_date", payload.test_date)
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=404, detail="Record not found")
+
+
 # -- On-demand program PDF generation --
 
 class GeneratePayload(BaseModel):
