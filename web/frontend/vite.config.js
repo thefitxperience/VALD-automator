@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // base: '/your-repo-name/' // uncomment and set if deploying to GitHub Pages subfolder
+  base: '/VALD-automator/',
 })
