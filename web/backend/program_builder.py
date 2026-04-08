@@ -461,11 +461,11 @@ def generate_program_html(gym: str, test_type: str, patient_name: str,
             style = f" style='color:{cc}'" if cc else ""
             rem_pairs += (
                 f"<tr class='ra'>"
-                f"<td class='rl'>{_bilingual_label(r['label'])}</td>"
+                f"<td class='rl'{style}>{_bilingual_label(r['label'])}</td>"
                 f"<td class='rp'{style}>{r['pct_display']}</td>"
                 f"</tr>"
                 f"<tr class='rb'>"
-                f"<td class='rs'>{_bilingual_side(r['side'])}</td>"
+                f"<td class='rs'{style}>{_bilingual_side(r['side'])}</td>"
                 f"<td class='rrk'{style}>{_fmt_remark(r['remark_str'], None)}</td>"
                 f"</tr>"
             )
