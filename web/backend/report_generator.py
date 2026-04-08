@@ -115,23 +115,30 @@ def generate_report(
     rpt_date = report_date or date.today()
     # Branch sheets always show the first day of the report month
     branch_date = date(year, month, 1)
-    # REPORT summary sheets: last day of month (monthly) or last day of the week (weekly)
+    # REPORT summary sheets: today for monthly, last day of the week for weekly
     if period_type == "weekly":
         _, summary_date = _week_range(year, month, week_number)
     else:
-        summary_date = period_end  # last day of the month
+        # Use last day of the month if it's already passed, otherwise today
+        _, last_day = _week_range(year, month, 4)  # get month boundaries via helper
+        # Recalculate actual last day of month properly
+        if month == 12:
+            last_day = date(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            last_day = date(year, month + 1, 1) - timedelta(days=1)
+        summary_date = last_day if last_day < rpt_date else rpt_date
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
         # Summary sheets
         if sheet_name in ("REPORT", "REPORT 2"):
             ws["B3"] = summary_date
-            ws["B3"].number_format = "MMM-YY"
+            ws["B3"].number_format = "DD/MM/YYYY"
             continue
 
         # Branch sheet — first day of the month
         ws["B3"] = branch_date
-        ws["B3"].number_format = "MMM-YY"
+        ws["B3"].number_format = "DD/MM/YYYY"
 
         branch_programs = by_branch.get(sheet_name, [])
         if not branch_programs:
