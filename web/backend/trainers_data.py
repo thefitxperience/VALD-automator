@@ -329,7 +329,7 @@ TRAINERS = {
                 {"name": "Hicham Mouhime", "whatsapp": "+966594857442"},
                 {"name": "Abdellatif Zamzam", "whatsapp": ""},
                 {"name": "Fady Elsayed", "whatsapp": ""},
-                {"name": "Mohamed Kamal", "whatsapp": ""},
+                {"name": "Mohamed Kamal", "whatsapp": "+966561537676"},
             ]
         },
         "RUH - Swaidi": {
