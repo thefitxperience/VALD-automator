@@ -25,6 +25,9 @@ export const patchProgram = (id, payload) => api.patch(`/api/programs/${id}`, pa
 export const generatePdf = (payload) =>
   api.post('/api/programs/generate-pdf', payload, { responseType: 'blob' })
 
+export const previewHtml = (payload) =>
+  api.post('/api/programs/preview', payload, { responseType: 'text' })
+
 export const uploadPdf = (programId, pdfType, file) => {
   const fd = new FormData()
   fd.append('pdf_type', pdfType)
