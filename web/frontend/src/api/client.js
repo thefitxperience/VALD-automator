@@ -21,6 +21,7 @@ export const getTrainerWhatsapp = (gym, branch, trainer) =>
 
 export const approveProgram = (payload) => api.post('/api/programs/approve', payload)
 export const ignoreTest = (payload) => api.post('/api/programs/ignore', payload)
+export const unignoreTest = (payload) => api.post('/api/programs/unignore', payload)
 export const patchProgram = (id, payload) => api.patch(`/api/programs/${id}`, payload)
 
 export const generatePdf = (payload) =>

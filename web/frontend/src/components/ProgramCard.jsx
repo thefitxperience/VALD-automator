@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, getTrainerWhatsapp, previewHtml, ignoreTest } from '../api/client'
+import { approveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -111,6 +111,21 @@ export default function ProgramCard({ test, gym }) {
     }
   }
 
+  const handleUnignore = async () => {
+    try {
+      await unignoreTest({
+        gym,
+        client_name: test.patient,
+        test_type: test.test_type,
+        test_date: test.date,
+        movements: test.movement_count,
+      })
+      setIgnored(false)
+    } catch (e) {
+      alert('Error undoing ignore: ' + (e.response?.data?.detail || e.message))
+    }
+  }
+
   const openWhatsapp = () => {
     if (!whatsappNum) {
       alert('No WhatsApp number set for this trainer.')
@@ -120,7 +135,20 @@ export default function ProgramCard({ test, gym }) {
     window.open(`https://wa.me/${clean}`, '_blank')
   }
 
-  if (ignored) return null
+  if (ignored) return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900/40 px-5 py-3 flex items-center justify-between opacity-50">
+      <span className="text-sm text-gray-500">
+        <span className="font-medium text-gray-400">{test.patient}</span>
+        {' '}· {TYPE_LABEL[test.test_type]} · {test.date} · <span className="italic">ignored</span>
+      </span>
+      <button
+        onClick={handleUnignore}
+        className="text-xs px-3 py-1 rounded-lg border border-gray-700 text-gray-400 hover:border-gray-400 hover:text-gray-200 transition-colors"
+      >
+        Undo
+      </button>
+    </div>
+  )
 
   return (
     <div className={`rounded-xl border p-5 space-y-4 transition-all

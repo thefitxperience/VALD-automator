@@ -251,6 +251,22 @@ def api_ignore(payload: IgnorePayload):
     raise HTTPException(status_code=500, detail="Failed to ignore program")
 
 
+@app.post("/api/programs/unignore")
+def api_unignore(payload: IgnorePayload):
+    res = (
+        supabase.table("programs")
+        .update({"ignored": False})
+        .eq("gym", payload.gym)
+        .eq("client_name", payload.client_name)
+        .eq("test_type", payload.test_type)
+        .eq("test_date", payload.test_date)
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=404, detail="Record not found")
+
+
 # -- On-demand program PDF generation --
 
 class GeneratePayload(BaseModel):
