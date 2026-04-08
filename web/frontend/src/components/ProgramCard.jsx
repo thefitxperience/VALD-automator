@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, uploadPdf, getTrainerWhatsapp } from '../api/client'
+import { approveProgram, uploadPdf, getTrainerWhatsapp, generatePdf } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -8,23 +8,31 @@ const STATUS_BADGE = {
   UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
 }
 
-export default function ProgramCard({ test, gym }) {
+export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   const [branch, setBranch] = useState('')
   const [trainer, setTrainer] = useState('')
   const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
-  const [programPdf, setProgramPdf] = useState(null)   // File object
-  const [resultsPdf, setResultsPdf] = useState(null)   // File object
-  const [programPdfUrl, setProgramPdfUrl] = useState(null)
+
+  // Program PDF (generated on demand)
+  const [generating, setGenerating] = useState(false)
+  const [programBlobUrl, setProgramBlobUrl] = useState(null)
+  const [programFilename, setProgramFilename] = useState(null)
+
+  // Results PDF — can be injected from bulk upload or added manually per card
+  const [resultsPdf, setResultsPdf] = useState(null)
+
+  // Post-approve
   const [resultsPdfUrl, setResultsPdfUrl] = useState(null)
   const [approved, setApproved] = useState(false)
-  const [approvedId, setApprovedId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [whatsappNum, setWhatsappNum] = useState('')
 
   const branches = getBranches(gym)
   const trainers = branch ? getTrainers(gym, branch) : []
 
-  // Fetch WhatsApp number when trainer is selected
+  // Use injected results PDF from bulk upload if not manually set
+  const activeResultsPdf = resultsPdf || injectedResultsPdf || null
+
   useEffect(() => {
     if (gym && branch && trainer) {
       getTrainerWhatsapp(gym, branch, trainer)
@@ -32,6 +40,36 @@ export default function ProgramCard({ test, gym }) {
         .catch(() => setWhatsappNum(''))
     }
   }, [gym, branch, trainer])
+
+  // Generate program PDF on demand
+  const handleGenerate = async () => {
+    if (!test.cells_data) {
+      alert('No cell data available for this test. Re-run the check.')
+      return
+    }
+    setGenerating(true)
+    try {
+      const res = await generatePdf({
+        gym,
+        test_type: test.test_type,
+        patient_name: test.patient,
+        test_date: test.date,
+        cells_data: test.cells_data,
+      })
+      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      // Extract filename from Content-Disposition or build one
+      const disposition = res.headers['content-disposition'] || ''
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      const filename = match ? match[1] : `${test.patient} - ${TYPE_LABEL[test.test_type]}.pdf`
+      setProgramBlobUrl(url)
+      setProgramFilename(filename)
+    } catch (e) {
+      alert('Failed to generate program: ' + (e.response?.data?.detail || e.message))
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   const handleApprove = async () => {
     if (!branch || !trainer) {
@@ -53,15 +91,10 @@ export default function ProgramCard({ test, gym }) {
         check_status: test.status,
       })
       const id = res.data?.id
-      setApprovedId(id)
 
-      // Upload PDFs if selected
-      if (programPdf && id) {
-        const pRes = await uploadPdf(id, 'program', programPdf)
-        setProgramPdfUrl(pRes.data?.url)
-      }
-      if (resultsPdf && id) {
-        const rRes = await uploadPdf(id, 'results', resultsPdf)
+      // Upload results PDF if we have one
+      if (activeResultsPdf && id) {
+        const rRes = await uploadPdf(id, 'results', activeResultsPdf)
         setResultsPdfUrl(rRes.data?.url)
       }
 
@@ -75,27 +108,18 @@ export default function ProgramCard({ test, gym }) {
 
   const openWhatsapp = () => {
     if (!whatsappNum) {
-      alert('No WhatsApp number set for this trainer. Add it in trainers_data.py / trainers.js.')
+      alert('No WhatsApp number set for this trainer.')
       return
     }
     const clean = whatsappNum.replace(/\D/g, '')
     window.open(`https://wa.me/${clean}`, '_blank')
   }
 
-  const downloadPdf = (url, label) => {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = label
-    a.target = '_blank'
-    a.click()
-  }
-
   return (
-    <div
-      className={`rounded-xl border p-5 space-y-4 transition-all
-        ${approved ? 'border-emerald-700 bg-emerald-950/20' : 'border-gray-700 bg-gray-900'}`}
+    <div className={`rounded-xl border p-5 space-y-4 transition-all
+      ${approved ? 'border-emerald-700 bg-emerald-950/20' : 'border-gray-700 bg-gray-900'}`}
     >
-      {/* Header row */}
+      {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -118,20 +142,17 @@ export default function ProgramCard({ test, gym }) {
             )}
           </div>
         </div>
-
-        {/* Results assigned indicator */}
-        <div className="flex items-center gap-1 text-xs font-medium">
-          {resultsPdf || resultsPdfUrl ? (
-            <span className="text-emerald-400">✓ Results assigned</span>
+        <div className="text-xs font-medium">
+          {activeResultsPdf ? (
+            <span className="text-emerald-400">✓ Results attached</span>
           ) : (
-            <span className="text-gray-500">Results not assigned</span>
+            <span className="text-gray-500">No results PDF</span>
           )}
         </div>
       </div>
 
       {/* Assignment row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Branch */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">Branch</label>
           <select
@@ -141,13 +162,9 @@ export default function ProgramCard({ test, gym }) {
             disabled={approved}
           >
             <option value="">Select branch…</option>
-            {branches.map((b) => (
-              <option key={b} value={b}>{b}</option>
-            ))}
+            {branches.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
-
-        {/* Trainer */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">Trainer</label>
           <select
@@ -157,13 +174,9 @@ export default function ProgramCard({ test, gym }) {
             disabled={!branch || approved}
           >
             <option value="">Select trainer…</option>
-            {trainers.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
+            {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
-
-        {/* Dispatch date */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">Dispatch Date</label>
           <input
@@ -176,56 +189,52 @@ export default function ProgramCard({ test, gym }) {
         </div>
       </div>
 
-      {/* PDF section */}
-      <div className="flex flex-wrap gap-3 items-center">
-        {/* Program PDF */}
-        <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
-          ${programPdf ? 'border-brand-600 text-brand-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
-          {programPdf ? `📄 ${programPdf.name}` : '+ Program PDF'}
-          <input
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            disabled={approved}
-            onChange={(e) => e.target.files[0] && setProgramPdf(e.target.files[0])}
-          />
-        </label>
+      {/* Actions row */}
+      <div className="flex flex-wrap gap-2 items-center">
 
-        {/* Results PDF */}
-        <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
-          ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
-          {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
-          <input
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            disabled={approved}
-            onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
-          />
-        </label>
-
-        {/* Download buttons (after approval) */}
-        {programPdfUrl && (
+        {/* 1 — Generate / Download Program PDF */}
+        {!programBlobUrl ? (
           <button
-            onClick={() => downloadPdf(programPdfUrl, `${test.patient} - ${TYPE_LABEL[test.test_type]}.pdf`)}
+            onClick={handleGenerate}
+            disabled={generating || approved}
+            className="text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 disabled:opacity-50 transition-colors"
+          >
+            {generating ? 'Generating…' : '⚡ Generate Program'}
+          </button>
+        ) : (
+          <a
+            href={programBlobUrl}
+            download={programFilename}
             className="text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 transition-colors"
           >
-            ⬇ Program
-          </button>
-        )}
-        {resultsPdfUrl && (
-          <button
-            onClick={() => downloadPdf(resultsPdfUrl, `${test.patient} - Results.pdf`)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-400 hover:bg-emerald-900/30 transition-colors"
-          >
-            ⬇ Results
-          </button>
+            ⬇ Download PDF
+          </a>
         )}
 
-        {/* Spacer */}
+        {/* 2 — Results PDF (manual per-card, shown if not injected) */}
+        {!injectedResultsPdf && (
+          <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
+            ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
+            {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
+            <input
+              type="file" accept=".pdf" className="hidden"
+              disabled={approved}
+              onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
+            />
+          </label>
+        )}
+
+        {/* 3 — Download results after approve */}
+        {resultsPdfUrl && (
+          <a href={resultsPdfUrl} target="_blank" rel="noreferrer"
+            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-400 hover:bg-emerald-900/30 transition-colors">
+            ⬇ Results
+          </a>
+        )}
+
         <div className="flex-1" />
 
-        {/* WhatsApp */}
+        {/* 4 — WhatsApp */}
         <button
           onClick={openWhatsapp}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"
@@ -236,7 +245,7 @@ export default function ProgramCard({ test, gym }) {
           WhatsApp
         </button>
 
-        {/* Approve */}
+        {/* 5 — Approve */}
         {!approved ? (
           <button
             onClick={handleApprove}

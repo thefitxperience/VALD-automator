@@ -17,6 +17,7 @@ from supabase import create_client, Client
 from check_processor import process_check_file
 from report_generator import generate_report
 from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
+from program_builder import generate_program_pdf
 
 # ── Supabase ──────────────────────────────────────────────────────────────────
 
@@ -101,15 +102,24 @@ async def api_check(
 ):
     content = await file.read()
 
-    # Fetch existing approved programs for this gym from Supabase
-    res = (
-        supabase.table("programs")
-        .select("client_name,test_type,test_date,movements")
-        .eq("gym", gym)
-        .eq("approved", True)
-        .execute()
-    )
-    existing = res.data or []
+    # Fetch ALL existing approved programs for this gym from Supabase (paginated)
+    existing = []
+    page_size = 1000
+    offset = 0
+    while True:
+        res = (
+            supabase.table("programs")
+            .select("client_name,test_type,test_date,movements")
+            .eq("gym", gym)
+            .eq("approved", True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        existing.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
 
     results = process_check_file(content, gym, existing)
     return results
@@ -164,6 +174,36 @@ def api_approve(payload: ApprovePayload):
     if res.data:
         return res.data[0]
     raise HTTPException(status_code=500, detail="Failed to approve program")
+
+
+# -- On-demand program PDF generation --
+
+class GeneratePayload(BaseModel):
+    gym: str
+    test_type: str
+    patient_name: str
+    test_date: str
+    cells_data: dict
+
+
+@app.post("/api/programs/generate-pdf")
+def api_generate_pdf(payload: GeneratePayload):
+    """
+    Generate a filled program PDF for a patient and return it as a file download.
+    Does NOT save anything to the database — call /api/programs/approve separately.
+    """
+    pdf_bytes, content_type, filename = generate_program_pdf(
+        gym=payload.gym,
+        test_type=payload.test_type,
+        patient_name=payload.patient_name,
+        test_date=payload.test_date,
+        cells_data=payload.cells_data,
+    )
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type=content_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.patch("/api/programs/{program_id}")

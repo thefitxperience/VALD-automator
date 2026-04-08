@@ -22,6 +22,9 @@ export const getTrainerWhatsapp = (gym, branch, trainer) =>
 export const approveProgram = (payload) => api.post('/api/programs/approve', payload)
 export const patchProgram = (id, payload) => api.patch(`/api/programs/${id}`, payload)
 
+export const generatePdf = (payload) =>
+  api.post('/api/programs/generate-pdf', payload, { responseType: 'blob' })
+
 export const uploadPdf = (programId, pdfType, file) => {
   const fd = new FormData()
   fd.append('pdf_type', pdfType)
