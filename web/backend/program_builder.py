@@ -6,9 +6,6 @@ No Excel/xlwings required — runs on Linux (Render.com).
 import io
 import os
 import re
-import shutil
-import subprocess
-import tempfile
 from datetime import datetime
 from openpyxl import load_workbook
 
@@ -163,67 +160,143 @@ def generate_program_xlsm(gym: str, test_type: str, patient_name: str,
     return buf.getvalue()
 
 
+# ---------------------------------------------------------------------------
+# PDF generation — HTML rendered via weasyprint (no LibreOffice needed)
+# ---------------------------------------------------------------------------
+
+# All (label_cell, pct_cell, side_cell) triplets in template order
+_MOVEMENT_CELL_GROUPS = []
+for _pct_col, _lbl_col in [("D", "C"), ("P", "O"), ("AB", "AA"), ("AH", "AG")]:
+    for _row in range(21, 29, 2):
+        _movement_cell_groups_entry = (_lbl_col + str(_row), _pct_col + str(_row), _lbl_col + str(_row + 1))
+        _MOVEMENT_CELL_GROUPS.append(_movement_cell_groups_entry)
+
+_REMARK_COLOR = {
+    "Perfect Symmetry": "#16a34a",
+    "Normal Symmetry":  "#22c55e",
+    "Weakness":         "#ca8a04",
+    "Problem":          "#ea580c",
+    "Major Problem":    "#dc2626",
+    "Risk Of Injury":   "#991b1b",
+}
+
+def _remark_short(pct_fraction):
+    """Return the English part of the remark only."""
+    full = _get_remark(pct_fraction)
+    return full.split(" /")[0].strip() if full else ""
+
+def _remark_color(pct_fraction):
+    short = _remark_short(pct_fraction)
+    for key, color in _REMARK_COLOR.items():
+        if short.startswith(key):
+            return color
+    return "#6b7280"
+
+def _parse_movement_rows(cells: dict):
+    """Extract (label, pct_value, side_label) from the cells dict."""
+    rows = []
+    for lbl_cell, pct_cell, side_cell in _MOVEMENT_CELL_GROUPS:
+        pct = cells.get(pct_cell)
+        if pct is None:
+            continue
+        label = str(cells.get(lbl_cell, "")).split("\n")[0].strip()
+        side  = str(cells.get(side_cell, "")).split("\n")[0].strip()
+        rows.append((label, float(pct), side))
+    return rows
+
+
 def generate_program_pdf(gym: str, test_type: str, patient_name: str,
-                         test_date: str, cells_data: dict) -> bytes:
+                         test_date: str, cells_data: dict):
     """
-    Generate a filled program and convert to PDF via LibreOffice.
-    Falls back to returning the xlsm if LibreOffice is unavailable.
+    Generate a filled program PDF using weasyprint (pure Python, no LibreOffice).
     Returns (bytes, content_type, filename).
     """
-    xlsm_bytes = generate_program_xlsm(gym, test_type, patient_name, test_date, cells_data)
+    from weasyprint import HTML as WeasyprintHTML
 
     safe_name = re.sub(r'[^\w\s-]', '', patient_name).strip().replace(' ', '_')
-    type_label = {"upper": "Upper_Body", "lower": "Lower_Body", "full": "Full_Body"}.get(test_type, test_type)
-    base_filename = f"{safe_name}_-_{type_label}"
+    type_label = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body"}.get(test_type, test_type)
+    base_filename = f"{safe_name}_-_{type_label.replace(' ', '_')}"
 
-    # Try LibreOffice conversion
-    soffice = shutil.which("soffice") or shutil.which("libreoffice")
-    if soffice:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            xlsm_path = os.path.join(tmpdir, f"{base_filename}.xlsm")
-            pdf_path   = os.path.join(tmpdir, f"{base_filename}.pdf")
-            with open(xlsm_path, "wb") as f:
-                f.write(xlsm_bytes)
-            result = subprocess.run(
-                [soffice, "--headless", "--convert-to", "pdf", "--outdir", tmpdir, xlsm_path],
-                capture_output=True, timeout=60,
-            )
-            if result.returncode == 0 and os.path.isfile(pdf_path):
-                with open(pdf_path, "rb") as f:
-                    return f.read(), "application/pdf", f"{base_filename}.pdf"
+    # Format date nicely
+    display_date = test_date
+    try:
+        display_date = datetime.strptime(str(test_date)[:10], "%Y-%m-%d").strftime("%d/%m/%Y")
+    except Exception:
+        pass
 
-    # Fallback: return xlsm
-    return xlsm_bytes, "application/vnd.ms-excel.sheet.macroEnabled.12", f"{base_filename}.xlsm"
+    # Parse movement rows from cells
+    cells = cells_data.get("cells", {})
+    movement_rows = _parse_movement_rows(cells)
 
+    # Build table rows HTML
+    table_rows_html = ""
+    for label, pct, side in movement_rows:
+        pct_display = f"{abs(pct) * 100:.1f}%"
+        remark = _remark_short(pct)
+        color = _remark_color(pct)
+        table_rows_html += f"""
+        <tr>
+          <td class="label">{label}</td>
+          <td class="pct">{pct_display}</td>
+          <td class="side">{side}</td>
+          <td class="remark" style="color:{color};font-weight:600">{remark}</td>
+        </tr>"""
 
-def generate_program_pdf(gym: str, test_type: str, patient_name: str,
-                         test_date: str, cells_data: dict) -> bytes:
-    """
-    Generate a filled program and convert to PDF via LibreOffice.
-    Falls back to returning the xlsm if LibreOffice is unavailable.
-    Returns (bytes, content_type, filename).
-    """
-    xlsm_bytes = generate_program_xlsm(gym, test_type, patient_name, test_date, cells_data)
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+  @page {{ size: A4; margin: 18mm 14mm; }}
+  body {{ font-family: Arial, sans-serif; font-size: 11pt; color: #111; }}
+  .header {{ display: flex; justify-content: space-between; align-items: flex-start;
+             border-bottom: 3px solid #1d4ed8; padding-bottom: 10px; margin-bottom: 18px; }}
+  .gym {{ font-size: 20pt; font-weight: 700; color: #1d4ed8; }}
+  .meta {{ text-align: right; font-size: 10pt; color: #444; line-height: 1.7; }}
+  .meta strong {{ color: #111; font-size: 12pt; }}
+  h2 {{ font-size: 13pt; color: #1e40af; margin: 0 0 10px 0; text-transform: uppercase;
+        letter-spacing: .05em; }}
+  table {{ width: 100%; border-collapse: collapse; margin-top: 4px; }}
+  th {{ background: #1d4ed8; color: #fff; padding: 7px 10px; text-align: left;
+        font-size: 10pt; }}
+  td {{ padding: 6px 10px; border-bottom: 1px solid #e5e7eb; font-size: 10pt; }}
+  tr:nth-child(even) td {{ background: #f8fafc; }}
+  .pct {{ font-weight: 700; text-align: center; width: 70px; }}
+  .side {{ color: #555; width: 160px; }}
+  .remark {{ width: 160px; }}
+  .label {{ }}
+  .footer {{ margin-top: 22px; font-size: 9pt; color: #9ca3af; text-align: center;
+             border-top: 1px solid #e5e7eb; padding-top: 8px; }}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="gym">{gym}</div>
+    <div class="meta">
+      <strong>{patient_name}</strong><br>
+      {type_label} Program<br>
+      Date: {display_date}
+    </div>
+  </div>
 
-    safe_name = re.sub(r'[^\w\s-]', '', patient_name).strip().replace(' ', '_')
-    type_label = {"upper": "Upper_Body", "lower": "Lower_Body", "full": "Full_Body"}.get(test_type, test_type)
-    base_filename = f"{safe_name}_-_{type_label}"
+  <h2>Asymmetry Results</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Movement</th>
+        <th style="text-align:center">Asymmetry</th>
+        <th>Weaker Side</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {table_rows_html}
+    </tbody>
+  </table>
 
-    # Try LibreOffice conversion
-    soffice = shutil.which("soffice") or shutil.which("libreoffice")
-    if soffice:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            xlsm_path = os.path.join(tmpdir, f"{base_filename}.xlsm")
-            pdf_path   = os.path.join(tmpdir, f"{base_filename}.pdf")
-            with open(xlsm_path, "wb") as f:
-                f.write(xlsm_bytes)
-            result = subprocess.run(
-                [soffice, "--headless", "--convert-to", "pdf", "--outdir", tmpdir, xlsm_path],
-                capture_output=True, timeout=60,
-            )
-            if result.returncode == 0 and os.path.isfile(pdf_path):
-                with open(pdf_path, "rb") as f:
-                    return f.read(), "application/pdf", f"{base_filename}.pdf"
+  <div class="footer">Generated by VALD Automator · {gym} · {display_date}</div>
+</body>
+</html>"""
 
-    # Fallback: return xlsm
-    return xlsm_bytes, "application/vnd.ms-excel.sheet.macroEnabled.12", f"{base_filename}.xlsm"
+    pdf_bytes = WeasyprintHTML(string=html).write_pdf()
+    return pdf_bytes, "application/pdf", f"{base_filename}.pdf"
