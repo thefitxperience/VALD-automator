@@ -463,13 +463,21 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
     # Build lookup from existing approved programs
     # key: (normalized_client_name, test_type, date_str) → movement_count
     existing_lookup = {}
+    # key: (normalized_client_name, test_type) → asymmetry_values from latest approved
+    prev_asymmetries_lookup: dict[tuple, dict] = {}
     for p in existing_programs:
-        key = (
-            re.sub(r"\s+", " ", str(p["client_name"]).strip()),
-            p["test_type"],
-            normalize_test_date(p["test_date"]),
-        )
+        norm_name = re.sub(r"\s+", " ", str(p["client_name"]).strip())
+        tt = p["test_type"]
+        date_str_p = normalize_test_date(p["test_date"])
+        key = (norm_name, tt, date_str_p)
         existing_lookup[key] = p.get("movements", 0)
+        # Track the latest date per (name, test_type) for comparison
+        pa_key = (norm_name, tt)
+        av = p.get("asymmetry_values")
+        if av:
+            existing_date = prev_asymmetries_lookup.get(pa_key, {}).get("_date", "")
+            if date_str_p and date_str_p > existing_date:
+                prev_asymmetries_lookup[pa_key] = {**av, "_date": date_str_p}
 
     # Collect rows per patient
     patients_rows = {}
@@ -581,10 +589,25 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
             if is_new or movement_count > old_count:
                 # Build template cell data for program generation
                 cells_dict, stored_movs, _ = _build_cells_for_patient(rows, src_ws, test_type, test_types)
+                # Build asymmetry_values dict (movement_key -> pct 0-100) for future comparisons
+                from program_builder import _CELL_GROUPS, _movement_key
+                av: dict[str, float] = {}
+                for lbl_col, pct_col in _CELL_GROUPS:
+                    for row_num in (21, 23, 25, 27):
+                        lv = str(cells_dict.get(f"{lbl_col}{row_num}", "")).strip()
+                        pv = cells_dict.get(f"{pct_col}{row_num}")
+                        if lv and pv is not None:
+                            mk = _movement_key(lv)
+                            if mk:
+                                av[mk] = round(abs(float(pv)) * 100, 4)
                 cells_data = {
                     "cells": cells_dict,
-                    "movements": [list(m) for m in stored_movs],  # JSON-serializable
+                    "movements": [list(m) for m in stored_movs],
                 }
+                # Get previous asymmetries for this patient+test_type
+                pa_key = (patient_name, test_type)
+                prev_av_raw = prev_asymmetries_lookup.get(pa_key, {})
+                prev_av = {k: v for k, v in prev_av_raw.items() if k != "_date"}
                 new_tests.append({
                     "status": "NEW" if is_new else "UPDATED",
                     "patient": patient_name,
@@ -594,6 +617,8 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
                     "movement_count": movement_count,
                     "old_count": old_count,
                     "cells_data": cells_data,
+                    "asymmetry_values": av,
+                    "prev_asymmetries": prev_av if prev_av else None,
                 })
 
     wb.close()

@@ -5,12 +5,14 @@ v2 — paginated Supabase fetch, server-side PDF generation.
 import os
 import io
 import traceback
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 from datetime import date, datetime
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel
 
 from supabase import create_client, Client
@@ -18,7 +20,7 @@ from supabase import create_client, Client
 from check_processor import process_check_file
 from report_generator import generate_report
 from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
-from program_builder import generate_program_pdf
+from program_builder import generate_program_pdf, generate_program_html, _DEMO_CELLS_DATA
 
 # ── Supabase ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +63,7 @@ class ApprovePayload(BaseModel):
     trainer_name: Optional[str] = None
     dispatch_date: Optional[str] = None  # YYYY-MM-DD
     check_status: str = "NEW"
+    asymmetry_values: Optional[dict] = None  # movement_key -> pct (0-100)
 
 
 class AssignPayload(BaseModel):
@@ -114,7 +117,7 @@ async def api_check(
     while True:
         res = (
             supabase.table("programs")
-            .select("client_name,test_type,test_date,movements")
+            .select("client_name,test_type,test_date,movements,asymmetry_values")
             .eq("gym", gym)
             .eq("approved", True)
             .range(offset, offset + page_size - 1)
@@ -169,6 +172,8 @@ def api_approve(payload: ApprovePayload):
         "approved": True,
         "approved_at": datetime.utcnow().isoformat(),
     }
+    if payload.asymmetry_values:
+        record["asymmetry_values"] = payload.asymmetry_values
 
     # Upsert by (gym, client_name, test_type, test_date)
     res = (
@@ -189,6 +194,7 @@ class GeneratePayload(BaseModel):
     patient_name: str
     test_date: str
     cells_data: dict
+    prev_asymmetries: Optional[dict] = None
 
 
 @app.post("/api/programs/generate-pdf")
@@ -203,12 +209,41 @@ def api_generate_pdf(payload: GeneratePayload):
         patient_name=payload.patient_name,
         test_date=payload.test_date,
         cells_data=payload.cells_data,
+        prev_asymmetries=payload.prev_asymmetries,
     )
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type=content_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@app.post("/api/programs/preview")
+def api_preview_html(payload: GeneratePayload):
+    """Return the workout planner sheet as HTML for live preview."""
+    html = generate_program_html(
+        gym=payload.gym,
+        test_type=payload.test_type,
+        patient_name=payload.patient_name,
+        test_date=payload.test_date,
+        cells_data=payload.cells_data,
+        prev_asymmetries=payload.prev_asymmetries,
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/api/programs/preview-demo")
+def api_preview_demo(gym: str = "Body Masters", test_type: str = "upper"):
+    """Return a demo workout planner sheet as HTML (no auth required)."""
+    demo = _DEMO_CELLS_DATA.get(test_type, _DEMO_CELLS_DATA["upper"])
+    html = generate_program_html(
+        gym=gym,
+        test_type=test_type,
+        patient_name="Demo Client",
+        test_date="2025-01-15",
+        cells_data=demo,
+    )
+    return HTMLResponse(content=html)
 
 
 @app.patch("/api/programs/{program_id}")
