@@ -39,6 +39,7 @@ app.add_middleware(
     allow_origins=["*"],   # tighten in production to your frontend URL
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 
