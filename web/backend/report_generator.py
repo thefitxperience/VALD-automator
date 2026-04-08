@@ -113,17 +113,25 @@ def generate_report(
     wb = load_workbook(template_path)
 
     rpt_date = report_date or date.today()
+    # Branch sheets always show the first day of the report month
+    branch_date = date(year, month, 1)
+    # REPORT summary sheets: today for monthly, last day of the week for weekly
+    if period_type == "weekly":
+        _, summary_date = _week_range(year, month, week_number)
+    else:
+        summary_date = rpt_date
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
-        # Skip summary sheets
+        # Summary sheets
         if sheet_name in ("REPORT", "REPORT 2"):
-            # Update report date cell (B3)
-            ws["B3"] = rpt_date
+            ws["B3"] = summary_date
+            ws["B3"].number_format = "DD/MM/YYYY"
             continue
 
-        # Branch sheet — update report date
-        ws["B3"] = rpt_date
+        # Branch sheet — first day of the month
+        ws["B3"] = branch_date
+        ws["B3"].number_format = "DD/MM/YYYY"
 
         branch_programs = by_branch.get(sheet_name, [])
         if not branch_programs:
