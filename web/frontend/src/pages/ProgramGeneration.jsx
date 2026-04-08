@@ -30,7 +30,7 @@ export default function ProgramGeneration() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Program Generation</h1>
+      <h1 className="text-2xl font-bold text-white">Program Generation</h1>
 
       {/* Gym selector */}
       <div className="flex gap-2 flex-wrap items-center">
@@ -41,7 +41,7 @@ export default function ProgramGeneration() {
             className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors
               ${gym === g
                 ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
           >
             {g}
@@ -54,9 +54,9 @@ export default function ProgramGeneration() {
               href={`${import.meta.env.VITE_API_BASE || 'https://vald-automator.onrender.com'}/api/programs/preview-demo?gym=${encodeURIComponent(gym)}&test_type=${tt}`}
               target="_blank"
               rel="noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-500 hover:border-gray-500 hover:text-gray-700 transition-colors"
+              className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
             >
-              👁 {tt.charAt(0).toUpperCase() + tt.slice(1)} template
+              {tt.charAt(0).toUpperCase() + tt.slice(1)} template
             </a>
           ))}
         </div>
@@ -66,7 +66,7 @@ export default function ProgramGeneration() {
       <CheckDropzone onFile={handleFile} loading={loading} />
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-300 text-red-700 px-4 py-3 text-sm">
+        <div className="rounded-lg bg-red-900/40 border border-red-700 text-red-300 px-4 py-3 text-sm">
           {error}
         </div>
       )}
@@ -75,22 +75,22 @@ export default function ProgramGeneration() {
       {results !== null && (
         <div className="space-y-8">
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-600">
-              <span className="font-bold text-emerald-600">{newTests.length}</span> new
+            <span className="text-gray-300">
+              <span className="font-bold text-emerald-400">{newTests.length}</span> new
             </span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-600">
-              <span className="font-bold text-amber-600">{updatedTests.length}</span> updated
+            <span className="text-gray-600">|</span>
+            <span className="text-gray-300">
+              <span className="font-bold text-amber-400">{updatedTests.length}</span> updated
             </span>
             {results.length === 0 && (
-              <span className="text-gray-400">No new or updated tests found.</span>
+              <span className="text-gray-500">No new or updated tests found.</span>
             )}
           </div>
 
           {/* NEW */}
           {newTests.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-lg font-semibold text-emerald-700 border-b border-emerald-200 pb-1">
+              <h2 className="text-lg font-semibold text-emerald-400 border-b border-emerald-900 pb-1">
                 New Tests ({newTests.length})
               </h2>
               {newTests.map((t, i) => (
@@ -102,7 +102,7 @@ export default function ProgramGeneration() {
           {/* UPDATED */}
           {updatedTests.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-lg font-semibold text-amber-700 border-b border-amber-200 pb-1">
+              <h2 className="text-lg font-semibold text-amber-400 border-b border-amber-900 pb-1">
                 Updated Tests ({updatedTests.length})
               </h2>
               {updatedTests.map((t, i) => (
