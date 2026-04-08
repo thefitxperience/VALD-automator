@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, uploadPdf, getTrainerWhatsapp, generatePdf, previewHtml } from '../api/client'
+import { approveProgram, uploadPdf, getTrainerWhatsapp, previewHtml } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -14,10 +14,7 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
 
   // Program PDF (generated on demand)
-  const [generating, setGenerating] = useState(false)
-  const [programBlobUrl, setProgramBlobUrl] = useState(null)
-  const [programFilename, setProgramFilename] = useState(null)
-  const [previewing, setPreviewing] = useState(false)
+  const [opening, setOpening] = useState(false)
 
   // Results PDF — can be injected from bulk upload or added manually per card
   const [resultsPdf, setResultsPdf] = useState(null)
@@ -43,43 +40,13 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   }, [gym, branch, trainer])
 
   // Generate program PDF on demand
-  const handleGenerate = async () => {
-    if (!test.cells_data) {
-      alert('No cell data available for this test. Re-run the check.')
-      return
-    }
-    setGenerating(true)
-    try {
-      const res = await generatePdf({
-        gym,
-        test_type: test.test_type,
-        patient_name: test.patient,
-        test_date: test.date,
-        cells_data: test.cells_data,
-        prev_asymmetries: test.prev_asymmetries || null,
-      })
-      const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-      // Extract filename from Content-Disposition or build one
-      const disposition = res.headers['content-disposition'] || ''
-      const match = disposition.match(/filename="?([^"]+)"?/)
-      const filename = match ? match[1] : `${test.patient} - ${TYPE_LABEL[test.test_type]}.pdf`
-      setProgramBlobUrl(url)
-      setProgramFilename(filename)
-    } catch (e) {
-      alert('Failed to generate program: ' + (e.response?.data?.detail || e.message))
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  const handlePreview = async () => {
+  const handleOpen = async () => {
     if (!test.cells_data) {
       const API_BASE = import.meta.env.VITE_API_BASE || 'https://vald-automator.onrender.com'
       window.open(`${API_BASE}/api/programs/preview-demo?gym=${encodeURIComponent(gym)}&test_type=${test.test_type}`, '_blank')
       return
     }
-    setPreviewing(true)
+    setOpening(true)
     try {
       const res = await previewHtml({
         gym,
@@ -91,11 +58,12 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
       })
       const blob = new Blob([res.data], { type: 'text/html' })
       const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
+      const w = window.open(url, '_blank')
+      if (w) w.addEventListener('load', () => w.print())
     } catch (e) {
-      alert('Failed to preview: ' + (e.response?.data?.detail || e.message))
+      alert('Failed to open program: ' + (e.response?.data?.detail || e.message))
     } finally {
-      setPreviewing(false)
+      setOpening(false)
     }
   }
 
@@ -221,49 +189,27 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
       {/* Actions row */}
       <div className="flex flex-wrap gap-2 items-center">
 
-        {/* 1+2 — Generate/Download Program PDF + Results PDF upload (equal 2-col row) */}
-        <div className="flex gap-2 flex-1 min-w-0">
-          {/* 1 — Download Program PDF (generates on first click) */}
-          {!programBlobUrl ? (
-            <button
-              onClick={handleGenerate}
-              disabled={generating || approved}
-              className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 disabled:opacity-50 transition-colors text-center"
-            >
-              {generating ? 'Generating…' : '⬇ Download PDF'}
-            </button>
-          ) : (
-            <a
-              href={programBlobUrl}
-              download={programFilename}
-              className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 transition-colors text-center"
-            >
-              ⬇ Download PDF
-            </a>
-          )}
-
-          {/* 2 — Results PDF (manual per-card, shown if not injected) */}
-          {!injectedResultsPdf && (
-            <label className={`flex-1 cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors text-center
-              ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-brand-600 text-brand-400 hover:bg-brand-900/30'}`}>
-              {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
-              <input
-                type="file" accept=".pdf" className="hidden"
-                disabled={approved}
-                onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
-              />
-            </label>
-          )}
-        </div>
-
-        {/* Preview */}
+        {/* 1 — Open & Print */}
         <button
-          onClick={handlePreview}
-          disabled={previewing}
-          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 disabled:opacity-50 transition-colors"
+          onClick={handleOpen}
+          disabled={opening}
+          className="text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 disabled:opacity-50 transition-colors"
         >
-          {previewing ? 'Loading…' : '👁 Preview'}
+          {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
+
+        {/* 2 — Results PDF (manual per-card, shown if not injected) */}
+        {!injectedResultsPdf && (
+          <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
+            ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
+            {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
+            <input
+              type="file" accept=".pdf" className="hidden"
+              disabled={approved}
+              onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
+            />
+          </label>
+        )}
 
         {/* 3 — Download results after approve */}
         {resultsPdfUrl && (

@@ -128,7 +128,7 @@ export default function ProgramGeneration() {
             onDragOver={(e) => { e.preventDefault(); setBulkDragOver(true) }}
             onDragLeave={() => setBulkDragOver(false)}
             onDrop={onBulkDrop}
-            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors
+            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors h-full
               ${bulkDragOver
                 ? 'border-emerald-500 bg-emerald-900/10'
                 : Object.keys(resultsPdfsMap).length > 0
