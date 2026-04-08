@@ -58,7 +58,11 @@ def _load_worksheet(file_bytes: bytes):
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def nz_str(v):
-    return "" if v is None else str(v)
+    if v is None:
+        return ""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
 
 
 def nz_float(v):
