@@ -165,13 +165,13 @@ def generate_report(
             # Format dates
             if isinstance(test_date, str):
                 try:
-                    test_date = date.fromisoformat(test_date)
-                except ValueError:
+                    test_date = date.fromisoformat(test_date[:10])
+                except (ValueError, TypeError):
                     pass
             if isinstance(dispatch_date, str):
                 try:
-                    dispatch_date = date.fromisoformat(dispatch_date)
-                except ValueError:
+                    dispatch_date = date.fromisoformat(dispatch_date[:10])
+                except (ValueError, TypeError):
                     pass
 
             full_name = f"{client_name} - {test_type_label}" if test_type_label else client_name
