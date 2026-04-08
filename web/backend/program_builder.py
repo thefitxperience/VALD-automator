@@ -561,11 +561,14 @@ col.cn {{ width:20px; }}
 .rrk {{ }}
 """
 
+    TYPE_LABEL = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body"}
+    doc_title = f"{patient_name} - {TYPE_LABEL.get(test_type, test_type)}"
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Workout Planner</title>
+  <title>{doc_title}</title>
   <style>{css}</style>
 </head>
 <body>
