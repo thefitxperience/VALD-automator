@@ -1,37 +1,15 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import CheckDropzone from '../components/CheckDropzone'
 import ProgramCard from '../components/ProgramCard'
 import { checkFile } from '../api/client'
 
 const GYMS = ['Body Motions', 'Body Masters']
 
-// Parse a results PDF filename into a map key
-// Expected pattern: "Patient Name - Full Body.pdf" → { patient, type }
-function parseResultsFilename(filename) {
-  const noExt = filename.replace(/\.pdf$/i, '')
-  const parts = noExt.split(' - ')
-  if (parts.length < 2) return null
-  const patient = parts.slice(0, parts.length - 1).join(' - ').trim()
-  const typeRaw = parts[parts.length - 1].trim().toLowerCase()
-  const typeMap = {
-    'full body': 'full',
-    'upper body': 'upper',
-    'lower body': 'lower',
-  }
-  const type = typeMap[typeRaw]
-  if (!type) return null
-  return { patient, type, key: `${patient}|${type}` }
-}
-
 export default function ProgramGeneration() {
   const [gym, setGym] = useState('Body Motions')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [results, setResults] = useState(null)
-
-  // Map of "PatientName|testType" → File for bulk results PDFs
-  const [resultsPdfsMap, setResultsPdfsMap] = useState({})
-  const [bulkDragOver, setBulkDragOver] = useState(false)
 
   const handleFile = async (file) => {
     setLoading(true)
@@ -47,28 +25,8 @@ export default function ProgramGeneration() {
     }
   }
 
-  const handleBulkResults = useCallback((files) => {
-    const newMap = {}
-    for (const file of files) {
-      const parsed = parseResultsFilename(file.name)
-      if (parsed) newMap[parsed.key] = file
-    }
-    setResultsPdfsMap((prev) => ({ ...prev, ...newMap }))
-  }, [])
-
-  const onBulkDrop = (e) => {
-    e.preventDefault()
-    setBulkDragOver(false)
-    const files = Array.from(e.dataTransfer.files).filter((f) => f.name.endsWith('.pdf'))
-    if (files.length) handleBulkResults(files)
-  }
-
   const newTests     = results?.filter((t) => t.status === 'NEW')     || []
   const updatedTests = results?.filter((t) => t.status === 'UPDATED') || []
-
-  const matchedCount = results
-    ? results.filter((t) => resultsPdfsMap[`${t.patient}|${t.test_type}`]).length
-    : 0
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -104,65 +62,8 @@ export default function ProgramGeneration() {
         </div>
       </div>
 
-      {/* Upload areas — full width before results, split after */}
-      <div className={results !== null ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : ''}>
-        {/* Check file */}
-        <div className="space-y-2">
-          {results !== null && (
-            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-              Check File
-            </label>
-          )}
-          <CheckDropzone onFile={handleFile} loading={loading} />
-        </div>
-
-        {/* Bulk results PDFs — only shown after check */}
-        {results !== null && <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-            Bulk Results PDFs
-          </label>
-          <div
-            onDragOver={(e) => { e.preventDefault(); setBulkDragOver(true) }}
-            onDragLeave={() => setBulkDragOver(false)}
-            onDrop={onBulkDrop}
-            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors
-              ${bulkDragOver
-                ? 'border-emerald-500 bg-emerald-900/10'
-                : Object.keys(resultsPdfsMap).length > 0
-                  ? 'border-emerald-700 bg-gray-900'
-                  : 'border-gray-700 bg-gray-900 hover:border-gray-500'
-              }`}
-          >
-            <input
-              type="file" accept=".pdf" multiple className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={(e) => handleBulkResults(Array.from(e.target.files))}
-            />
-            {Object.keys(resultsPdfsMap).length === 0 ? (
-              <>
-                <p className="text-sm text-gray-400">Drop results PDFs here</p>
-                <p className="text-xs text-gray-600 mt-1">or click to browse</p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-emerald-400 font-medium">
-                  {Object.keys(resultsPdfsMap).length} results PDF{Object.keys(resultsPdfsMap).length !== 1 ? 's' : ''} loaded
-                </p>
-                {results && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    {matchedCount} of {results.length} tests matched
-                  </p>
-                )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setResultsPdfsMap({}) }}
-                  className="mt-2 text-xs text-gray-500 hover:text-red-400 transition-colors"
-                >
-                  Clear
-                </button>
-              </>
-            )}
-          </div>
-        </div>}
-      </div>
+      {/* Upload area */}
+      <CheckDropzone onFile={handleFile} loading={loading} />
 
       {error && (
         <div className="rounded-lg bg-red-900/40 border border-red-700 text-red-300 px-4 py-3 text-sm">
@@ -181,14 +82,6 @@ export default function ProgramGeneration() {
             <span className="text-gray-300">
               <span className="font-bold text-amber-400">{updatedTests.length}</span> updated
             </span>
-            {matchedCount > 0 && (
-              <>
-                <span className="text-gray-600">|</span>
-                <span className="text-gray-300">
-                  <span className="font-bold text-emerald-300">{matchedCount}</span> with results PDF
-                </span>
-              </>
-            )}
             {results.length === 0 && (
               <span className="text-gray-500">No new or updated tests found.</span>
             )}
@@ -201,10 +94,7 @@ export default function ProgramGeneration() {
                 New Tests ({newTests.length})
               </h2>
               {newTests.map((t, i) => (
-                <ProgramCard
-                  key={`new-${i}`} test={t} gym={gym}
-                  injectedResultsPdf={resultsPdfsMap[`${t.patient}|${t.test_type}`] || null}
-                />
+                <ProgramCard key={`new-${i}`} test={t} gym={gym} />
               ))}
             </section>
           )}
@@ -216,10 +106,7 @@ export default function ProgramGeneration() {
                 Updated Tests ({updatedTests.length})
               </h2>
               {updatedTests.map((t, i) => (
-                <ProgramCard
-                  key={`upd-${i}`} test={t} gym={gym}
-                  injectedResultsPdf={resultsPdfsMap[`${t.patient}|${t.test_type}`] || null}
-                />
+                <ProgramCard key={`upd-${i}`} test={t} gym={gym} />
               ))}
             </section>
           )}

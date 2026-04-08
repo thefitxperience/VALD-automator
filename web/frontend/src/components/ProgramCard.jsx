@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, uploadPdf, getTrainerWhatsapp, previewHtml } from '../api/client'
+import { approveProgram, getTrainerWhatsapp, previewHtml } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -8,7 +8,7 @@ const STATUS_BADGE = {
   UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
 }
 
-export default function ProgramCard({ test, gym, injectedResultsPdf }) {
+export default function ProgramCard({ test, gym }) {
   const [branch, setBranch] = useState('')
   const [trainer, setTrainer] = useState('')
   const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
@@ -17,15 +17,12 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   const [opening, setOpening] = useState(false)
 
   // Post-approve
-  const [resultsPdfUrl, setResultsPdfUrl] = useState(null)
   const [approved, setApproved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [whatsappNum, setWhatsappNum] = useState('')
 
   const branches = getBranches(gym)
   const trainers = branch ? getTrainers(gym, branch) : []
-
-  const activeResultsPdf = injectedResultsPdf || null
 
   useEffect(() => {
     if (gym && branch && trainer) {
@@ -85,12 +82,6 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
       })
       const id = res.data?.id
 
-      // Upload results PDF if we have one
-      if (activeResultsPdf && id) {
-        const rRes = await uploadPdf(id, 'results', activeResultsPdf)
-        setResultsPdfUrl(rRes.data?.url)
-      }
-
       setApproved(true)
     } catch (e) {
       alert('Error approving: ' + (e.response?.data?.detail || e.message))
@@ -134,13 +125,6 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
               <span className="text-amber-400">(was {test.old_count})</span>
             )}
           </div>
-        </div>
-        <div className="text-xs font-medium">
-          {activeResultsPdf ? (
-            <span className="text-emerald-400">✓ Results attached</span>
-          ) : (
-            <span className="text-gray-500">No results PDF</span>
-          )}
         </div>
       </div>
 
@@ -194,28 +178,7 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
           {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
 
-        {/* 2 — Copy file name for bulk results upload */}
-        <button
-          onClick={() => {
-            const label = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }[test.test_type] || test.test_type
-            navigator.clipboard.writeText(`${test.patient} - ${label}`)
-          }}
-          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
-        >
-          📋 Copy File Name
-        </button>
-
-        {/* 3 — Download results after approve */}
-        {resultsPdfUrl && (
-          <a href={resultsPdfUrl} target="_blank" rel="noreferrer"
-            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-400 hover:bg-emerald-900/30 transition-colors">
-            ⬇ Results
-          </a>
-        )}
-
-        <div className="flex-1" />
-
-        {/* 4 — WhatsApp */}
+        {/* 2 — WhatsApp */}
         <button
           onClick={openWhatsapp}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"
