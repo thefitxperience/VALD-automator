@@ -1,5 +1,6 @@
 """
 FastAPI backend for VALD Automator web app.
+v2 — paginated Supabase fetch, server-side PDF generation.
 """
 import os
 import io
@@ -73,6 +74,10 @@ class AssignPayload(BaseModel):
 @app.get("/")
 def root():
     return {"status": "ok"}
+
+@app.get("/api/version")
+def version():
+    return {"version": "2.0", "pagination": True, "pdf_generation": True}
 
 
 # -- Trainers --
