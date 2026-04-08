@@ -24,19 +24,19 @@ export default function CheckDropzone({ onFile, loading }) {
     <div
       {...getRootProps()}
       className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors
-        ${isDragActive ? 'border-brand-500 bg-brand-900/20' : 'border-gray-700 hover:border-gray-500'}
+        ${isDragActive ? 'border-brand-500 bg-brand-50' : 'border-gray-300 hover:border-gray-400 bg-white'}
         ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <input {...getInputProps()} />
       <div className="text-4xl mb-3">📂</div>
       {loading ? (
-        <p className="text-gray-400">Processing file…</p>
+        <p className="text-gray-500">Processing file…</p>
       ) : isDragActive ? (
-        <p className="text-brand-400 font-medium">Drop it here</p>
+        <p className="text-brand-600 font-medium">Drop it here</p>
       ) : (
         <>
-          <p className="text-gray-300 font-medium">Drop your check file here</p>
-          <p className="text-gray-500 text-sm mt-1">or click to browse (.xlsx / .xlsm)</p>
+          <p className="text-gray-700 font-medium">Drop your check file here</p>
+          <p className="text-gray-400 text-sm mt-1">or click to browse (.xlsx / .xlsm)</p>
         </>
       )}
     </div>

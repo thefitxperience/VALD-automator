@@ -4,8 +4,8 @@ import { approveProgram, getTrainerWhatsapp, previewHtml } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
-  NEW: 'bg-emerald-900/60 text-emerald-300 border border-emerald-700',
-  UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
+  NEW: 'bg-emerald-100 text-emerald-700 border border-emerald-300',
+  UPDATED: 'bg-amber-100 text-amber-700 border border-amber-300',
 }
 
 export default function ProgramCard({ test, gym }) {
@@ -101,7 +101,7 @@ export default function ProgramCard({ test, gym }) {
 
   return (
     <div className={`rounded-xl border p-5 space-y-4 transition-all
-      ${approved ? 'border-emerald-700 bg-emerald-950/20' : 'border-gray-700 bg-gray-900'}`}
+      ${approved ? 'border-emerald-300 bg-emerald-50' : 'border-gray-200 bg-white shadow-sm'}`}
     >
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -110,19 +110,19 @@ export default function ProgramCard({ test, gym }) {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[test.status]}`}>
               {test.status}
             </span>
-            <h3 className="font-semibold text-white">{test.patient}</h3>
+            <h3 className="font-semibold text-gray-900">{test.patient}</h3>
             {test.external_id && test.external_id !== 'N/A' && (
               <span className="text-xs text-gray-400 font-mono">#{test.external_id}</span>
             )}
           </div>
-          <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-400">
+          <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
             <span>{TYPE_LABEL[test.test_type] || test.test_type}</span>
             <span>·</span>
             <span>{test.movement_count} movements</span>
             <span>·</span>
             <span>{test.date}</span>
             {test.status === 'UPDATED' && (
-              <span className="text-amber-400">(was {test.old_count})</span>
+              <span className="text-amber-600">(was {test.old_count})</span>
             )}
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function ProgramCard({ test, gym }) {
         <button
           onClick={() => navigator.clipboard.writeText(test.patient)}
           title="Copy client name"
-          className="text-gray-600 hover:text-gray-300 transition-colors p-1 rounded"
+          className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -142,9 +142,9 @@ export default function ProgramCard({ test, gym }) {
       {/* Assignment row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Branch</label>
+          <label className="block text-xs text-gray-500 mb-1">Branch</label>
           <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={branch}
             onChange={(e) => { setBranch(e.target.value); setTrainer('') }}
             disabled={approved}
@@ -154,9 +154,9 @@ export default function ProgramCard({ test, gym }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Trainer</label>
+          <label className="block text-xs text-gray-500 mb-1">Trainer</label>
           <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={trainer}
             onChange={(e) => setTrainer(e.target.value)}
             disabled={!branch || approved}
@@ -166,10 +166,10 @@ export default function ProgramCard({ test, gym }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Dispatch Date</label>
+          <label className="block text-xs text-gray-500 mb-1">Dispatch Date</label>
           <input
             type="date"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={dispatchDate}
             onChange={(e) => setDispatchDate(e.target.value)}
             disabled={approved}
@@ -184,7 +184,7 @@ export default function ProgramCard({ test, gym }) {
         <button
           onClick={handleOpen}
           disabled={opening}
-          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 disabled:opacity-50 transition-colors"
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-gray-500 hover:text-gray-900 disabled:opacity-50 transition-colors"
         >
           {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
@@ -195,7 +195,7 @@ export default function ProgramCard({ test, gym }) {
             const label = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }[test.test_type] || test.test_type
             navigator.clipboard.writeText(`${test.patient} - ${label}`)
           }}
-          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-gray-500 hover:text-gray-900 transition-colors"
         >
           📋 Copy File Name
         </button>
@@ -221,7 +221,7 @@ export default function ProgramCard({ test, gym }) {
             {saving ? 'Saving…' : 'Approve'}
           </button>
         ) : (
-          <span className="text-xs px-4 py-1.5 rounded-lg bg-emerald-700/40 text-emerald-400 font-semibold border border-emerald-700">
+          <span className="text-xs px-4 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold border border-emerald-300">
             ✓ Approved
           </span>
         )}
