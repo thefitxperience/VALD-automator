@@ -120,19 +120,16 @@ export default function ProgramGeneration() {
         {results !== null && <div className="space-y-2">
           <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Bulk Results PDFs
-            <span className="ml-2 text-gray-600 normal-case font-normal">
-              "Patient Name - Full Body.pdf"
-            </span>
           </label>
           <div
             onDragOver={(e) => { e.preventDefault(); setBulkDragOver(true) }}
             onDragLeave={() => setBulkDragOver(false)}
             onDrop={onBulkDrop}
-            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors h-full
+            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors
               ${bulkDragOver
                 ? 'border-emerald-500 bg-emerald-900/10'
                 : Object.keys(resultsPdfsMap).length > 0
-                  ? 'border-emerald-700 bg-emerald-950/20'
+                  ? 'border-emerald-700 bg-gray-900'
                   : 'border-gray-700 bg-gray-900 hover:border-gray-500'
               }`}
           >

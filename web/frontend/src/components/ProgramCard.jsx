@@ -16,9 +16,6 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   // Program PDF (generated on demand)
   const [opening, setOpening] = useState(false)
 
-  // Results PDF — can be injected from bulk upload or added manually per card
-  const [resultsPdf, setResultsPdf] = useState(null)
-
   // Post-approve
   const [resultsPdfUrl, setResultsPdfUrl] = useState(null)
   const [approved, setApproved] = useState(false)
@@ -28,8 +25,7 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
   const branches = getBranches(gym)
   const trainers = branch ? getTrainers(gym, branch) : []
 
-  // Use injected results PDF from bulk upload if not manually set
-  const activeResultsPdf = resultsPdf || injectedResultsPdf || null
+  const activeResultsPdf = injectedResultsPdf || null
 
   useEffect(() => {
     if (gym && branch && trainer) {
@@ -193,23 +189,21 @@ export default function ProgramCard({ test, gym, injectedResultsPdf }) {
         <button
           onClick={handleOpen}
           disabled={opening}
-          className="text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 disabled:opacity-50 transition-colors"
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 disabled:opacity-50 transition-colors"
         >
           {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
 
-        {/* 2 — Results PDF (manual per-card, shown if not injected) */}
-        {!injectedResultsPdf && (
-          <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
-            ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
-            {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
-            <input
-              type="file" accept=".pdf" className="hidden"
-              disabled={approved}
-              onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
-            />
-          </label>
-        )}
+        {/* 2 — Copy file name for bulk results upload */}
+        <button
+          onClick={() => {
+            const label = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }[test.test_type] || test.test_type
+            navigator.clipboard.writeText(`${test.patient} - ${label}`)
+          }}
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
+        >
+          📋 Copy File Name
+        </button>
 
         {/* 3 — Download results after approve */}
         {resultsPdfUrl && (
