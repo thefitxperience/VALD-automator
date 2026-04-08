@@ -152,6 +152,297 @@ def calculate_trunk_asymmetry(patient_rows, src_ws):
     return pct, weak
 
 
+# ── cell mapping helpers ─────────────────────────────────────────────────────
+
+def get_movement_label(movement, region):
+    m, r = movement.lower().strip(), region.lower().strip()
+    labels = {
+        ('internal rotation', 'shoulder'): "Shoulder IR Standing Asymmetry / عدم توازن دوران الكتف الداخلي",
+        ('external rotation', 'shoulder'): "Shoulder External Rotation Asymmetry /  عدم توازن الدوران الخارجي للكتف",
+        ('flexion', 'shoulder'): "Shoulder Flexion Asymmetry /\n عدم تناسق انثناء الكتف",
+        ('abduction', 'shoulder'): "Shoulder Abduction Asymmetry /\nعدم توازن إبعاد الكتف",
+        ('push', 'shoulder'): "Shoulder Push Asymmetry/\nعدم توازن في دفع الكتف",
+        ('pull', 'shoulder'): "Shoulder Pull Asymmetry/\nعدم توازن في سحب الكتف",
+        ('extension', 'elbow'): "Elbow Extension Asymmetry /\nعدم توازن تمديد الكوع",
+        ('flexion', 'elbow'): "Elbow Flexion Asymmetry /\nعدم توازن انثناء الكوع",
+        ('grip squeeze', 'hand'): "Grip Squeeze Asymmetry/\nعدم توازن ضغط القبضة",
+        ('extension', 'knee'): "Knee Extension Asymmetry /\n عدم تناسق تمديد الركبة",
+        ('flexion', 'knee'): "Knee Flexion Asymmetry /\n عدم تناسق انثناء الركبة",
+        ('abduction', 'hip'): "Hip Abduction Asymmetry /\n عدم تناسق إبعاد الورك",
+        ('adduction', 'hip'): "Hip Adduction Asymmetry /\n عدم تناسق تقريب الورك",
+        ('lateral flexion', 'trunk'): "Trunk Lateral Flexion /\nالثني الجانبي للجذع",
+        ('flexion', 'hip'): "Hip Flexion Asymmetry /\nعدم تناسق ثني الورك",
+        ('extension', 'hip'): "Hip Extension Asymmetry /\nعدم تناسق مدّ الورك",
+    }
+    return labels.get((m, r))
+
+
+def get_remark_for_percentage(pct_fraction):
+    """pct_fraction is 0–1 (as stored in Excel cell formatted as %)."""
+    if pct_fraction is None:
+        return ""
+    pct = abs(pct_fraction) * 100
+    if 0.1 <= pct <= 3.9:   return "Perfect Symmetry / \nتناظر مثالي"
+    elif 4 <= pct <= 7.9:   return "Normal Symmetry / \nتناظر طبيعي"
+    elif 8 <= pct <= 14.9:  return "Weakness / \nضعف"
+    elif 15 <= pct <= 19.9: return "Problem / \nمشكلة"
+    elif 20 <= pct <= 29.9: return "Major Problem / \nمشكلة كبيرة"
+    elif pct >= 30:         return "Risk Of Injury / \nخطر الإصابة"
+    return ""
+
+
+def get_lower_body_cells(m, r, knee_movements, hip_abd_add_movements, hip_flex_ext_movements):
+    if r == "knee":
+        for mv, right_txt, left_txt in [
+            ("extension", "Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى", "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"),
+            ("flexion",   "Right Hamstring /\nعضلات الفخذ الخلفية اليمنى",   "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"),
+        ]:
+            if m == mv and (mv, r) in knee_movements:
+                idx = knee_movements.index((mv, r))
+                cell = [("C21","D21","C22"), ("C23","D23","C24")][idx] if idx < 2 else None
+                if cell: return cell[0], cell[1], cell[2], right_txt, left_txt
+    if r == "hip" and m in ["adduction", "abduction"]:
+        pairs = [
+            ("adduction", "Right Adductors /\nعضلات الفخذ الداخلي اليمنى", "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"),
+            ("abduction", "Right Abductors /\nعضلات الفخذ الخارجية اليمنى","Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"),
+        ]
+        for mv, right_txt, left_txt in pairs:
+            if m == mv and (mv, r) in hip_abd_add_movements:
+                idx = hip_abd_add_movements.index((mv, r))
+                cell = [("O21","P21","O22"), ("O23","P23","O24")][idx] if idx < 2 else None
+                if cell: return cell[0], cell[1], cell[2], right_txt, left_txt
+    if r == "hip" and m in ["flexion", "extension"]:
+        pairs = [
+            ("flexion",   "Right Hip Flexors /\nعضلات مثنية الورك اليمنى",   "Left Hip Flexors /\nعضلات مثنية الورك اليسرى"),
+            ("extension", "Right Hip Extensors /\nعضلات باسطة الورك اليمنى", "Left Hip Extensors /\nعضلات باسطة الورك اليسرى"),
+        ]
+        for mv, right_txt, left_txt in pairs:
+            if m == mv and (mv, r) in hip_flex_ext_movements:
+                idx = hip_flex_ext_movements.index((mv, r))
+                cell = [("AG21","AH21","AG22"), ("AG23","AH23","AG24")][idx] if idx < 2 else None
+                if cell: return cell[0], cell[1], cell[2], right_txt, left_txt
+    return None, None, None, None, None
+
+
+def get_upper_body_cells(m, r, shoulder_c_movements, shoulder_o_movements, elbow_movements, hand_movements):
+    if r == "shoulder" and m in ["external rotation", "internal rotation", "flexion", "abduction"]:
+        if (m, r) in shoulder_c_movements:
+            idx = shoulder_c_movements.index((m, r))
+            slots = [("C21","D21","C22"),("C23","D23","C24"),("C25","D25","C26"),("C27","D27","C28")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "external rotation": ("Right External Rotation /\nالدوران الخارجي الأيمن ", "Left External Rotation /\nالدوران الخارجي الأيسر "),
+                    "internal rotation": ("Right Internal Rotation /\n الدوران الداخلي الأيمن", "Left Internal Rotation / \nالدوران الداخلي الأيسر"),
+                    "flexion":           ("Right shoulder flexion /\n ثني الكتف الأيمن",        "Left shoulder flexion /\n ثني الكتف الأيسر"),
+                    "abduction":         ("Right shoulder abductor /\nعضلة فتح الكتف الأيمن",  "Left shoulder abductor /\nعضلة فتح الكتف الأيسر "),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "shoulder" and m in ["push", "pull"]:
+        if (m, r) in shoulder_o_movements:
+            idx = shoulder_o_movements.index((m, r))
+            slots = [("O21","P21","O22"),("O23","P23","O24")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "push": ("Right Shoulder Push/\nدفع الكتف الأيمن", "Left Shoulder Push/\nدفع الكتف الأيسر"),
+                    "pull": ("Right Shoulder Pull/\nسحب الكتف الأيمن", "Left Shoulder Pull/\nسحب الكتف الأيسر"),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "elbow" and m in ["extension", "flexion"]:
+        if (m, r) in elbow_movements:
+            idx = elbow_movements.index((m, r))
+            slots = [("AA21","AB21","AA22"),("AA23","AB23","AA24")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "extension": ("Right Triceps /\n عضلات التراي سيبس اليمنى", "Left Triceps /\n عضلات التراي سيبس اليسرى"),
+                    "flexion":   ("Right Biceps /\nعضلة الباي سيبس اليمنى",      "Left Biceps /\n عضلة الباي سيبس اليسرى"),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "hand" and m == "grip squeeze" and (m, r) in hand_movements:
+        return "AG21", "AH21", "AG22", "Right Grip Squeeze/\nضغط القبضة باليد اليمنى", "Left Grip Squeeze/\nضغط القبضة باليد اليسرى"
+    return None, None, None, None, None
+
+
+def get_full_body_cells(m, r, shoulder_c_movements, elbow_o_movements, knee_aa_movements, hip_ag_movements):
+    if r == "shoulder" and m in ["external rotation", "internal rotation", "flexion", "abduction"]:
+        if (m, r) in shoulder_c_movements:
+            idx = shoulder_c_movements.index((m, r))
+            slots = [("C21","D21","C22"),("C23","D23","C24"),("C25","D25","C26"),("C27","D27","C28")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "external rotation": ("Right External Rotation /\nالدوران الخارجي الأيمن ", "Left External Rotation /\nالدوران الخارجي الأيسر "),
+                    "internal rotation": ("Right Internal Rotation /\n الدوران الداخلي الأيمن", "Left Internal Rotation / \nالدوران الداخلي الأيسر"),
+                    "flexion":           ("Right shoulder flexion /\n ثني الكتف الأيمن",        "Left shoulder flexion /\n ثني الكتف الأيسر"),
+                    "abduction":         ("Right shoulder abductor /\nعضلة فتح الكتف الأيمن",  "Left shoulder abductor /\nعضلة فتح الكتف الأيسر "),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "elbow" and m in ["extension", "flexion"]:
+        if (m, r) in elbow_o_movements:
+            idx = elbow_o_movements.index((m, r))
+            slots = [("O21","P21","O22"),("O23","P23","O24")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "extension": ("Right Triceps /\n عضلات التراي سيبس اليمنى", "Left Triceps /\n عضلات التراي سيبس اليسرى"),
+                    "flexion":   ("Right Biceps /\nعضلة الباي سيبس اليمنى",      "Left Biceps /\n عضلة الباي سيبس اليسرى"),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "knee" and m in ["extension", "flexion"]:
+        if (m, r) in knee_aa_movements:
+            idx = knee_aa_movements.index((m, r))
+            slots = [("AA21","AB21","AA22"),("AA23","AB23","AA24")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "extension": ("Right Quadriceps /\nعضلات الفخذ الأمامية اليمنى", "Left Quadriceps /\nعضلات الفخذ الأمامية اليسرى"),
+                    "flexion":   ("Right Hamstring /\nعضلات الفخذ الخلفية اليمنى",   "Left Hamstring /\nعضلات الفخذ الخلفية اليسرى"),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    if r == "hip" and m in ["abduction", "adduction"]:
+        if (m, r) in hip_ag_movements:
+            idx = hip_ag_movements.index((m, r))
+            slots = [("AG21","AH21","AG22"),("AG23","AH23","AG24")]
+            if idx < len(slots):
+                lc, pc, sc = slots[idx]
+                txt = {
+                    "abduction": ("Right Abductors /\nعضلات الفخذ الخارجية اليمنى", "Left Abductors /\nعضلات الفخذ  الخارجية اليسرى"),
+                    "adduction": ("Right Adductors /\nعضلات الفخذ الداخلي اليمنى",  "Left Adductors /\nعضلات الفخذ الداخلي اليسرى"),
+                }[m]
+                return lc, pc, sc, txt[0], txt[1]
+    return None, None, None, None, None
+
+
+def _build_cells_for_patient(rows, src_ws, test_type, test_types):
+    """
+    Build the dict of Excel cell assignments for one patient/test_type.
+    Returns (cells_dict, movements_list, date_str).
+    movements_list is list of (movement, region) tuples that were stored.
+    """
+    cells = {}
+    stored_movements = []
+
+    movements_present = {}
+    for row in rows:
+        movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+        region   = nz_str(src_ws[f"H{row}"].value).lower().strip()
+        asym_raw = src_ws[f"S{row}"].value
+        if not movement or not region:
+            continue
+        if test_type == "lower" and region == "trunk":
+            continue
+        if asym_raw in (None, ""):
+            continue
+        pct_value, _ = parse_asymmetry(asym_raw)
+        if pct_value is None:
+            continue
+        if len(test_types) > 1:
+            row_tt = get_movement_test_type(movement, region)
+            if row_tt and row_tt != test_type:
+                continue
+        key = (movement, region)
+        if key not in movements_present:
+            movements_present[key] = []
+        movements_present[key].append(row)
+
+    # Build ordered movement lists for cell assignment
+    if test_type == "lower":
+        knee_movements = [k for k in [("extension","knee"),("flexion","knee")] if k in movements_present]
+        hip_abd_add    = [k for k in [("adduction","hip"),("abduction","hip")] if k in movements_present]
+        hip_flex_ext   = [k for k in [("flexion","hip"),("extension","hip")]   if k in movements_present]
+    elif test_type == "upper":
+        shoulder_c = [k for k in [("external rotation","shoulder"),("internal rotation","shoulder"),("flexion","shoulder"),("abduction","shoulder")] if k in movements_present]
+        shoulder_o = [k for k in [("push","shoulder"),("pull","shoulder")] if k in movements_present]
+        elbow_movs = [k for k in [("extension","elbow"),("flexion","elbow")] if k in movements_present]
+        hand_movs  = [k for k in [("grip squeeze","hand")] if k in movements_present]
+    elif test_type == "full":
+        shoulder_c  = [k for k in [("external rotation","shoulder"),("internal rotation","shoulder"),("flexion","shoulder"),("abduction","shoulder")] if k in movements_present]
+        elbow_o     = [k for k in [("extension","elbow"),("flexion","elbow")] if k in movements_present]
+        knee_aa     = [k for k in [("extension","knee"),("flexion","knee")] if k in movements_present]
+        hip_ag      = [k for k in [("abduction","hip"),("adduction","hip")] if k in movements_present]
+
+    # Trunk for lower body
+    if test_type == "lower":
+        trunk_pct, trunk_weak = calculate_trunk_asymmetry(rows, src_ws)
+        if trunk_pct is not None:
+            cells["AA21"] = "Trunk Lateral Flexion /\nالثني الجانبي للجذع"
+            cells["AB21"] = trunk_pct / 100
+            cells["AA22"] = ("Right Sides /\nالجانب الأيمن" if trunk_weak == "Right"
+                             else "Left Sides /\nالجانب الأيسر")
+            stored_movements.append(("lateral flexion", "trunk"))
+
+    # Process each movement row
+    cell_rows = {}
+    for row in rows:
+        movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+        region   = nz_str(src_ws[f"H{row}"].value).lower().strip()
+        asym_raw = src_ws[f"S{row}"].value
+        if not movement or not region or region == "trunk":
+            continue
+        if asym_raw in (None, ""):
+            continue
+        if len(test_types) > 1:
+            row_tt = get_movement_test_type(movement, region)
+            if row_tt and row_tt != test_type:
+                continue
+        pct_value, side_char = parse_asymmetry(asym_raw)
+        if pct_value is None:
+            continue
+
+        if pct_value == 0:
+            pct_value = 0.1
+            weak_side = None
+        else:
+            if side_char is None:
+                continue
+            side_char = side_char.upper()
+            weak_side = "Right" if side_char == "L" else ("Left" if side_char == "R" else None)
+            if weak_side is None:
+                continue
+
+        if test_type == "lower":
+            label_cell, pct_cell, side_cell, right_txt, left_txt = get_lower_body_cells(
+                movement, region, knee_movements, hip_abd_add, hip_flex_ext)
+        elif test_type == "upper":
+            label_cell, pct_cell, side_cell, right_txt, left_txt = get_upper_body_cells(
+                movement, region, shoulder_c, shoulder_o, elbow_movs, hand_movs)
+        elif test_type == "full":
+            label_cell, pct_cell, side_cell, right_txt, left_txt = get_full_body_cells(
+                movement, region, shoulder_c, elbow_o, knee_aa, hip_ag)
+        else:
+            continue
+
+        if pct_cell is None:
+            continue
+
+        # Keep earliest row (lowest row index = latest measurement in descending export)
+        existing_row = cell_rows.get(pct_cell)
+        if existing_row is not None and row >= existing_row:
+            continue
+
+        cell_rows[pct_cell] = row
+        movement_label = get_movement_label(movement, region)
+        if label_cell and movement_label:
+            cells[label_cell] = movement_label
+        cells[pct_cell] = pct_value / 100
+        if weak_side is not None:
+            cells[side_cell] = right_txt if weak_side == "Right" else left_txt
+        if (movement, region) not in stored_movements:
+            stored_movements.append((movement, region))
+
+    # Get date from the first row
+    date_str = None
+    for row in sorted(rows):
+        date_val = src_ws[f"C{row}"].value
+        if date_val:
+            date_str = normalize_test_date(date_val)
+            break
+
+    return cells, stored_movements, date_str
+
+
 # ── main check function ───────────────────────────────────────────────────────
 
 def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict]) -> list[dict]:
@@ -284,27 +575,25 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
             movement_count = len(movements_stored)
 
             lookup_key = (patient_name, test_type, date_str)
-            if lookup_key in existing_lookup:
-                old_count = existing_lookup[lookup_key]
-                if movement_count > old_count:
-                    new_tests.append({
-                        "status": "UPDATED",
-                        "patient": patient_name,
-                        "external_id": patient_external_ids.get(patient_name, "N/A"),
-                        "test_type": test_type,
-                        "date": date_str,
-                        "movement_count": movement_count,
-                        "old_count": old_count,
-                    })
-            else:
+            is_new = lookup_key not in existing_lookup
+            old_count = existing_lookup.get(lookup_key, 0)
+
+            if is_new or movement_count > old_count:
+                # Build template cell data for program generation
+                cells_dict, stored_movs, _ = _build_cells_for_patient(rows, src_ws, test_type, test_types)
+                cells_data = {
+                    "cells": cells_dict,
+                    "movements": [list(m) for m in stored_movs],  # JSON-serializable
+                }
                 new_tests.append({
-                    "status": "NEW",
+                    "status": "NEW" if is_new else "UPDATED",
                     "patient": patient_name,
                     "external_id": patient_external_ids.get(patient_name, "N/A"),
                     "test_type": test_type,
                     "date": date_str,
                     "movement_count": movement_count,
-                    "old_count": 0,
+                    "old_count": old_count,
+                    "cells_data": cells_data,
                 })
 
     wb.close()
