@@ -73,6 +73,15 @@ class AssignPayload(BaseModel):
     dispatch_date: Optional[str] = None
 
 
+class IgnorePayload(BaseModel):
+    gym: str
+    client_name: str
+    test_type: str
+    test_date: str
+    movements: int
+    external_id: Optional[str] = None
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -111,9 +120,10 @@ async def api_check(
 ):
     content = await file.read()
 
+    page_size = 1000
+
     # Fetch ALL existing approved programs for this gym from Supabase (paginated)
     existing = []
-    page_size = 1000
     offset = 0
     while True:
         res = (
@@ -130,7 +140,25 @@ async def api_check(
             break
         offset += page_size
 
-    results = process_check_file(content, gym, existing)
+    # Fetch ignored programs so the processor can suppress them
+    ignored = []
+    offset = 0
+    while True:
+        res = (
+            supabase.table("programs")
+            .select("client_name,test_type,test_date,movements")
+            .eq("gym", gym)
+            .eq("ignored", True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        ignored.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
+
+    results = process_check_file(content, gym, existing, ignored)
     return results
 
 
@@ -185,6 +213,42 @@ def api_approve(payload: ApprovePayload):
     if res.data:
         return res.data[0]
     raise HTTPException(status_code=500, detail="Failed to approve program")
+
+
+@app.post("/api/programs/ignore")
+def api_ignore(payload: IgnorePayload):
+    # Don't ignore if an approved record already exists for this key
+    existing_res = (
+        supabase.table("programs")
+        .select("id,approved")
+        .eq("gym", payload.gym)
+        .eq("client_name", payload.client_name)
+        .eq("test_type", payload.test_type)
+        .eq("test_date", payload.test_date)
+        .execute()
+    )
+    if existing_res.data and existing_res.data[0].get("approved"):
+        raise HTTPException(status_code=400, detail="Cannot ignore an already approved program")
+
+    record = {
+        "gym": payload.gym,
+        "client_name": payload.client_name,
+        "client_id": payload.external_id,
+        "test_type": payload.test_type,
+        "test_date": payload.test_date,
+        "movements": payload.movements,
+        "check_status": "NEW",
+        "approved": False,
+        "ignored": True,
+    }
+    res = (
+        supabase.table("programs")
+        .upsert(record, on_conflict="gym,client_name,test_type,test_date")
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=500, detail="Failed to ignore program")
 
 
 # -- On-demand program PDF generation --

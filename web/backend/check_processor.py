@@ -497,13 +497,17 @@ def _build_cells_for_patient(rows, src_ws, test_type, test_types):
 
 # ── main check function ───────────────────────────────────────────────────────
 
-def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict]) -> list[dict]:
+def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict], ignored_programs: list[dict] | None = None) -> list[dict]:
     """
     Process an uploaded check Excel file (bytes) and compare against existing
     approved programs from the database.
 
     existing_programs: list of dicts with keys:
         client_name, test_type, test_date (YYYY-MM-DD), movements
+
+    ignored_programs: list of dicts with keys:
+        client_name, test_type, test_date (YYYY-MM-DD), movements
+        Tests matching an ignored entry are suppressed unless movement_count increased.
 
     Returns list of dicts:
         status, patient, external_id, test_type, date, movement_count, old_count
@@ -529,6 +533,16 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
             existing_date = prev_asymmetries_lookup.get(pa_key, {}).get("_date", "")
             if date_str_p and date_str_p > existing_date:
                 prev_asymmetries_lookup[pa_key] = {**av, "_date": date_str_p}
+
+    # Build lookup for ignored tests: key → movement_count at time of ignore
+    # A test is suppressed if it matches the key AND movement_count hasn't increased
+    ignored_lookup: dict[tuple, int] = {}
+    for p in (ignored_programs or []):
+        norm_name = re.sub(r"\s+", " ", str(p["client_name"]).strip())
+        tt = p["test_type"]
+        date_str_p = normalize_test_date(p["test_date"])
+        key = (norm_name, tt, date_str_p)
+        ignored_lookup[key] = p.get("movements", 0)
 
     # Collect rows per patient
     patients_rows = {}
@@ -638,6 +652,10 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
             old_count = existing_lookup.get(lookup_key, 0)
 
             if is_new or movement_count > old_count:
+                # Suppress if this exact test was ignored and hasn't gained new movements
+                ignored_count = ignored_lookup.get(lookup_key)
+                if ignored_count is not None and movement_count <= ignored_count:
+                    continue
                 # Build template cell data for program generation
                 cells_dict, stored_movs, _ = _build_cells_for_patient(rows, src_ws, test_type, test_types)
                 # Build asymmetry_values dict (movement_key -> pct 0-100) for future comparisons

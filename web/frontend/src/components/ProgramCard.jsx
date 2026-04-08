@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
-import { approveProgram, getTrainerWhatsapp, previewHtml } from '../api/client'
+import { approveProgram, getTrainerWhatsapp, previewHtml, ignoreTest } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
 const STATUS_BADGE = {
@@ -19,6 +19,8 @@ export default function ProgramCard({ test, gym }) {
   // Post-approve
   const [approved, setApproved] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [ignored, setIgnored] = useState(false)
+  const [ignoring, setIgnoring] = useState(false)
   const [whatsappNum, setWhatsappNum] = useState('')
 
   const branches = getBranches(gym)
@@ -90,6 +92,25 @@ export default function ProgramCard({ test, gym }) {
     }
   }
 
+  const handleIgnore = async () => {
+    setIgnoring(true)
+    try {
+      await ignoreTest({
+        gym,
+        client_name: test.patient,
+        test_type: test.test_type,
+        test_date: test.date,
+        movements: test.movement_count,
+        external_id: test.external_id !== 'N/A' ? test.external_id : null,
+      })
+      setIgnored(true)
+    } catch (e) {
+      alert('Error ignoring: ' + (e.response?.data?.detail || e.message))
+    } finally {
+      setIgnoring(false)
+    }
+  }
+
   const openWhatsapp = () => {
     if (!whatsappNum) {
       alert('No WhatsApp number set for this trainer.')
@@ -98,6 +119,8 @@ export default function ProgramCard({ test, gym }) {
     const clean = whatsappNum.replace(/\D/g, '')
     window.open(`https://wa.me/${clean}`, '_blank')
   }
+
+  if (ignored) return null
 
   return (
     <div className={`rounded-xl border p-5 space-y-4 transition-all
@@ -199,6 +222,17 @@ export default function ProgramCard({ test, gym }) {
         >
           📋 Copy File Name
         </button>
+
+        {/* 3 — Ignore */}
+        {!approved && (
+          <button
+            onClick={handleIgnore}
+            disabled={ignoring}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 hover:border-red-700 hover:text-red-400 disabled:opacity-50 transition-colors"
+          >
+            {ignoring ? 'Ignoring…' : 'Ignore'}
+          </button>
+        )}
 
         <div className="flex-1" />
 

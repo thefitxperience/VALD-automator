@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS programs (
     dispatch_date   DATE,
     approved        BOOLEAN DEFAULT FALSE,
     approved_at     TIMESTAMPTZ,
+    ignored         BOOLEAN DEFAULT FALSE,
     program_pdf_url TEXT,
     results_pdf_url TEXT,
     notes           TEXT,
@@ -25,6 +26,9 @@ CREATE TABLE IF NOT EXISTS programs (
 -- Speed up report queries
 CREATE INDEX IF NOT EXISTS idx_programs_gym_dispatch
     ON programs (gym, approved, dispatch_date);
+
+-- Migration: add ignored column if upgrading from earlier version
+-- ALTER TABLE programs ADD COLUMN IF NOT EXISTS ignored BOOLEAN DEFAULT FALSE;
 
 -- Enable Row Level Security and allow all access via service key
 ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
