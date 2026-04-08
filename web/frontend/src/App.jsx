@@ -4,10 +4,14 @@ import Reports from './pages/Reports'
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-8 shadow-sm">
-        <span className="text-gray-900 font-bold text-lg tracking-tight">VALD Automator</span>
+      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center gap-8">
+        {/* Logos stacked */}
+        <div className="flex flex-col items-center gap-0.5">
+          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-12 w-auto object-contain" />
+          <img src={`${import.meta.env.BASE_URL}VALD.png`} alt="VALD" className="h-12 w-auto object-contain" />
+        </div>
         <div className="flex gap-1">
           <NavLink
             to="/"
@@ -16,7 +20,7 @@ export default function App() {
               `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-brand-600 text-white'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
               }`
             }
           >
@@ -28,7 +32,7 @@ export default function App() {
               `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-brand-600 text-white'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
               }`
             }
           >
