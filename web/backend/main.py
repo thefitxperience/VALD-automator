@@ -234,8 +234,13 @@ def api_generate_report(
     except FileNotFoundError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    period_label = f"Week{week_number}_{year}{month:02d}" if period_type == "weekly" else f"{year}{month:02d}"
-    filename = f"{gym.replace(' ', '_')}_{period_label}_Report.xlsx"
+    import calendar
+    if period_type == "weekly":
+        month_abbr = calendar.month_abbr[month].upper()
+        filename = f"{month_abbr} {year} - Week {week_number} - {gym}.xlsx"
+    else:
+        month_name = calendar.month_name[month]
+        filename = f"{month_name} {year} - {gym}.xlsx"
 
     return StreamingResponse(
         io.BytesIO(report_bytes),
