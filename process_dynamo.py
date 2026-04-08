@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 import re
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 import subprocess
 import xlwings as xw
 from datetime import datetime
@@ -94,8 +94,9 @@ def detect_test_type(patient_rows, src_ws):
     # Detection logic
     test_types = []
     
-    # Full Body: Has upper (shoulder) + elbow + knee + hip abduction/adduction (but NOT hip flexion/extension or trunk)
-    if has_upper and has_elbow and has_knee and has_hip_abd_add and not has_lower_specific:
+    # Full Body: Has upper (shoulder) + elbow + knee (but NOT hip flexion/extension or trunk)
+    # Hip abduction/adduction is optional for full body
+    if has_upper and has_elbow and has_knee and not has_lower_specific:
         return 'full'
     
     # Check if we have upper movements
@@ -722,6 +723,270 @@ def get_remark_for_percentage(pct_value):
         return ""
 
 
+def normalize_test_date(test_date):
+    """
+    Normalize test dates to YYYY-MM-DD for consistent storage/comparison.
+    """
+    if isinstance(test_date, datetime):
+        return test_date.strftime('%Y-%m-%d')
+    if test_date in (None, ""):
+        return None
+
+    s = str(test_date).strip()
+    if not s:
+        return None
+
+    # Handle common export format like 21/12/2025
+    for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y'):
+        try:
+            return datetime.strptime(s, fmt).strftime('%Y-%m-%d')
+        except Exception:
+            pass
+
+    # Keep raw string as fallback if parsing fails
+    return s
+
+
+def make_movement_key(movement, region):
+    """
+    Build a stable key for movement comparison history.
+    """
+    return f"{region.lower().strip()}|{movement.lower().strip()}"
+
+
+def load_asymmetry_history(gym_folder, base_dir):
+    """
+    Load asymmetry comparison history.
+    Structure: {patient: {test_type: [ {test_date, processed_at, asymmetries} ]}}
+    """
+    history_file = os.path.join(base_dir, f"{gym_folder}_asymmetry_history.json")
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def save_asymmetry_history(gym_folder, base_dir, history_data):
+    """
+    Save asymmetry comparison history.
+    """
+    history_file = os.path.join(base_dir, f"{gym_folder}_asymmetry_history.json")
+    with open(history_file, 'w', encoding='utf-8') as f:
+        json.dump(history_data, f, ensure_ascii=False, indent=2)
+
+
+def get_latest_same_type_test(gym_folder, base_dir, patient_name, test_type, current_test_date=None):
+    """
+    Get latest stored test entry for this patient and test type.
+    """
+    history_data = load_asymmetry_history(gym_folder, base_dir)
+    patient_name = re.sub(r'\s+', ' ', patient_name).strip()
+
+    entries = (
+        history_data
+        .get(patient_name, {})
+        .get(test_type, [])
+    )
+
+    if not entries:
+        return None
+
+    current_date_str = normalize_test_date(current_test_date)
+
+    # If current date is known, compare only against strictly older test dates.
+    if current_date_str:
+        prior_entries = [
+            e for e in entries
+            if str(e.get('test_date', '')) < current_date_str
+        ]
+        if prior_entries:
+            prior_sorted = sorted(
+                prior_entries,
+                key=lambda x: (
+                    str(x.get('test_date', '')),
+                    str(x.get('processed_at', ''))
+                )
+            )
+            return prior_sorted[-1]
+        return None
+
+    # Fallback when date is unavailable: latest by date/processed timestamp.
+    entries_sorted = sorted(
+        entries,
+        key=lambda x: (
+            str(x.get('test_date', '')),
+            str(x.get('processed_at', ''))
+        )
+    )
+    return entries_sorted[-1]
+
+
+def log_asymmetry_test(gym_folder, base_dir, patient_name, test_type, test_date, asymmetries):
+    """
+    Store current test asymmetry values for future same-type comparisons.
+    """
+    history_data = load_asymmetry_history(gym_folder, base_dir)
+    patient_name = re.sub(r'\s+', ' ', patient_name).strip()
+    date_str = normalize_test_date(test_date)
+
+    if not date_str:
+        return
+
+    if patient_name not in history_data:
+        history_data[patient_name] = {}
+    if test_type not in history_data[patient_name]:
+        history_data[patient_name][test_type] = []
+
+    # Upsert by date to prevent duplicate entries when reprocessing the same test date.
+    entries = history_data[patient_name][test_type]
+    replaced = False
+    for i, entry in enumerate(entries):
+        if str(entry.get('test_date', '')) == date_str:
+            entries[i] = {
+                'test_date': date_str,
+                'processed_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'asymmetries': asymmetries
+            }
+            replaced = True
+            break
+
+    if not replaced:
+        entries.append({
+            'test_date': date_str,
+            'processed_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'asymmetries': asymmetries
+        })
+
+    save_asymmetry_history(gym_folder, base_dir, history_data)
+
+
+def backfill_history_from_export(export_path, gym_folder, base_dir):
+    """
+    Bulk-store historical tests without generating Excel/PDF outputs.
+    Groups rows by patient + date and stores movement_count + asymmetry history.
+    Returns stats dict.
+    """
+    wb = load_workbook(export_path, data_only=True)
+    src_ws = wb.active
+
+    grouped_rows = {}  # (patient_name, date_str) -> [rows]
+
+    for row in range(2, src_ws.max_row + 1):
+        patient_name = nz_str(src_ws[f"A{row}"].value).strip()
+        if not patient_name:
+            continue
+
+        raw_date = src_ws[f"C{row}"].value
+        date_str = normalize_test_date(raw_date)
+        if not date_str:
+            continue
+
+        patient_name = re.sub(r'\s+', ' ', patient_name).strip()
+        key = (patient_name, date_str)
+        if key not in grouped_rows:
+            grouped_rows[key] = []
+        grouped_rows[key].append(row)
+
+    tests_logged = 0
+    patients_logged = set()
+
+    for (patient_name, date_str), rows in grouped_rows.items():
+        test_types = detect_test_type(rows, src_ws)
+        if isinstance(test_types, str):
+            test_types = [test_types]
+
+        for test_type in test_types:
+            movements_present = {}  # (movement, region) -> [(pct_abs, row)]
+            asymmetry_values = {}  # movement_key -> pct_abs
+
+            # Trunk is computed from force values and included only for lower tests.
+            if test_type == 'lower':
+                trunk_pct, _ = calculate_trunk_asymmetry(rows, src_ws)
+                if trunk_pct is not None:
+                    trunk_key = make_movement_key('lateral flexion', 'trunk')
+                    asymmetry_values[trunk_key] = float(abs(trunk_pct))
+
+            for row in rows:
+                movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+                region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+                asym_raw = src_ws[f"S{row}"].value
+
+                if not movement or not region:
+                    continue
+
+                if test_type == 'lower' and region == 'trunk':
+                    continue
+
+                if asym_raw in (None, ""):
+                    continue
+
+                pct_value, _ = parse_asymmetry(asym_raw)
+                if pct_value is None:
+                    continue
+
+                if len(test_types) > 1:
+                    row_test_type = get_movement_test_type(movement, region)
+                    if row_test_type and row_test_type != test_type:
+                        continue
+
+                would_be_stored = False
+                if test_type == 'lower':
+                    if region == 'knee' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hip' and movement in ['abduction', 'adduction', 'flexion', 'extension']:
+                        would_be_stored = True
+                elif test_type == 'upper':
+                    if region == 'shoulder' and movement in ['external rotation', 'internal rotation', 'flexion', 'abduction', 'push', 'pull']:
+                        would_be_stored = True
+                    elif region == 'elbow' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hand' and movement == 'grip squeeze':
+                        would_be_stored = True
+                elif test_type == 'full':
+                    if region == 'shoulder' and movement in ['external rotation', 'internal rotation', 'flexion', 'abduction']:
+                        would_be_stored = True
+                    elif region == 'elbow' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'knee' and movement in ['extension', 'flexion']:
+                        would_be_stored = True
+                    elif region == 'hip' and movement in ['abduction', 'adduction']:
+                        would_be_stored = True
+
+                if not would_be_stored:
+                    continue
+
+                key = (movement, region)
+                if key not in movements_present:
+                    movements_present[key] = []
+                movements_present[key].append((abs(pct_value), row))
+
+            for (movement, region), value_row_pairs in movements_present.items():
+                # Normal mode keeps latest measurement for descending exports (smallest row index).
+                chosen_value, _ = min(value_row_pairs, key=lambda x: x[1])
+                movement_key = make_movement_key(movement, region)
+                asymmetry_values[movement_key] = float(chosen_value)
+
+            movement_count = len(asymmetry_values)
+            if movement_count == 0:
+                continue
+
+            log_test(gym_folder, base_dir, patient_name, test_type, date_str, movement_count)
+            log_asymmetry_test(gym_folder, base_dir, patient_name, test_type, date_str, asymmetry_values)
+
+            tests_logged += 1
+            patients_logged.add(patient_name)
+
+    wb.close()
+
+    return {
+        'tests_logged': tests_logged,
+        'patients_logged': len(patients_logged)
+    }
+
+
 def load_test_log(gym_folder, base_dir):
     """
     Load the test log for the specified gym.
@@ -788,6 +1053,7 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
     
     # Collect rows per patient name (same as normal processing)
     patients_rows = {}
+    patient_external_ids = {}  # patient_name -> external_id from column B
     for row in range(2, src_ws.max_row + 1):
         name_val = nz_str(src_ws[f"A{row}"].value).strip()
         if not name_val:
@@ -796,6 +1062,9 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
         name_val = re.sub(r'\s+', ' ', name_val).strip()
         if name_val not in patients_rows:
             patients_rows[name_val] = []
+            # Capture External Id from column B (first row seen for this patient)
+            ext_id = nz_str(src_ws[f"B{row}"].value).strip()
+            patient_external_ids[name_val] = ext_id if ext_id else 'N/A'
         patients_rows[name_val].append(row)
     
     # Process each patient using same logic as normal processing
@@ -946,6 +1215,7 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
                 if is_new or is_updated:
                     new_tests.append({
                         'patient': patient_name,
+                        'external_id': patient_external_ids.get(patient_name, 'N/A'),
                         'test_type': test_type,
                         'date': date_str,
                         'movement_count': movement_count,
@@ -956,6 +1226,68 @@ def check_for_new_tests(export_path, gym_folder, base_dir):
     return new_tests
 
 
+def create_new_tests_export(export_path, new_tests, gym_folder):
+    """
+    Create an Excel file containing only NEW test rows from a check export.
+    Returns output path or None if no NEW tests are found.
+    """
+    # Keep only NEW tests (exclude UPDATED)
+    new_only = [t for t in new_tests if t.get('status') == 'NEW']
+    if not new_only:
+        return None
+
+    # Build lookup keys by normalized patient + normalized date
+    target_keys = set()
+    for test in new_only:
+        patient = re.sub(r'\s+', ' ', str(test.get('patient', '')).strip())
+        date_str = normalize_test_date(test.get('date'))
+        if patient and date_str:
+            target_keys.add((patient, date_str))
+
+    if not target_keys:
+        return None
+
+    src_wb = load_workbook(export_path, data_only=True)
+    src_ws = src_wb.active
+
+    out_wb = Workbook()
+    out_ws = out_wb.active
+    out_ws.title = src_ws.title
+
+    # Copy header row
+    for col in range(1, src_ws.max_column + 1):
+        out_ws.cell(row=1, column=col, value=src_ws.cell(row=1, column=col).value)
+
+    out_row = 2
+    for row in range(2, src_ws.max_row + 1):
+        patient_name = re.sub(r'\s+', ' ', nz_str(src_ws[f"A{row}"].value).strip())
+        if not patient_name:
+            continue
+
+        row_date = normalize_test_date(src_ws[f"C{row}"].value)
+        key = (patient_name, row_date)
+
+        if key in target_keys:
+            for col in range(1, src_ws.max_column + 1):
+                out_ws.cell(row=out_row, column=col, value=src_ws.cell(row=row, column=col).value)
+            out_row += 1
+
+    src_wb.close()
+
+    if out_row == 2:
+        # No matching rows copied
+        return None
+
+    desktop_path = os.path.expanduser("~/Desktop")
+    out_path = os.path.join(
+        desktop_path,
+        f"{gym_folder}_only_new_tests_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    )
+    out_wb.save(out_path)
+    out_wb.close()
+    return out_path
+
+
 def fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder):
     """
     Use xlwings to fill data while preserving all Excel features like data validation.
@@ -963,6 +1295,66 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
     app = None
     wb = None
     try:
+        def apply_font_color(range_obj, color_name):
+            """
+            Apply font color with robust fallbacks for macOS Excel.
+            Uses both ColorIndex and Color, and targets merged ranges when present.
+            """
+            color_index_map = {
+                'red': 3,
+                'green': 10,
+                'black': 1,
+            }
+            color_map = {
+                'red': 255,
+                'green': 32768,
+                'black': 0,
+            }
+
+            xw_color_map = {
+                'red': (255, 0, 0),
+                'green': (0, 176, 80),
+                'black': (0, 0, 0),
+            }
+
+            try:
+                # xlwings-native setter is often more reliable on macOS.
+                try:
+                    range_obj.font.color = xw_color_map[color_name]
+                except Exception:
+                    pass
+
+                target = range_obj.api
+                try:
+                    if target.MergeCells:
+                        target = target.MergeArea
+                except Exception:
+                    pass
+
+                # Template conditional formatting can override visible font color.
+                # Remove CF on target cells so direct font color is what users see.
+                try:
+                    target.FormatConditions.Delete()
+                except Exception:
+                    pass
+
+                try:
+                    target.Font.ColorIndex = color_index_map[color_name]
+                except Exception:
+                    pass
+
+                try:
+                    target.Font.Color = color_map[color_name]
+                except Exception:
+                    pass
+
+                try:
+                    target.Font.TintAndShade = 0
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
         # Copy the template to the output location first
         shutil.copy2(template_path, out_path)
         
@@ -1010,7 +1402,7 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
         # Set all other cells
         for cell_addr, cell_value in patient_data.get('cells', {}).items():
             ws.range(cell_addr).value = cell_value
-        
+
         # Add remarks for all percentage cells
         percentage_cells = [
             ('D21', 'D22'), ('D23', 'D24'), ('D25', 'D26'), ('D27', 'D28'),
@@ -1025,7 +1417,15 @@ def fill_template_with_xlwings(template_path, out_path, patient_name, patient_da
                 remark = get_remark_for_percentage(pct_value)
                 if remark:
                     ws.range(remark_cell).value = remark
-        
+
+        # Apply comparison font colors after all values/remarks are written.
+        # Excel font color expects RGB packed integer: r + (g*256) + (b*65536)
+        for cell_addr, color_name in patient_data.get('font_colors', {}).items():
+            try:
+                apply_font_color(ws.range(cell_addr), color_name)
+            except Exception:
+                pass
+
         # Determine which body parts are present and populate A11-A17 (or A11-A18)
         body_parts_present = set()
         test_type = patient_data.get('test_type', 'upper')
@@ -1329,10 +1729,22 @@ def main():
     
     # Check if this is a "check" mode (filename contains "check")
     is_check_mode = "check" in export_filename.lower()
+    is_backfill_mode = any(token in export_filename.lower() for token in ["backfill", "seed"])
+
+    # Backfill mode: store history/logs only, no Excel/PDF generation.
+    if is_backfill_mode:
+        print(f"BACKFILL MODE: Storing historical data only for {gym_folder}...")
+        stats = backfill_history_from_export(export_path, gym_folder, base_dir)
+        print(f"Backfill complete: {stats['tests_logged']} test(s) stored for {stats['patients_logged']} patient(s).")
+        print("No Excel/PDF files were generated.")
+        sys.exit(0)
     
     if is_check_mode:
         print(f"CHECK MODE: Comparing against existing logs for {gym_folder}...")
         new_tests = check_for_new_tests(export_path, gym_folder, base_dir)
+
+        # Create filtered export with only NEW tests so it can be processed later in normal mode.
+        new_only_export_path = create_new_tests_export(export_path, new_tests, gym_folder)
         
         # Create output report
         desktop_path = os.path.expanduser("~/Desktop")
@@ -1365,6 +1777,7 @@ def main():
                 for test in new_tests:
                     f.write(f"Status: {test['status']}\n")
                     f.write(f"Patient: {test['patient']}\n")
+                    f.write(f"ID: {test.get('external_id', 'N/A')}\n")
                     f.write(f"Test Type: {test['test_type'].capitalize()} Body\n")
                     f.write(f"Test Date: {test['date']}\n")
                     f.write(f"Movements: {test['movement_count']}")
@@ -1376,6 +1789,10 @@ def main():
                 f.write("No new tests found. All tests in export have been processed before.\n")
         
         print(f"\nReport saved: {report_path}")
+        if new_only_export_path:
+            print(f"Filtered NEW-tests export saved: {new_only_export_path}")
+        else:
+            print("Filtered NEW-tests export was not created (no NEW tests found).")
         print(f"Total tests in database: {total_count}")
         print(f"Found {len(new_tests)} new/updated test(s)")
         if new_tests:
@@ -1470,7 +1887,11 @@ def main():
                 'cells': {},
                 'cell_rows': {},  # Track which row each cell came from
                 'test_type': test_type,  # Store test type for body parts detection
-                'movements': []  # Track which movements were actually stored
+                'movements': [],  # Track which movements were actually stored
+                'asymmetry_values': {},  # movement_key -> asymmetry percent (0-100)
+                'asymmetry_cells': {},  # movement_key -> percentage cell address
+                'asymmetry_targets': {},  # movement_key -> {label,pct,remark,side}
+                'font_colors': {}  # percentage cell address -> color name
             }
             
             date_set = False
@@ -1517,6 +1938,15 @@ def main():
                     
                     # Track trunk movement for body parts detection
                     patient_data['movements'].append(('lateral flexion', 'trunk'))
+                    trunk_key = make_movement_key('lateral flexion', 'trunk')
+                    patient_data['asymmetry_values'][trunk_key] = float(trunk_pct)
+                    patient_data['asymmetry_cells'][trunk_key] = 'AB21'
+                    patient_data['asymmetry_targets'][trunk_key] = {
+                        'label': 'AA21',
+                        'pct': 'AB21',
+                        'remark': 'AB22',
+                        'side': 'AA22'
+                    }
                 
                 # Assign knee movements to C21/C23 dynamically
                 knee_movements = []
@@ -1639,6 +2069,8 @@ def main():
                 if pct_value is None:
                     continue
 
+                compare_pct = abs(pct_value)
+
                 # Special handling for 0% asymmetry
                 if pct_value == 0:
                     pct_value = 0.1
@@ -1711,6 +2143,18 @@ def main():
                     # Track this movement for body parts detection
                     patient_data['movements'].append((movement.lower().strip(), region.lower().strip()))
 
+                    movement_key = make_movement_key(movement, region)
+                    patient_data['asymmetry_values'][movement_key] = float(compare_pct)
+                    patient_data['asymmetry_cells'][movement_key] = pct_cell_addr
+                    # Remark cell is always the same column as percentage and next row.
+                    remark_cell_addr = f"{re.sub(r'[0-9]', '', pct_cell_addr)}{int(re.sub(r'[^0-9]', '', pct_cell_addr)) + 1}"
+                    patient_data['asymmetry_targets'][movement_key] = {
+                        'label': label_cell,
+                        'pct': pct_cell_addr,
+                        'remark': remark_cell_addr,
+                        'side': side_cell_addr
+                    }
+
             # Normalize patient name - remove extra spaces
             normalized_patient_name = re.sub(r'\s+', ' ', patient_name).strip()
             
@@ -1722,6 +2166,52 @@ def main():
             # Always include test type in filename
             safe_name = make_safe_filename(f"{normalized_patient_name} - {test_type.capitalize()} Body")
             out_path = os.path.join(gym_subfolder, safe_name)
+
+            # Compare with latest same-type test for this client and set font colors.
+            previous_test = get_latest_same_type_test(
+                gym_folder,
+                base_dir,
+                normalized_patient_name,
+                test_type,
+                patient_data.get('date')
+            )
+            previous_asymmetries = previous_test.get('asymmetries', {}) if previous_test else {}
+
+            for movement_key, current_pct in patient_data.get('asymmetry_values', {}).items():
+                targets = patient_data.get('asymmetry_targets', {}).get(movement_key, {})
+                pct_cell_addr = targets.get('pct')
+                if not pct_cell_addr:
+                    continue
+
+                # No strictly older baseline test exists for this test date/type,
+                # so do not apply comparison coloring.
+                if not previous_test:
+                    continue
+
+                if movement_key in previous_asymmetries:
+                    prev_pct = float(previous_asymmetries[movement_key])
+                    if current_pct < prev_pct:
+                        color_name = 'green'
+                    elif current_pct > prev_pct:
+                        color_name = 'red'
+                    else:
+                        color_name = 'red'
+                else:
+                    if current_pct > 8:
+                        color_name = 'red'
+                    else:
+                        color_name = 'black'
+
+                # Apply the same comparison color to 4 linked cells:
+                # asymmetry name, percentage, remark, and left/right side cell.
+                for addr in [
+                    targets.get('label'),
+                    targets.get('pct'),
+                    targets.get('remark'),
+                    targets.get('side')
+                ]:
+                    if addr:
+                        patient_data['font_colors'][addr] = color_name
             
             # Use xlwings to fill template
             success = fill_template_with_xlwings(template_path, out_path, patient_name, patient_data, gym_folder)
@@ -1734,6 +2224,14 @@ def main():
                 movement_count = len(patient_data.get('movements', []))
                 if test_date:
                     log_test(gym_folder, base_dir, patient_name, test_type, test_date, movement_count)
+                    log_asymmetry_test(
+                        gym_folder,
+                        base_dir,
+                        patient_name,
+                        test_type,
+                        test_date,
+                        patient_data.get('asymmetry_values', {})
+                    )
             else:
                 print(f"    Failed to save: {out_path}")
 

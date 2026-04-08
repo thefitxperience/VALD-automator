@@ -1,0 +1,256 @@
+import { useState, useEffect } from 'react'
+import { getBranches, getTrainers } from '../data/trainers'
+import { approveProgram, uploadPdf, getTrainerWhatsapp } from '../api/client'
+
+const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
+const STATUS_BADGE = {
+  NEW: 'bg-emerald-900/60 text-emerald-300 border border-emerald-700',
+  UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
+}
+
+export default function ProgramCard({ test, gym }) {
+  const [branch, setBranch] = useState('')
+  const [trainer, setTrainer] = useState('')
+  const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
+  const [programPdf, setProgramPdf] = useState(null)   // File object
+  const [resultsPdf, setResultsPdf] = useState(null)   // File object
+  const [programPdfUrl, setProgramPdfUrl] = useState(null)
+  const [resultsPdfUrl, setResultsPdfUrl] = useState(null)
+  const [approved, setApproved] = useState(false)
+  const [approvedId, setApprovedId] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [whatsappNum, setWhatsappNum] = useState('')
+
+  const branches = getBranches(gym)
+  const trainers = branch ? getTrainers(gym, branch) : []
+
+  // Fetch WhatsApp number when trainer is selected
+  useEffect(() => {
+    if (gym && branch && trainer) {
+      getTrainerWhatsapp(gym, branch, trainer)
+        .then((r) => setWhatsappNum(r.data?.whatsapp || ''))
+        .catch(() => setWhatsappNum(''))
+    }
+  }, [gym, branch, trainer])
+
+  const handleApprove = async () => {
+    if (!branch || !trainer) {
+      alert('Please select a branch and trainer before approving.')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await approveProgram({
+        gym,
+        branch,
+        client_id: test.external_id !== 'N/A' ? test.external_id : null,
+        client_name: test.patient,
+        test_type: test.test_type,
+        movements: test.movement_count,
+        test_date: test.date,
+        trainer_name: trainer,
+        dispatch_date: dispatchDate,
+        check_status: test.status,
+      })
+      const id = res.data?.id
+      setApprovedId(id)
+
+      // Upload PDFs if selected
+      if (programPdf && id) {
+        const pRes = await uploadPdf(id, 'program', programPdf)
+        setProgramPdfUrl(pRes.data?.url)
+      }
+      if (resultsPdf && id) {
+        const rRes = await uploadPdf(id, 'results', resultsPdf)
+        setResultsPdfUrl(rRes.data?.url)
+      }
+
+      setApproved(true)
+    } catch (e) {
+      alert('Error approving: ' + (e.response?.data?.detail || e.message))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const openWhatsapp = () => {
+    if (!whatsappNum) {
+      alert('No WhatsApp number set for this trainer. Add it in trainers_data.py / trainers.js.')
+      return
+    }
+    const clean = whatsappNum.replace(/\D/g, '')
+    window.open(`https://wa.me/${clean}`, '_blank')
+  }
+
+  const downloadPdf = (url, label) => {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = label
+    a.target = '_blank'
+    a.click()
+  }
+
+  return (
+    <div
+      className={`rounded-xl border p-5 space-y-4 transition-all
+        ${approved ? 'border-emerald-700 bg-emerald-950/20' : 'border-gray-700 bg-gray-900'}`}
+    >
+      {/* Header row */}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[test.status]}`}>
+              {test.status}
+            </span>
+            <h3 className="font-semibold text-white">{test.patient}</h3>
+            {test.external_id && test.external_id !== 'N/A' && (
+              <span className="text-xs text-gray-400 font-mono">#{test.external_id}</span>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-400">
+            <span>{TYPE_LABEL[test.test_type] || test.test_type}</span>
+            <span>·</span>
+            <span>{test.movement_count} movements</span>
+            <span>·</span>
+            <span>{test.date}</span>
+            {test.status === 'UPDATED' && (
+              <span className="text-amber-400">(was {test.old_count})</span>
+            )}
+          </div>
+        </div>
+
+        {/* Results assigned indicator */}
+        <div className="flex items-center gap-1 text-xs font-medium">
+          {resultsPdf || resultsPdfUrl ? (
+            <span className="text-emerald-400">✓ Results assigned</span>
+          ) : (
+            <span className="text-gray-500">Results not assigned</span>
+          )}
+        </div>
+      </div>
+
+      {/* Assignment row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Branch */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Branch</label>
+          <select
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            value={branch}
+            onChange={(e) => { setBranch(e.target.value); setTrainer('') }}
+            disabled={approved}
+          >
+            <option value="">Select branch…</option>
+            {branches.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Trainer */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Trainer</label>
+          <select
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            value={trainer}
+            onChange={(e) => setTrainer(e.target.value)}
+            disabled={!branch || approved}
+          >
+            <option value="">Select trainer…</option>
+            {trainers.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Dispatch date */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Dispatch Date</label>
+          <input
+            type="date"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+            value={dispatchDate}
+            onChange={(e) => setDispatchDate(e.target.value)}
+            disabled={approved}
+          />
+        </div>
+      </div>
+
+      {/* PDF section */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {/* Program PDF */}
+        <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
+          ${programPdf ? 'border-brand-600 text-brand-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
+          {programPdf ? `📄 ${programPdf.name}` : '+ Program PDF'}
+          <input
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            disabled={approved}
+            onChange={(e) => e.target.files[0] && setProgramPdf(e.target.files[0])}
+          />
+        </label>
+
+        {/* Results PDF */}
+        <label className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-colors
+          ${resultsPdf ? 'border-emerald-600 text-emerald-400' : 'border-gray-600 text-gray-400 hover:border-gray-400'}`}>
+          {resultsPdf ? `📊 ${resultsPdf.name}` : '+ Results PDF'}
+          <input
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            disabled={approved}
+            onChange={(e) => e.target.files[0] && setResultsPdf(e.target.files[0])}
+          />
+        </label>
+
+        {/* Download buttons (after approval) */}
+        {programPdfUrl && (
+          <button
+            onClick={() => downloadPdf(programPdfUrl, `${test.patient} - ${TYPE_LABEL[test.test_type]}.pdf`)}
+            className="text-xs px-3 py-1.5 rounded-lg border border-brand-600 text-brand-400 hover:bg-brand-900/30 transition-colors"
+          >
+            ⬇ Program
+          </button>
+        )}
+        {resultsPdfUrl && (
+          <button
+            onClick={() => downloadPdf(resultsPdfUrl, `${test.patient} - Results.pdf`)}
+            className="text-xs px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-400 hover:bg-emerald-900/30 transition-colors"
+          >
+            ⬇ Results
+          </button>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* WhatsApp */}
+        <button
+          onClick={openWhatsapp}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"
+        >
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+          </svg>
+          WhatsApp
+        </button>
+
+        {/* Approve */}
+        {!approved ? (
+          <button
+            onClick={handleApprove}
+            disabled={saving}
+            className="text-xs px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-semibold transition-colors"
+          >
+            {saving ? 'Saving…' : 'Approve'}
+          </button>
+        ) : (
+          <span className="text-xs px-4 py-1.5 rounded-lg bg-emerald-700/40 text-emerald-400 font-semibold border border-emerald-700">
+            ✓ Approved
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
