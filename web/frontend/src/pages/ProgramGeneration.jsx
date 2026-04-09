@@ -33,7 +33,7 @@ export default function ProgramGeneration() {
       <h1 className="text-2xl font-bold text-white">Program Generation</h1>
 
       {/* Gym selector */}
-      <div className="flex gap-2 flex-wrap items-center">
+      <div className="flex gap-2">
         {GYMS.map((g) => (
           <button
             key={g}
@@ -47,19 +47,6 @@ export default function ProgramGeneration() {
             {g}
           </button>
         ))}
-        <div className="ml-auto flex gap-2">
-          {['upper', 'lower', 'full'].map((tt) => (
-            <a
-              key={tt}
-              href={`${import.meta.env.VITE_API_BASE || 'https://vald-automator.onrender.com'}/api/programs/preview-demo?gym=${encodeURIComponent(gym)}&test_type=${tt}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 transition-colors"
-            >
-              {tt.charAt(0).toUpperCase() + tt.slice(1)} template
-            </a>
-          ))}
-        </div>
       </div>
 
       {/* Upload area */}

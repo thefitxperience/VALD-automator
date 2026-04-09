@@ -20,7 +20,7 @@ from supabase import create_client, Client
 from check_processor import process_check_file
 from report_generator import generate_report
 from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
-from program_builder import generate_program_pdf, generate_program_html, _DEMO_CELLS_DATA
+from program_builder import generate_program_pdf, generate_program_html
 
 # ── Supabase ──────────────────────────────────────────────────────────────────
 
@@ -328,19 +328,6 @@ def api_preview_html(payload: GeneratePayload):
     )
     return HTMLResponse(content=html)
 
-
-@app.get("/api/programs/preview-demo")
-def api_preview_demo(gym: str = "Body Masters", test_type: str = "upper"):
-    """Return a demo workout planner sheet as HTML (no auth required)."""
-    demo = _DEMO_CELLS_DATA.get(test_type, _DEMO_CELLS_DATA["upper"])
-    html = generate_program_html(
-        gym=gym,
-        test_type=test_type,
-        patient_name="Demo Client",
-        test_date="2025-01-15",
-        cells_data=demo,
-    )
-    return HTMLResponse(content=html)
 
 
 @app.patch("/api/programs/{program_id}")
