@@ -16,5 +16,9 @@ COPY web/backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY web/backend/ .
+COPY ["Month YEAR - Body Masters.xlsx", "."]
+COPY ["Month YEAR - Body Motions.xlsx", "."]
+COPY ["Body Masters/", "Body Masters/"]
+COPY ["Body Motions/", "Body Motions/"]
 
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

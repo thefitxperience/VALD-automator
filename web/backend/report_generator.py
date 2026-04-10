@@ -10,12 +10,10 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from copy import copy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Template files live two levels up (workspace root)
-WORKSPACE_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
-
+# Template files are copied into the same directory as this file in the container
 TEMPLATE_MAP = {
-    "Body Masters": os.path.join(WORKSPACE_DIR, "Month YEAR - Body Masters.xlsx"),
-    "Body Motions": os.path.join(WORKSPACE_DIR, "Month YEAR - Body Motions.xlsx"),
+    "Body Masters": os.path.join(BASE_DIR, "Month YEAR - Body Masters.xlsx"),
+    "Body Motions": os.path.join(BASE_DIR, "Month YEAR - Body Motions.xlsx"),
 }
 
 TEST_TYPE_LABELS = {
