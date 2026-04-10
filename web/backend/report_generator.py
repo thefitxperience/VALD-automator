@@ -113,32 +113,17 @@ def generate_report(
     wb = load_workbook(template_path)
 
     rpt_date = report_date or date.today()
-    # Branch sheets always show the first day of the report month
-    branch_date = date(year, month, 1)
-    # REPORT summary sheets: today for monthly, last day of the week for weekly
-    if period_type == "weekly":
-        _, summary_date = _week_range(year, month, week_number)
-    else:
-        # Use last day of the month if it's already passed, otherwise today
-        _, last_day = _week_range(year, month, 4)  # get month boundaries via helper
-        # Recalculate actual last day of month properly
-        if month == 12:
-            last_day = date(year + 1, 1, 1) - timedelta(days=1)
-        else:
-            last_day = date(year, month + 1, 1) - timedelta(days=1)
-        summary_date = last_day if last_day < rpt_date else rpt_date
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
-        # Summary sheets
+        # Skip summary sheets
         if sheet_name in ("REPORT", "REPORT 2"):
-            ws["B3"] = summary_date
-            ws["B3"].number_format = "DD/MM/YYYY"
+            # Update report date cell (B3)
+            ws["B3"] = rpt_date
             continue
 
-        # Branch sheet — first day of the month
-        ws["B3"] = branch_date
-        ws["B3"].number_format = "DD/MM/YYYY"
+        # Branch sheet — update report date
+        ws["B3"] = rpt_date
 
         branch_programs = by_branch.get(sheet_name, [])
         if not branch_programs:
@@ -165,32 +150,30 @@ def generate_report(
             # Format dates
             if isinstance(test_date, str):
                 try:
-                    test_date = date.fromisoformat(test_date[:10])
-                except (ValueError, TypeError):
+                    test_date = date.fromisoformat(test_date)
+                except ValueError:
                     pass
             if isinstance(dispatch_date, str):
                 try:
-                    dispatch_date = date.fromisoformat(dispatch_date[:10])
-                except (ValueError, TypeError):
+                    dispatch_date = date.fromisoformat(dispatch_date)
+                except ValueError:
                     pass
 
             full_name = f"{client_name} - {test_type_label}" if test_type_label else client_name
 
-            # Store client_id as a number when possible
-            try:
-                client_id_val = int(client_id) if str(client_id).strip() else ""
-            except (ValueError, TypeError):
-                client_id_val = client_id
-
-            ws.cell(row=dest_row, column=1, value=client_id_val)
+            ws.cell(row=dest_row, column=1, value=client_id)
             ws.cell(row=dest_row, column=2, value=full_name)
             ws.cell(row=dest_row, column=3, value=trainer)
             ws.cell(row=dest_row, column=4, value=test_date)
             ws.cell(row=dest_row, column=5, value=dispatch_date)
 
             # Format date cells
-            ws.cell(row=dest_row, column=4).number_format = "DD/MM/YYYY"
-            ws.cell(row=dest_row, column=5).number_format = "DD/MM/YYYY"
+            ws.cell(row=dest_row, column=4).number_format = "YYYY-MM-DD"
+            ws.cell(row=dest_row, column=5).number_format = "YYYY-MM-DD"
+
+            # Column F: mark late uploads (test done in a previous month)
+            if isinstance(test_date, date) and test_date.month != month:
+                ws.cell(row=dest_row, column=6, value="Late Upload")
 
     # Save to bytes
     buf = io.BytesIO()
