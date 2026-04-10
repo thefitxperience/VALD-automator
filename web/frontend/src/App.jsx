@@ -9,8 +9,8 @@ export default function App() {
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center gap-8">
         {/* Logos stacked */}
         <div className="flex flex-col items-center gap-0.5">
-          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-12 w-auto object-contain" />
-          <img src={`${import.meta.env.BASE_URL}VALD.png`} alt="VALD" className="h-12 w-auto object-contain" />
+          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-12 w-auto object-contain mt-1" />
+          <img src={`${import.meta.env.BASE_URL}VALD.png`} alt="VALD" className="h-12 w-auto object-contain -mb-2" />
         </div>
         <div className="flex gap-1">
           <NavLink
