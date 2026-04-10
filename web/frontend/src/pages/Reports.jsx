@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { generateReport } from '../api/client'
 
-const GYMS = ['Body Motions', 'Body Masters']
+const GYMS = [
+  { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
+  { name: 'Body Masters', logo: '/VALD-automator/Masters_logo.png' },
+]
 const MONTHS = [
   'January','February','March','April','May','June',
   'July','August','September','October','November','December',
@@ -85,18 +88,18 @@ export default function Reports() {
       {/* Gym */}
       <div>
         <label className="block text-sm text-gray-400 mb-2">Gym</label>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {GYMS.map((g) => (
             <button
-              key={g}
-              onClick={() => setGym(g)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors
-                ${gym === g
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+              key={g.name}
+              onClick={() => setGym(g.name)}
+              className={`rounded-xl overflow-hidden transition-all border-2 bg-gray-100
+                ${gym === g.name
+                  ? 'border-brand-500 shadow-lg shadow-brand-500/30 scale-105'
+                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-500'
                 }`}
             >
-              {g}
+              <img src={g.logo} alt={g.name} className="h-14 w-auto object-contain px-3 py-1.5" />
             </button>
           ))}
         </div>

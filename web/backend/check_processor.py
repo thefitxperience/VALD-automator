@@ -525,7 +525,8 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
         tt = p["test_type"]
         date_str_p = normalize_test_date(p["test_date"])
         key = (norm_name, tt, date_str_p)
-        existing_lookup[key] = p.get("movements", 0)
+        mv = p.get("movements", 0)
+        existing_lookup[key] = len(mv) if isinstance(mv, list) else (mv or 0)
         # Track the latest date per (name, test_type) for comparison
         pa_key = (norm_name, tt)
         av = p.get("asymmetry_values")
@@ -542,7 +543,8 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
         tt = p["test_type"]
         date_str_p = normalize_test_date(p["test_date"])
         key = (norm_name, tt, date_str_p)
-        ignored_lookup[key] = p.get("movements", 0)
+        mv = p.get("movements", 0)
+        ignored_lookup[key] = len(mv) if isinstance(mv, list) else (mv or 0)
 
     # Collect rows per patient
     patients_rows = {}

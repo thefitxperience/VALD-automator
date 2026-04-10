@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getBranches, getTrainers } from '../data/trainers'
 import { approveProgram, unapproveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
 
@@ -6,6 +6,92 @@ const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body'
 const STATUS_BADGE = {
   NEW: 'bg-emerald-900/60 text-emerald-300 border border-emerald-700',
   UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
+}
+
+function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [highlighted, setHighlighted] = useState(0)
+  const ref = useRef(null)
+  const listRef = useRef(null)
+
+  const filtered = query
+    ? options.filter(o => o.toLowerCase().includes(query.toLowerCase()))
+    : options
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  // Keep input text in sync with external value changes (e.g. reset)
+  useEffect(() => {
+    if (!value) setQuery('')
+  }, [value])
+
+  // Reset highlight when filtered list changes
+  useEffect(() => { setHighlighted(0) }, [query])
+
+  function select(opt) {
+    onChange(opt)
+    setQuery(opt)
+    setOpen(false)
+  }
+
+  function handleKeyDown(e) {
+    if (!open || filtered.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlighted(h => Math.min(h + 1, filtered.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlighted(h => Math.max(h - 1, 0))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      select(filtered[highlighted])
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (!listRef.current) return
+    const item = listRef.current.children[highlighted]
+    if (item) item.scrollIntoView({ block: 'nearest' })
+  }, [highlighted])
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-50"
+        placeholder={placeholder}
+        value={query}
+        disabled={disabled}
+        onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange('') }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+      />
+      {open && !disabled && filtered.length > 0 && (
+        <ul ref={listRef} className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          {filtered.map((opt, i) => (
+            <li
+              key={opt}
+              onMouseDown={() => select(opt)}
+              onMouseEnter={() => setHighlighted(i)}
+              className={`px-3 py-2 text-sm cursor-pointer ${i === highlighted ? 'bg-gray-700 text-white' : opt === value ? 'text-brand-400 font-semibold' : 'text-white'}`}
+            >
+              {opt}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 export default function ProgramCard({ test, gym }) {
@@ -194,27 +280,23 @@ export default function ProgramCard({ test, gym }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-xs text-gray-400 mb-1">Branch</label>
-          <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <SearchableSelect
+            options={branches}
             value={branch}
-            onChange={(e) => { setBranch(e.target.value); setTrainer('') }}
+            onChange={(v) => { setBranch(v); setTrainer('') }}
+            placeholder="Search branch…"
             disabled={approved || ignored}
-          >
-            <option value="">Select branch…</option>
-            {branches.map((b) => <option key={b} value={b}>{b}</option>)}
-          </select>
+          />
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">Trainer</label>
-          <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <SearchableSelect
+            options={trainers}
             value={trainer}
-            onChange={(e) => setTrainer(e.target.value)}
+            onChange={setTrainer}
+            placeholder="Search trainer…"
             disabled={!branch || approved || ignored}
-          >
-            <option value="">Select trainer…</option>
-            {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          />
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">Dispatch Date</label>
@@ -267,7 +349,9 @@ export default function ProgramCard({ test, gym }) {
         {/* 3 — WhatsApp */}
         <button
           onClick={openWhatsapp}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"
+          disabled={!whatsappNum}
+          title={!whatsappNum ? 'No WhatsApp number for this trainer' : ''}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-green-700"
         >
           <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
