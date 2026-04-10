@@ -454,8 +454,8 @@ def generate_program_html(gym: str, test_type: str, patient_name: str,
         for ex in sec["exercises"]:
             nm = _bilingual(ex["name"])
             ex_rows += (f"<tr class='ex-row'><td class='en'>{nm}</td>"
-                        f"<td>{ex['r_sets']}</td><td>{ex['l_sets']}</td>"
-                        f"<td>{ex['r_reps']}</td><td>{ex['l_reps']}</td></tr>")
+                        f"<td>{ex['l_sets']}</td><td>{ex['r_sets']}</td>"
+                        f"<td>{ex['l_reps']}</td><td>{ex['r_reps']}</td></tr>")
         empty_row = "<tr class='ex-row'><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>"
         ex_rows += empty_row * max(0, 14 - len(sec["exercises"]))
 
@@ -491,7 +491,7 @@ def generate_program_html(gym: str, test_type: str, patient_name: str,
       </tr>
       <tr class="ch">
         <th class="exh">EXERCISES</th>
-        <th>R</th><th>L</th><th>R</th><th>L</th>
+        <th>L</th><th>R</th><th>L</th><th>R</th>
       </tr>
     </thead>
     <tbody>
