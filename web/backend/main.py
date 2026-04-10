@@ -405,7 +405,9 @@ def api_generate_report(
             week_number=week_number,
             report_date=date.today(),
         )
-    except FileNotFoundError as e:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
     import calendar
