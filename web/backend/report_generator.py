@@ -168,8 +168,8 @@ def generate_report(
             ws.cell(row=dest_row, column=5, value=dispatch_date)
 
             # Format date cells
-            ws.cell(row=dest_row, column=4).number_format = "YYYY-MM-DD"
-            ws.cell(row=dest_row, column=5).number_format = "YYYY-MM-DD"
+            ws.cell(row=dest_row, column=4).number_format = "DD/MM/YYYY"
+            ws.cell(row=dest_row, column=5).number_format = "DD/MM/YYYY"
 
             # Column F: mark late uploads (test done in a previous month)
             if isinstance(test_date, date) and test_date.month != month:
