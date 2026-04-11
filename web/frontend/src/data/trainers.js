@@ -76,4 +76,15 @@ export function getTrainers(gym, branch) {
   return (TRAINERS[gym] || {})[branch] || []
 }
 
+export function getAllTrainers(gym) {
+  return Object.values(TRAINERS[gym] || {}).flat()
+}
+
+export function getBranchForTrainer(gym, trainerName) {
+  for (const [branch, trainers] of Object.entries(TRAINERS[gym] || {})) {
+    if (trainers.includes(trainerName)) return branch
+  }
+  return null
+}
+
 export default TRAINERS

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getBranches, getTrainers } from '../data/trainers'
+import { getBranches, getTrainers, getAllTrainers, getBranchForTrainer } from '../data/trainers'
 import { approveProgram, unapproveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
@@ -110,7 +110,15 @@ export default function ProgramCard({ test, gym }) {
   const [whatsappNum, setWhatsappNum] = useState('')
 
   const branches = getBranches(gym)
-  const trainers = branch ? getTrainers(gym, branch) : []
+  const trainers = branch ? getTrainers(gym, branch) : getAllTrainers(gym)
+
+  function handleTrainerChange(name) {
+    setTrainer(name)
+    if (!branch && name) {
+      const found = getBranchForTrainer(gym, name)
+      if (found) setBranch(found)
+    }
+  }
 
   useEffect(() => {
     if (gym && branch && trainer) {
@@ -293,9 +301,9 @@ export default function ProgramCard({ test, gym }) {
           <SearchableSelect
             options={trainers}
             value={trainer}
-            onChange={setTrainer}
+            onChange={handleTrainerChange}
             placeholder="Search trainer…"
-            disabled={!branch || approved || ignored}
+            disabled={approved || ignored}
           />
         </div>
         <div>
