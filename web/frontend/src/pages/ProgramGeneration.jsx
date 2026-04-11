@@ -13,6 +13,7 @@ export default function ProgramGeneration() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [results, setResults] = useState(null)
+  const [sortOrder, setSortOrder] = useState('desc')
 
   const handleFile = async (file) => {
     setLoading(true)
@@ -28,8 +29,14 @@ export default function ProgramGeneration() {
     }
   }
 
-  const newTests     = results?.filter((t) => t.status === 'NEW')     || []
-  const updatedTests = results?.filter((t) => t.status === 'UPDATED') || []
+  const sorted = results
+    ? [...results].sort((a, b) => {
+        const d = new Date(a.date) - new Date(b.date)
+        return sortOrder === 'asc' ? d : -d
+      })
+    : []
+  const newTests     = sorted.filter((t) => t.status === 'NEW')
+  const updatedTests = sorted.filter((t) => t.status === 'UPDATED')
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -64,7 +71,7 @@ export default function ProgramGeneration() {
       {/* Results */}
       {results !== null && (
         <div className="space-y-8">
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-4 text-sm flex-wrap">
             <span className="text-gray-300">
               <span className="font-bold text-emerald-400">{newTests.length}</span> new
             </span>
@@ -75,6 +82,24 @@ export default function ProgramGeneration() {
             {results.length === 0 && (
               <span className="text-gray-500">No new or updated tests found.</span>
             )}
+            <div className="ml-auto flex gap-1">
+              <button
+                onClick={() => setSortOrder('desc')}
+                className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                  sortOrder === 'desc'
+                    ? 'bg-brand-600 border-brand-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
+                }`}
+              >Newest first</button>
+              <button
+                onClick={() => setSortOrder('asc')}
+                className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                  sortOrder === 'asc'
+                    ? 'bg-brand-600 border-brand-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
+                }`}
+              >Oldest first</button>
+            </div>
           </div>
 
           {/* NEW */}

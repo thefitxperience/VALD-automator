@@ -70,7 +70,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Seham Hussein", "whatsapp": ""},
                 {"name": "Nawal Akermi", "whatsapp": "+966545200626"},
-                {"name": "Amal Al-Bjeoui", "whatsapp": "+966547827269"},
+                {"name": "Amal Al-Bjeoui", "whatsapp": "+21628807781"},
                 {"name": "Rihem Hossam", "whatsapp": "+966535729346"},
                 {"name": "Hadeer Ibrahim Gamal", "whatsapp": "+966502626702"},
                 {"name": "Arwa Ahmed Baflah", "whatsapp": "+966538626465"},
