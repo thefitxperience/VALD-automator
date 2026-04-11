@@ -27,9 +27,9 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Keep input text in sync with external value changes (e.g. reset)
+  // Keep input text in sync with external value changes (e.g. reset or auto-fill)
   useEffect(() => {
-    if (!value) setQuery('')
+    setQuery(value || '')
   }, [value])
 
   // Reset highlight when filtered list changes
