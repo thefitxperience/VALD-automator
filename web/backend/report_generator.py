@@ -16,6 +16,30 @@ TEMPLATE_MAP = {
     "Body Motions": os.path.join(BASE_DIR, "Month YEAR - Body Motions.xlsx"),
 }
 
+BRANCH_ORDER = {
+    "Body Masters": [
+        "RUH - Al Malaz", "RUH - Al Massif", "RUH - Al Aarid", "RUH - Al Sahafa",
+        "RUH - Al Wadi", "RUH - Eshbilia", "RUH - Muzahmiyah", "RUH - Rabwa",
+        "RUH - Salam", "RUH - Swaidi", "RUH - Takhasousi", "RUH - Al Badia",
+        "RUH - Al Fayha", "RUH - Al Khaleej", "RUH - Al Kharj", "RUH - Al Nahda",
+        "RUH - Badr", "RUH - Ezdehar", "RUH - Murooj", "RUH - Shubra",
+        "DMM - Al Athir", "DMM - Al Jameyeen", "DMM - Hufof", "DMM - Khobar",
+        "JED - Hamadania", "JED - JDR", "JED - Al Rawdah", "JED - Makkah", "JED - Obhor",
+        "ALQ - Al Rass", "ALQ - Buraidah", "ALQ - Unaizah",
+        "MED - Shouran", "MED - Taiba",
+        "Uhud", "AlUla", "Al Mubaraz", "Hafr El Batin", "Tabuk", "Najran",
+        "Khamis Mushait", "Hail",
+    ],
+    "Body Motions": [
+        "RUH - Al Malaz", "RUH - Al Sahafa", "RUH - Al Aarid", "RUH - Al Fayha",
+        "RUH - Al Uraija", "RUH - Badr", "RUH - Al Badia",
+        "JED - Al Basateen", "JED - Al Faisaliyah", "JED - Al Naeem",
+        "DMM - Al Faisaliyah", "DMM - Al Jalawiah",
+        "ALQ - Buraidah", "ALQ - Unaizah",
+        "Al Ahsaa", "AlUla", "Tabuk",
+    ],
+}
+
 TEST_TYPE_LABELS = {
     "upper": "Upper Body",
     "lower": "Lower Body",
@@ -120,6 +144,14 @@ def generate_report(
         if sheet_name in ("REPORT", "REPORT 2"):
             # Update report date cell (B3)
             ws["B3"] = summary_date
+            # For weekly/custom reports, fill column C from C7 with branch counts
+            # (monthly uses a formula that counts from branch sheets directly)
+            is_partial = period_type == "weekly" or bool(start_day or end_day)
+            if is_partial and sheet_name == "REPORT 2":
+                branch_order = BRANCH_ORDER.get(gym, [])
+                for idx, branch in enumerate(branch_order):
+                    count = len(by_branch.get(branch, []))
+                    ws.cell(row=7 + idx, column=3, value=count)
             continue
 
         # Branch sheet — update report date
