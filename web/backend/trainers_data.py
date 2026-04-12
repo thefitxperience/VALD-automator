@@ -303,7 +303,7 @@ TRAINERS = {
                 {"name": "Houssam Ali Elsheshtawy", "whatsapp": "+966547804429"},
                 {"name": "Marwan Al-Jebali", "whatsapp": "+966562168909"},
                 {"name": "Mohamed Ibrahim Ibrahim Abouelrous", "whatsapp": "+966598628082"},
-                {"name": "Ibrahim Mostafa", "whatsapp": ""},
+                {"name": "Ibrahim Mostafa", "whatsapp": "+966541688383"},
                 {"name": "Mohamd Refai Mohamd", "whatsapp": ""},
                 {"name": "Saud Turki Alqasir", "whatsapp": ""},
             ]
@@ -373,10 +373,10 @@ TRAINERS = {
             "trainers": [
                 {"name": "Faraj Lakaira", "whatsapp": "+966551838742"},
                 {"name": "Mahmoud Al Mahdi", "whatsapp": "+966550984911"},
-                {"name": "Ahmad Hamdi Knawi", "whatsapp": ""},
+                {"name": "Ahmad Hamdi Knawi", "whatsapp": "+966591850202"},
                 {"name": "Kamal Al-Rayes", "whatsapp": "+966506095878"},
                 {"name": "Asser Al-Sheikh", "whatsapp": "+966562383415"},
-                {"name": "Hamza Aissaoui", "whatsapp": ""},
+                {"name": "Hamza Aissaoui", "whatsapp": "+966543292026"},
                 {"name": "Hicham Mouhime", "whatsapp": "+966594857442"},
                 {"name": "Hicham Toualbi", "whatsapp": "+966547058178"},
                 {"name": "Ibrahim Pokoti", "whatsapp": "+966592696843"},
