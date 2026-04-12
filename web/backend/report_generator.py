@@ -40,6 +40,147 @@ BRANCH_ORDER = {
     ],
 }
 
+TRAINER_ORDER = {
+    "Body Masters": [
+        "Abdallah Kamal Ahmad Sayid","Adnan Abdallah Al Jahni","Adnan Abdallah Aljahny",
+        "Chady Taha Abdel Rahman","Hicham Mahboub","Mahmoud Bakry","Mohamed Elshabrawy",
+        "Mohaned Ahmad","Omar Ismael","Omar Saoud","Trainer Ismail","Yassine Abbich",
+        "Mohamad Touri","Mahmoud Abdel Rahim Senussi","Ossama Almaslout","Amer Abid",
+        "Mohammed Hida","Youssef Lekal","Hamza Said","Oussama Elbaz","Alaa Fathy",
+        "Hany Mohamed Yousif Elhadad","Sleiman Al Tayyar","Abed El Hakim Sahou",
+        "Asmah Choukeni","Saleh Al Abed","Ahmed Shoeeb","Anouar Aghmour","Mohammad Souud",
+        "Ahmed Keshk","Jayson Atlano","Mahmoud Abdel Rahim Senussi Kame",
+        "Abed Al Menhem Mhamad","Mhamad El Ebri","Chehab Al Dine Al Salihi",
+        "Mohamad Rida Irabi","Mahmoud Abed El Rahim","Captain Housein Ali Joumaa",
+        "Diyaa Al Jraydan","Mourad Belgacem","Mahmoud Yosri Mahmoud Mahfouz",
+        "Amr El Sayed Abdelhamid","Moustafa Nasser Abd Elkader","Khalid Mouazen",
+        "Mohamad Fouad G. Amer","Ahmad H. Abed Al Latif","Hisham M. Badih",
+        "Diya Y. Aljirdan","Mohamad Zakariah","Rrnniel Villaverde","Magomed Ansarov",
+        "Zakaria Jawadi","Renelle Vilaverdi","Badereddine Bouzahar","Safaa Karim",
+        "Fawzi Baltaji","Akram M. Hussin","Zakaria Yahia","Youssef Noreddine",
+        "Ahmad Fadel","Rachid Sakouti","Hamza Sanbar","Ayman N. Al Chahawi",
+        "Ahmed Hamid Abdelltif Nogalla","Bander Albalawi","El Kaddioui Adil",
+        "Shamsudheen Paramban","Ibrahim Mohamed Fadel Abduljalil Barakat","Abdellatif Zamzim",
+        "Bilel Azhar Yakoubi","Houssam Ali Elsheshtawy","Marwan Al-Jebali",
+        "Mohamed Ibrahim Ibrahim Abouelrous","Ibrahim Mostafa","Mohamd Refai Mohamd",
+        "Saud Turki Alqasir",
+        "Khalifa El Nahrawy","Ayoub Benzahra","Abdssamad Aballa","Nabil Essahraoui",
+        "Aref Hebatala","Alaa Eddine Rtili","Abderrazak Sihabi","Mostafa Ashour Elkhouly",
+        "Hicham Mouhime","Abdellatif Zamzam","Fady Elsayed","Mohamed Kamal",
+        "Nasser Mansour Nasser Alessa","Mohammed Nshbat","Naoufel Jabnouni",
+        "Khalid Chatir","Mohammed Korchi",
+        "Abdenabi Ktraouach","Fikri Acharif","Abdou Wahed Zraidi","Ahmed Abdelrahman",
+        "Salman Altayyar","Wasem Seed Alhajree","Khalid Nokracchi","Taib Jadia",
+        "Mahmoud Nagib","Saeed Al Adrham",
+        "Abderrazak Sihabi","Adil Elqady","Adil Chahmi","Amine Korchi","El Mehdi Adnani",
+        "Mohamed Saeed","Selim Ben Abdelkader","Mahmoud Fotoh",
+        "Khalifa Hassan Khalifa Nahrawy","Mohamad Mahdim Alqahtani",
+        "Faraj Lakaira","Mahmoud Al Mahdi","Ahmad Hamdi Knawi","Kamal Al-Rayes",
+        "Asser Al-Sheikh","Hamza Aissaoui","Hicham Mouhime","Hicham Toualbi","Ibrahim Pokoti",
+        "Ahmad Ramadan","Chouaib Suilmi","Elsayed Fouad","Karim Hosny Ahmad",
+        "Mohamed Hassan Ali Hassan","Mohamed Moustafa Ahmad",
+        "Oussama Ait Hammou Obrahim","Zakaria Elouali",
+        "Mahmoud Mohamed","Mohamed Hamdan Mohamed","Adel Ali Mohamed",
+        "Boujemaa Elakkad","Nabil Essahraoui","Yassine El Barnoussi",
+        "Achraf Fadlallah","Majid Abdessamad","Mhamed Oulahssine",
+        "Ramy Alla Tawfeak Ahmed","Rhey Anthony T. Munez","Youssef Al Habib Trabelsi",
+        "Adawi Abdelmounnmadawi","Kamel Mohammed Kamel","Khalled Saeed Saeed Alhasany",
+        "Mahmoud Farouk Abdel Karim Badawi","Mohammed Bstan Abd Aljwad",
+        "Mohammed Mubarak Mohammed Aldawsari",
+        "Ahmed Maher Ahmed Nasrelden","Hesham Rady Ismail Rady","Mohsen Hadikhamis",
+        "Tarik Maarouf","Ibrahim Ali Ismaiel Ibrahim","Wajih Kamal Matoussi",
+        "Abdelaziz El Maydy","Amr Ahmed Abdellatif Rabia","Cherif Bin Ahmed Khlifi",
+        "Abdessamade Moudakkir","Ahmed Maher Elsayed Abdelaal","Hicham Oulias",
+        "Mohammed Abdullah Alquwaya","Mohammed Mahdi Adham Nabhan","Osman Nagi Osman",
+        "Rachid Choukhmane","Tariq Abdulrahman Basharahil",
+        "Abdullah Abdulrahman","Abdulrahman Ali","Anas Al-Makenzi","Ibrahim Salama",
+        "Mohamed Abdel Moeti","Mohamed Rabhi","Rashid Elbouazizi",
+        "Hesham Adel Almarshoud","Hicham Hassi","Jamal Halabi Assiri",
+        "Mohamed Abdellatif Radwan","Mohamed Abdelsalam Deyab","Mohamed Elsayed Elzeftawy",
+        "Mohamed Khalid Manni","Nader Maayouf Saleh",
+        "Ahmad Abdelgafour Omar Ahmad","Abdelrahman Mohamed","Khalid Karmou",
+        "Shehab Ashraf Mohamady Ibrahim",
+        "Abbas Okasha","Abd Elrahem Al Ouina","Abed AlWasi","Khalid Mahmoud Saleh",
+        "Mahmoud Hassan","Radwan Mohamed Radwan","Shahid Elkhalfy",
+        "Abd Elramhan Mokhtar","Mohamed Fathi Abdulsattar","Abdullah Mohammed Alhamdni",
+        "Mohamed Ibrahim Mohamed","Musa Eltom Ahmed",
+        "Abdallah Kandaly","Ibrahim Nasr","Khaled Al-Masouri","Sami Serrar",
+        "Sofiane Sadiq","Tawfik Jukh",
+        "Youssef Souayah","Muhmoud Ayman Saad","Ahmed Elsayed Algammal",
+        "Adel Mohammed Abdullah Al-Daos","Imad Al-Zahrani","Khaled Al Barkawi",
+        "Mahmoud Al Bihery","Mohamed Ait Ayad","Mohamed Gamea","Omar Al Shankety",
+        "Hesham Galal Mahmoud","Karim Abdala Wassal","Mohammed Joharji",
+        "Mohammed Mustafa Himsi",
+        "Yousef Bou Kentar","Hicham Hemsi",
+        "Oussema Boussaid","Mouad Omir","Orley Garcia","Yasser Mahmoud","Kamis Zamzam",
+        "Mohamed Jaouat","Mohamed Amzil","Mohamed Othman Gazy","Karim Maarori",
+        "Abdel Ghafour Bahja","Anas Mohmmed Alshanqiti","Lakhdari Abdellatif",
+        "Mohamed Soliman Ragab","Sheref Ashraf Mohamed",
+        "Abdelaziz Mohi Eldin Elkhouli","Abdulwahab Ahmed Saad Al Ghamdi",
+        "Amgad Hussein Abbas Abdulaal","Mostafa Mahmoud Sayed Mohamed",
+        "Rabah Salamah Alhujuri","Samer Mohammed Abas Kamber",
+        "Abdallah Mohamed Ali","Ahmad Al-Dawkhi","Ali Ahmed Alkhadhir","Hassan Ait Hmida",
+        "Hamza Berahhou","Khaled Ezzat","Mohammed Abdelhamid","Moulay Al Hussein",
+        "Wael Mohammed",
+        "Ahmed Abdelmaqsoud","Ahmed Elsayed","Ahmed Khaled","Ahmed Khaled El Said",
+        "ElHassan Nagub","Hussein Elsayed","Mohamad Amine Azhar","Mohannad Hani",
+        "Moamed Ata","Yassin Mbarek",
+        "Abdallah Lazam Faisal Al-Asadi","Abdul Raouf Mustafa","Hamza Moustaghfir",
+        "Joesel Bodota Casimiro","Mohamed Fouad Amer",
+        "Ammar Tarek Fathi Ibrahim Ali Mahmoud","Radi Gamal Osman Hussein",
+        "Sabry Ali Abdelmonem Ezzah","Mahmoud El-Sayed Abdelwareth Radwan",
+        "Ahmed Saad Elmamlouk","Enrique Jr Ravallo-Macorol","Mohamed Abdel Manaam Yakout",
+        "Mohamed Achraf Abed Al-Mawjoud","Mohamed Ibrahim Abdelaal",
+        "Miloud Baali","Mohammad Nour Al-Din Awad Mohammad","Mohammad Ismail",
+        "Mostafa Hamada","Anas Jouhari","Tamer Sharkas",
+        "Abdaleleh Naser Ahmed","Ibrahim Refat Abdellatif","Wadhah Ahmed Ahmed Mahyub",
+        "Ahmed Mohamed Ahmed Fadol","Said Ennasr",
+        "Amin Haron","Eslam Rezk","Hamdy Helal","Ali Alkobebi","Ibrahem Zahran",
+        "Mustapha Selaoui","Mohammed Ayed",
+        "Abdallah Laghzal","Ahmad Chiboub","Ali Mohamed Ali Mohamed",
+        "Bassam Ahmad Al-Salhani","Hatem Kamal Hatiba","Wagih Al-Saadani",
+    ],
+    "Body Motions": [
+        "Hadir Nasr Mohamed","Taif Saad Alahmari","Areej Hajj Abdallah","Zouhaira Al-Omrani",
+        "Sarah Shaabane","Taghrid Khaled","Ikram Gueddes","Moroj Samir Abdel Hamid",
+        "Nadine Ghaleb",
+        "Sara Said","Rania Manita","Shefa Ghazi","Kholoud Khaled","Maram Tlili",
+        "Malek Belguith","Manel Manasria","Sirine Mohamed Hamdi","Guesmi Kholoud",
+        "Maryam Al-Qawsari","Shaden Omar","Hidaya Moubarak","Safa Al Saggadi",
+        "Malak Al Zahabi","Chaza Ben Miled","Nada Mohamed Khalifa","Warda Al Hajji",
+        "Feryel Ben Nacer","Al Anoud Saleh Al-Qablan","Khawla Saif","Asmaa Adel",
+        "Hind Al Ahmad","Ebtihal Al Kathiri","Walaa Kamel","Asmaa Ahmed",
+        "Aya Al-Jallouli","Hadiya Al-Mohammad","Khouloud Wanna","Rania Bahloul",
+        "Sarah Rasheeq","Sanae Hassel","Basnat Abdel Qawi",
+        "Seham Hussein","Nawal Akermi","Amal Al-Bjeoui","Rihem Hossam",
+        "Hadeer Ibrahim Gamal","Arwa Ahmed Baflah","Shorouq Osama Metwaly Ibrahim",
+        "Rajae Al-Jabouji","Maram Farhawi","Safa Radif","Nermin Hadi Debaya",
+        "Hasna AlKayyal","Takwa Abdelly",
+        "Iman Kouisseh","Raghad Al Bir Qaddar","Ranim Brahmi","Sabrine Al Amine",
+        "Mouna Farhat","Salwa Mlaiki","Reyouf Saad","Shurooq Amer","Maha Fayez Al Ahmari",
+        "Wiem Dridi","Shourooq Al Jundi","Mariam Baomar","Ines Rezgui","Kholod Khaled",
+        "Hajer Jamal Al-Deen Khalifa Ali","Chourouk Sherif","Hala Saied",
+        "Maysem Mohamed","Lamia Al Amer","Shayma Abbes","Asayel Sultan","Sara Mahdi",
+        "Asmaa Shehata","Diaa Sobhi","Nahla Al Hajri",
+        "Sirine Jawadi","Moulouk Al Lawi","Rasha Hamid","Soulaima Hassan","Rahma Qays",
+        "Cyrine Ali","Al Bandari Al Harbi","Mirna Mostafa","Nourhan Hosny",
+        "Emna Ben Chalbia","Chaima Gharsalli","Asmaa Ashraf","Aya Maayoufi",
+        "Chaima Boutita","Asmaa Mahmoud",
+        "Mai Mosleh","Chayma Hannachi","Malath Suleiman Alshamasi","Anwar Ben Rhayem",
+        "Lulu Alzaaj","Raja Reeba","Aya Mahmoud Abed Al-Wanis","Ines Souissi",
+        "Nouran Emad Jad","Nourhan Ehab Amarah","Anfal Nasser Alhusseini",
+        "Rawiya Alarousi Mabrouk",
+        "Samar Lajnef","Asmaa Aalaa Al-Din","Esraa Labib Noomani","Rim Chabi",
+        "Yosra Al-Mzoughi","Roua Al-Hashemi Bin Naeimah","Rana Mohammad Hassan Aaref",
+        "Samar Mohammed","Mona Maatouq","Afnan Khalid","Marwa Almudyni",
+        "Amina Mohammad Mosbeh","Iman Aboushosha",
+        "Walaa Ahmed","Amal Saleh","Bayan Al-Anzi","Hanin Barrani",
+        "Rehab Naji Al-Nasri","Khouloud Suibgui",
+        "Amal Saad","Bassant Majed Eid","Marwa Jendoubi","Sahar Mrad Berguiga",
+        "Ishraf Mohamed Al-Zaghdoudi","Nada Ahmed Mohamed","Rasha Abu Hassan",
+    ],
+}
+
 TEST_TYPE_LABELS = {
     "upper": "Upper Body",
     "lower": "Lower Body",
@@ -155,6 +296,13 @@ def generate_report(
             branch = p.get("branch", "")
             monthly_by_branch[branch] = monthly_by_branch.get(branch, 0) + 1
 
+    # Monthly totals per trainer (full month) for REPORT sheet
+    monthly_by_trainer: dict[str, int] = {}
+    for p in programs:
+        if in_full_month(p):
+            trainer = p.get("trainer_name", "") or ""
+            monthly_by_trainer[trainer] = monthly_by_trainer.get(trainer, 0) + 1
+
     # Load template
     wb = load_workbook(template_path, data_only=False)
 
@@ -175,6 +323,13 @@ def generate_report(
                 branch_order = BRANCH_ORDER.get(gym, [])
                 for idx, branch in enumerate(branch_order):
                     count = monthly_by_branch.get(branch, 0)
+                    cell = ws.cell(row=7 + idx, column=3)
+                    cell.value = None
+                    cell.value = count
+            if is_partial and sheet_name == "REPORT":
+                trainer_order = TRAINER_ORDER.get(gym, [])
+                for idx, trainer in enumerate(trainer_order):
+                    count = monthly_by_trainer.get(trainer, 0)
                     cell = ws.cell(row=7 + idx, column=3)
                     cell.value = None
                     cell.value = count
