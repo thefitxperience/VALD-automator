@@ -45,6 +45,10 @@ export default function Reports() {
       const weekStart = (weekNumber - 1) * 7 + 1
       return weekStart > now.getDate()
     }
+    // custom: check if start day is after today
+    if (periodType === 'custom' && startDay) {
+      return startDay > now.getDate()
+    }
     return false
   })()
 
@@ -54,12 +58,12 @@ export default function Reports() {
     try {
       const params = {
         gym,
-        period_type: periodType,
+        period_type: periodType === 'custom' ? 'monthly' : periodType,
         year,
         month,
         week_number: periodType === 'weekly' ? weekNumber : null,
-        start_day: periodType === 'monthly' && startDay ? startDay : null,
-        end_day: periodType === 'monthly' && endDay ? endDay : null,
+        start_day: periodType === 'custom' && startDay ? startDay : null,
+        end_day: periodType === 'custom' && endDay ? endDay : null,
       }
       const res = await generateReport(params)
 
@@ -72,10 +76,10 @@ export default function Reports() {
       const disposition = res.headers?.['content-disposition'] || ''
       const match = disposition.match(/filename="([^"]+)"/)
       const label =
-        periodType === 'monthly'
-          ? startDay || endDay
-            ? `${MONTHS[month - 1]} ${year} (Day ${startDay || 1}–${endDay || daysInMonth})`
-            : `${MONTHS[month - 1]} ${year}`
+        periodType === 'custom'
+          ? `${MONTHS[month - 1]} ${year} (Day ${startDay || 1}–${endDay || daysInMonth})`
+          : periodType === 'monthly'
+          ? `${MONTHS[month - 1]} ${year}`
           : `Week ${weekNumber} - ${MONTHS[month - 1]} ${year}`
       a.href = url
       a.download = match ? match[1] : `${label} - ${gym}.xlsx`
@@ -116,7 +120,7 @@ export default function Reports() {
       <div>
         <label className="block text-sm text-gray-400 mb-2">Report Type</label>
         <div className="flex gap-2">
-          {['monthly', 'weekly'].map((pt) => (
+          {['monthly', 'weekly', 'custom'].map((pt) => (
             <button
               key={pt}
               onClick={() => setPeriodType(pt)}
@@ -160,12 +164,10 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Date range (only for monthly) */}
-      {periodType === 'monthly' && (
+      {/* Date range (only for custom) */}
+      {periodType === 'custom' && (
         <div>
-          <label className="block text-sm text-gray-400 mb-2">
-            Date Range <span className="text-gray-600">(optional — defaults to full month)</span>
-          </label>
+          <label className="block text-sm text-gray-400 mb-2">Date Range</label>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Start Day</label>
@@ -174,7 +176,7 @@ export default function Reports() {
                 onChange={(e) => setStartDay(e.target.value ? Number(e.target.value) : null)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
-                <option value="">1 (default)</option>
+                <option value="">—</option>
                 {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
@@ -187,7 +189,7 @@ export default function Reports() {
                 onChange={(e) => setEndDay(e.target.value ? Number(e.target.value) : null)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
-                <option value="">{daysInMonth} (default)</option>
+                <option value="">—</option>
                 {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
@@ -245,9 +247,11 @@ export default function Reports() {
 
       <p className="text-xs text-gray-500 text-center">
         Report pulls all <strong className="text-gray-400">approved</strong> programs
-        {periodType === 'monthly'
-          ? ` dispatched in ${MONTHS[month - 1]} ${year}`
-          : ` dispatched in week ${weekNumber} of ${MONTHS[month - 1]} ${year}`
+        {periodType === 'weekly'
+          ? ` dispatched in week ${weekNumber} of ${MONTHS[month - 1]} ${year}`
+          : periodType === 'custom'
+          ? ` dispatched between day ${startDay || 1} and day ${endDay || daysInMonth} of ${MONTHS[month - 1]} ${year}`
+          : ` dispatched in ${MONTHS[month - 1]} ${year}`
         }.
       </p>
     </div>
