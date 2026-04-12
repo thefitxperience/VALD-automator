@@ -36,7 +36,7 @@ const TRAINERS = {
     "RUH - Takhasousi": ["Abdenabi Ktraouach","Fikri Acharif","Abdou Wahed Zraidi","Ahmed Abdelrahman","Salman Altayyar","Wasem Seed Alhajree","Khalid Nokracchi","Taib Jadia","Mahmoud Nagib","Saeed Al Adrham"],
     "RUH - Al Badia": ["Abderrazak Sihabi","Adil Elqady","Adil Chahmi","Amine Korchi","El Mehdi Adnani","Mohamed Saeed","Selim Ben Abdelkader","Mahmoud Fotoh","Khalifa Hassan Khalifa Nahrawy","Mohamad Mahdim Alqahtani"],
     "RUH - Al Fayha": ["Faraj Lakaira","Mahmoud Al Mahdi","Ahmad Hamdi Knawi","Kamal Al-Rayes","Asser Al-Sheikh","Hamza Aissaoui","Hicham Mouhime","Hicham Toualbi","Ibrahim Pokoti"],
-    "RUH - Al Khaleej": ["Ahmad Ramadan","Chouaib Suilmi","Elsayed Fouad","Karim Hosny Ahmad","Mohamed Hassan Ali Hassan","Mohamed Moustafa Ahmad","Oussama Ait Hammou Obrahim","Zakaria Elouali"],
+    "RUH - Al Khaleej": ["Ahmad Ramadan","Chouaib Suilmi","Elsayed Fouad","Karim Hosny Ahmad","Mohamed Hassan Ali Hassan","Mohamed Moustafa Ahmad","Sameh Houssein Ali Abed Al-Wahid","Oussama Ait Hammou Obrahim","Zakaria Elouali"],
     "RUH - Al Kharj": ["Mahmoud Mohamed","Mohamed Hamdan Mohamed","Adel Ali Mohamed","Boujemaa Elakkad","Nabil Essahraoui","Yassine El Barnoussi"],
     "RUH - Al Nahda": ["Achraf Fadlallah","Majid Abdessamad","Mhamed Oulahssine","Ramy Alla Tawfeak Ahmed","Rhey Anthony T. Munez","Youssef Al Habib Trabelsi"],
     "RUH - Badr": ["Adawi Abdelmounnmadawi","Kamel Mohammed Kamel","Khalled Saeed Saeed Alhasany","Mahmoud Farouk Abdel Karim Badawi","Mohammed Bstan Abd Aljwad","Mohammed Mubarak Mohammed Aldawsari"],
