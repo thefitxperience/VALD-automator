@@ -390,6 +390,8 @@ def api_generate_report(
     year: int = Form(...),
     month: int = Form(...),
     week_number: Optional[int] = Form(None),
+    start_day: Optional[int] = Form(None),
+    end_day: Optional[int] = Form(None),
 ):
     # Fetch all approved programs for this gym
     res = supabase.table("programs").select("*").eq("gym", gym).eq("approved", True).execute()
@@ -403,6 +405,8 @@ def api_generate_report(
             year=year,
             month=month,
             week_number=week_number,
+            start_day=start_day,
+            end_day=end_day,
             report_date=date.today(),
         )
     except Exception as e:

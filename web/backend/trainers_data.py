@@ -390,6 +390,7 @@ TRAINERS = {
                 {"name": "Karim Hosny Ahmad", "whatsapp": ""},
                 {"name": "Mohamed Hassan Ali Hassan", "whatsapp": ""},
                 {"name": "Mohamed Moustafa Ahmad", "whatsapp": "+966547819642"},
+                {"name": "Sameh Houssein Ali Abed Al-Wahid", "whatsapp": ""},
                 {"name": "Oussama Ait Hammou Obrahim", "whatsapp": ""},
                 {"name": "Zakaria Elouali", "whatsapp": ""},
             ]

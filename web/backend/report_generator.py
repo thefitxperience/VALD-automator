@@ -59,6 +59,8 @@ def generate_report(
     year: int,
     month: int,
     week_number: int | None = None,
+    start_day: int | None = None,
+    end_day: int | None = None,
     report_date: date | None = None,
 ) -> bytes:
     """
@@ -74,12 +76,10 @@ def generate_report(
 
     # Determine date filter
     if period_type == "monthly":
-        if month == 12:
-            next_first = date(year + 1, 1, 1)
-        else:
-            next_first = date(year, month + 1, 1)
-        period_start = date(year, month, 1)
-        period_end = next_first - timedelta(days=1)
+        import calendar as _cal
+        last_day = _cal.monthrange(year, month)[1]
+        period_start = date(year, month, max(1, start_day or 1))
+        period_end = date(year, month, min(last_day, end_day or last_day))
     else:
         if week_number is None:
             raise ValueError("week_number required for weekly report")
@@ -111,13 +111,15 @@ def generate_report(
     wb = load_workbook(template_path)
 
     rpt_date = report_date or date.today()
+    # For the summary sheets, use period_end when a custom date range is set
+    summary_date = period_end if (start_day or end_day) else rpt_date
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
         # Skip summary sheets
         if sheet_name in ("REPORT", "REPORT 2"):
             # Update report date cell (B3)
-            ws["B3"] = rpt_date
+            ws["B3"] = summary_date
             continue
 
         # Branch sheet — update report date

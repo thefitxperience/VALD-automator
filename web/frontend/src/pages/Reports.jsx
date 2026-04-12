@@ -24,9 +24,12 @@ export default function Reports() {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [weekNumber, setWeekNumber] = useState(1)
+  const [startDay, setStartDay] = useState(null)
+  const [endDay, setEndDay] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const daysInMonth = new Date(year, month, 0).getDate()
   const totalWeeks = weeksInMonth(year, month)
 
   // Determine if selected period is in the future
@@ -55,6 +58,8 @@ export default function Reports() {
         year,
         month,
         week_number: periodType === 'weekly' ? weekNumber : null,
+        start_day: periodType === 'monthly' && startDay ? startDay : null,
+        end_day: periodType === 'monthly' && endDay ? endDay : null,
       }
       const res = await generateReport(params)
 
@@ -68,7 +73,9 @@ export default function Reports() {
       const match = disposition.match(/filename="([^"]+)"/)
       const label =
         periodType === 'monthly'
-          ? `${MONTHS[month - 1]} ${year}`
+          ? startDay || endDay
+            ? `${MONTHS[month - 1]} ${year} (Day ${startDay || 1}–${endDay || daysInMonth})`
+            : `${MONTHS[month - 1]} ${year}`
           : `Week ${weekNumber} - ${MONTHS[month - 1]} ${year}`
       a.href = url
       a.download = match ? match[1] : `${label} - ${gym}.xlsx`
@@ -152,6 +159,43 @@ export default function Reports() {
           </select>
         </div>
       </div>
+
+      {/* Date range (only for monthly) */}
+      {periodType === 'monthly' && (
+        <div>
+          <label className="block text-sm text-gray-400 mb-2">
+            Date Range <span className="text-gray-600">(optional — defaults to full month)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Start Day</label>
+              <select
+                value={startDay || ''}
+                onChange={(e) => setStartDay(e.target.value ? Number(e.target.value) : null)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                <option value="">1 (default)</option>
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">End Day</label>
+              <select
+                value={endDay || ''}
+                onChange={(e) => setEndDay(e.target.value ? Number(e.target.value) : null)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                <option value="">{daysInMonth} (default)</option>
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Week (only for weekly) */}
       {periodType === 'weekly' && (
