@@ -123,13 +123,37 @@ def generate_report(
 
     filtered = [p for p in programs if in_period(p)]
 
-    # Group by branch
+    # Group period-filtered programs by branch (used for branch sheets)
     by_branch: dict[str, list] = {}
     for p in filtered:
         branch = p.get("branch", "")
         if branch not in by_branch:
             by_branch[branch] = []
         by_branch[branch].append(p)
+
+    # Monthly totals per branch (full month, regardless of period filter)
+    # Used for REPORT 2 column C in weekly/custom reports
+    import calendar as _cal
+    month_last = _cal.monthrange(year, month)[1]
+    month_start = date(year, month, 1)
+    month_end = date(year, month, month_last)
+
+    def in_full_month(p):
+        dd = p.get("dispatch_date")
+        if not dd:
+            return False
+        if isinstance(dd, str):
+            try:
+                dd = date.fromisoformat(dd)
+            except ValueError:
+                return False
+        return month_start <= dd <= month_end
+
+    monthly_by_branch: dict[str, int] = {}
+    for p in programs:
+        if in_full_month(p):
+            branch = p.get("branch", "")
+            monthly_by_branch[branch] = monthly_by_branch.get(branch, 0) + 1
 
     # Load template
     wb = load_workbook(template_path, data_only=False)
@@ -150,9 +174,8 @@ def generate_report(
             if is_partial and sheet_name == "REPORT 2":
                 branch_order = BRANCH_ORDER.get(gym, [])
                 for idx, branch in enumerate(branch_order):
-                    count = len(by_branch.get(branch, []))
+                    count = monthly_by_branch.get(branch, 0)
                     cell = ws.cell(row=7 + idx, column=3)
-                    # Explicitly clear any formula then write the plain integer
                     cell.value = None
                     cell.value = count
             continue
