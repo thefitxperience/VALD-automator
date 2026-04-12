@@ -41,18 +41,6 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     setOpen(false)
   }
 
-  function handleFocus() {
-    setQuery('')
-    setOpen(true)
-  }
-
-  function handleBlur() {
-    // Restore display to selected value if user didn't pick anything new
-    setTimeout(() => {
-      setQuery(value || '')
-    }, 150)
-  }
-
   function handleKeyDown(e) {
     if (!open || filtered.length === 0) return
     if (e.key === 'ArrowDown') {
@@ -85,8 +73,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
         value={query}
         disabled={disabled}
         onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange('') }}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+        onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
       />
       {open && !disabled && filtered.length > 0 && (
