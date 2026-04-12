@@ -165,6 +165,8 @@ def detect_test_type(patient_rows, src_ws):
     has_knee = any(mr in movements_regions for mr in knee_indicators)
     has_hip_abd_add = any(mr in movements_regions for mr in hip_abd_add_indicators)
     has_lower_specific = any(mr in movements_regions for mr in lower_indicators)
+    has_trunk = ("lateral flexion", "trunk") in movements_regions
+    has_hip_flex = ("flexion", "hip") in movements_regions
 
     # Full body: shoulder + elbow + knee, no hip flex/ext or trunk
     if has_upper and has_elbow and has_knee and not has_lower_specific:
@@ -172,6 +174,11 @@ def detect_test_type(patient_rows, src_ws):
 
     # Full body: elbow + knee only (no shoulder), no hip flex/ext or trunk
     if has_elbow and has_knee and not has_upper and not has_lower_specific:
+        return "full"
+
+    # Full body: elbow + knee + hip_abd/add (hip extension ignored), no trunk or hip flexion
+    # e.g. knee ext/flex + hip abd/add + hip ext + elbow ext/flex + shoulder IR/ER
+    if has_elbow and has_knee and has_hip_abd_add and not has_trunk and not has_hip_flex:
         return "full"
 
     has_any_upper = has_upper or has_elbow
