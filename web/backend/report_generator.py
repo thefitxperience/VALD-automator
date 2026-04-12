@@ -132,7 +132,7 @@ def generate_report(
         by_branch[branch].append(p)
 
     # Load template
-    wb = load_workbook(template_path)
+    wb = load_workbook(template_path, data_only=False)
 
     rpt_date = report_date or date.today()
     # For the summary sheets, use period_end when a custom date range is set
@@ -151,7 +151,10 @@ def generate_report(
                 branch_order = BRANCH_ORDER.get(gym, [])
                 for idx, branch in enumerate(branch_order):
                     count = len(by_branch.get(branch, []))
-                    ws.cell(row=7 + idx, column=3, value=count)
+                    cell = ws.cell(row=7 + idx, column=3)
+                    # Explicitly clear any formula then write the plain integer
+                    cell.value = None
+                    cell.value = count
             continue
 
         # Branch sheet — update report date
