@@ -4,7 +4,7 @@
 const TRAINERS = {
   "Body Motions": {
     "RUH - Al Malaz": ["Hadir Nasr Mohamed","Taif Saad Alahmari","Areej Hajj Abdallah","Zouhaira Al-Omrani","Sarah Shaabane","Taghrid Khaled","Ikram Gueddes","Moroj Samir Abdel Hamid","Nadine Ghaleb"],
-    "RUH - Al Sahafa": ["Sara Said","Rania Manita","Shefa Ghazi","Kholoud Khaled","Maram Tlili","Malek Belguith","Manel Manasria","Sirine Mohamed Hamdi","Guesmi Kholoud"],
+    "RUH - Al Sahafa": ["Sara Said","Rania Manita","Shefa Ghazi","Kholoud Khaled","Safaa Karim","Maram Tlili","Malek Belguith","Manel Manasria","Sirine Mohamed Hamdi","Guesmi Kholoud"],
     "RUH - Al Aarid": ["Maryam Al-Qawsari","Shaden Omar","Hidaya Moubarak","Safa Al Saggadi","Malak Al Zahabi","Chaza Ben Miled","Nada Mohamed Khalifa","Warda Al Hajji"],
     "RUH - Al Fayha": ["Feryel Ben Nacer","Al Anoud Saleh Al-Qablan","Khawla Saif","Asmaa Adel","Hind Al Ahmad","Ebtihal Al Kathiri","Walaa Kamel","Asmaa Ahmed"],
     "RUH - Al Uraija": ["Aya Al-Jallouli","Hadiya Al-Mohammad","Khouloud Wanna","Rania Bahloul","Sarah Rasheeq","Sanae Hassel","Basnat Abdel Qawi"],

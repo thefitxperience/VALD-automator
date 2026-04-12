@@ -24,6 +24,7 @@ TRAINERS = {
                 {"name": "Rania Manita", "whatsapp": "+966565347515"},
                 {"name": "Shefa Ghazi", "whatsapp": "+966501593090"},
                 {"name": "Kholoud Khaled", "whatsapp": "+966569806309"},
+                {"name": "Safaa Karim", "whatsapp": ""},
                 {"name": "Maram Tlili", "whatsapp": "+966548903929"},
                 {"name": "Malek Belguith", "whatsapp": "+966569049981"},
                 {"name": "Manel Manasria", "whatsapp": "+966580396823"},
