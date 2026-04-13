@@ -603,7 +603,7 @@ TRAINERS = {
                 {"name": "Ahmed Elsayed", "whatsapp": "+966547401898"},
                 {"name": "Ahmed Khaled", "whatsapp": "+966539211836"},
                 {"name": "Ahmed Khaled El Said", "whatsapp": "+966561786327"},
-                {"name": "ElHassan Nagub", "whatsapp": "+966545935469"},
+                {"name": "ElHassan Nagib", "whatsapp": "+966545935469"},
                 {"name": "Hussein Elsayed", "whatsapp": "+966536212468"},
                 {"name": "Mohamad Amine Azhar", "whatsapp": ""},
                 {"name": "Mohannad Hani", "whatsapp": "+966551564841"},

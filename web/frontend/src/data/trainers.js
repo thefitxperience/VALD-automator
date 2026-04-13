@@ -58,7 +58,7 @@ const TRAINERS = {
     "MED - Shouran": ["Abdel Ghafour Bahja","Anas Mohmmed Alshanqiti","Lakhdari Abdellatif","Mohamed Soliman Ragab","Sheref Ashraf Mohamed"],
     "MED - Taiba": ["Abdelaziz Mohi Eldin Elkhouli","Abdulwahab Ahmed Saad Al Ghamdi","Amgad Hussein Abbas Abdulaal","Mostafa Mahmoud Sayed Mohamed","Rabah Salamah Alhujuri","Samer Mohammed Abas Kamber"],
     "Uhud": ["Abdallah Mohamed Ali","Ahmad Al-Dawkhi","Ali Ahmed Alkhadhir","Hassan Ait Hmida","Hamza Berahhou","Khaled Ezzat","Mohammed Abdelhamid","Moulay Al Hussein","Wael Mohammed"],
-    "AlUla": ["Ahmed Abdelmaqsoud","Ahmed Elsayed","Ahmed Khaled","Ahmed Khaled El Said","ElHassan Nagub","Hussein Elsayed","Mohamad Amine Azhar","Mohannad Hani","Moamed Ata","Yassin Mbarek"],
+    "AlUla": ["Ahmed Abdelmaqsoud","Ahmed Elsayed","Ahmed Khaled","Ahmed Khaled El Said","ElHassan Nagib","Hussein Elsayed","Mohamad Amine Azhar","Mohannad Hani","Moamed Ata","Yassin Mbarek"],
     "Al Mubaraz": ["Abdallah Lazam Faisal Al-Asadi","Abdul Raouf Mustafa","Hamza Moustaghfir","Joesel Bodota Casimiro","Mohamed Fouad Amer","Ammar Tarek Fathi Ibrahim Ali Mahmoud","Radi Gamal Osman Hussein","Sabry Ali Abdelmonem Ezzah","Mahmoud El-Sayed Abdelwareth Radwan"],
     "Hafr El Batin": ["Ahmed Saad Elmamlouk","Enrique Jr Ravallo-Macorol","Mohamed Abdel Manaam Yakout","Mohamed Achraf Abed Al-Mawjoud","Mohamed Ibrahim Abdelaal"],
     "Tabuk": ["Miloud Baali","Mohammad Nour Al-Din Awad Mohammad","Mohammad Ismail","Mostafa Hamada","Anas Jouhari","Tamer Sharkas"],
