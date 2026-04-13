@@ -97,10 +97,10 @@ function SearchableSelect({ options, value, onChange, onSelect, placeholder, dis
 }
 
 export default function ProgramCard({ test, gym }) {
-  const [branch, setBranch] = useState('')
-  const [trainer, setTrainer] = useState('')
+  const [branch, setBranch] = useState(test.existing_branch || '')
+  const [trainer, setTrainer] = useState(test.existing_trainer_name || '')
   const trainerInputRef = useRef(null)
-  const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
+  const [dispatchDate, setDispatchDate] = useState(test.existing_dispatch_date || new Date().toISOString().split('T')[0])
 
   // Program PDF (generated on demand)
   const [opening, setOpening] = useState(false)

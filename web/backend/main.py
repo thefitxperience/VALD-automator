@@ -128,7 +128,7 @@ async def api_check(
     while True:
         res = (
             supabase.table("programs")
-            .select("client_name,test_type,test_date,movements,asymmetry_values")
+            .select("client_name,test_type,test_date,movements,asymmetry_values,branch,trainer_name,dispatch_date")
             .eq("gym", gym)
             .eq("approved", True)
             .range(offset, offset + page_size - 1)

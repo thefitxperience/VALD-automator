@@ -529,6 +529,8 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
     # Build lookup from existing approved programs
     # key: (normalized_client_name, test_type, date_str) → movement_count
     existing_lookup = {}
+    # key: (normalized_client_name, test_type, date_str) → {branch, trainer_name, dispatch_date}
+    existing_details_lookup: dict[tuple, dict] = {}
     # key: (normalized_client_name, test_type) → asymmetry_values from latest approved
     prev_asymmetries_lookup: dict[tuple, dict] = {}
     for p in existing_programs:
@@ -538,6 +540,11 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
         key = (norm_name, tt, date_str_p)
         mv = p.get("movements", 0)
         existing_lookup[key] = len(mv) if isinstance(mv, list) else (mv or 0)
+        existing_details_lookup[key] = {
+            "branch": p.get("branch") or None,
+            "trainer_name": p.get("trainer_name") or None,
+            "dispatch_date": p.get("dispatch_date") or None,
+        }
         # Track the latest date per (name, test_type) for comparison
         pa_key = (norm_name, tt)
         av = p.get("asymmetry_values")
@@ -690,6 +697,13 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
                 pa_key = (patient_name, test_type)
                 prev_av_raw = prev_asymmetries_lookup.get(pa_key, {})
                 prev_av = {k: v for k, v in prev_av_raw.items() if k != "_date"}
+                # If the previous approved test is the same date as the current test,
+                # it's the same test with more movements added — don't compare (no red font)
+                prev_date = prev_av_raw.get("_date", "")
+                if prev_date == date_str:
+                    prev_av = {}
+                # For updated tests, carry over the existing branch/trainer/dispatch_date
+                existing_details = existing_details_lookup.get(lookup_key, {})
                 new_tests.append({
                     "status": "NEW" if is_new else "UPDATED",
                     "patient": patient_name,
@@ -701,6 +715,9 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
                     "cells_data": cells_data,
                     "asymmetry_values": av,
                     "prev_asymmetries": prev_av if prev_av else None,
+                    "existing_branch": existing_details.get("branch"),
+                    "existing_trainer_name": existing_details.get("trainer_name"),
+                    "existing_dispatch_date": existing_details.get("dispatch_date"),
                 })
 
     if _wb:
