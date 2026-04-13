@@ -8,7 +8,7 @@ const STATUS_BADGE = {
   UPDATED: 'bg-amber-900/60 text-amber-300 border border-amber-700',
 }
 
-function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
+function SearchableSelect({ options, value, onChange, onSelect, placeholder, disabled, inputRef }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
@@ -39,6 +39,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     onChange(opt)
     setQuery(opt)
     setOpen(false)
+    if (onSelect) onSelect(opt)
   }
 
   function handleKeyDown(e) {
@@ -67,6 +68,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
   return (
     <div ref={ref} className="relative">
       <input
+        ref={inputRef}
         type="text"
         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-50"
         placeholder={placeholder}
@@ -97,6 +99,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
 export default function ProgramCard({ test, gym }) {
   const [branch, setBranch] = useState('')
   const [trainer, setTrainer] = useState('')
+  const trainerInputRef = useRef(null)
   const [dispatchDate, setDispatchDate] = useState(new Date().toISOString().split('T')[0])
 
   // Program PDF (generated on demand)
@@ -292,6 +295,7 @@ export default function ProgramCard({ test, gym }) {
             options={branches}
             value={branch}
             onChange={(v) => { setBranch(v); setTrainer('') }}
+            onSelect={() => { if (trainerInputRef.current) trainerInputRef.current.focus() }}
             placeholder="Search branch…"
             disabled={approved || ignored}
           />
@@ -304,6 +308,7 @@ export default function ProgramCard({ test, gym }) {
             onChange={handleTrainerChange}
             placeholder="Search trainer…"
             disabled={approved || ignored}
+            inputRef={trainerInputRef}
           />
         </div>
         <div>
