@@ -116,7 +116,7 @@ TRAINERS = {
         "JED - Al Naeem": {
             "trainers": [
                 {"name": "Maysem Mohamed", "whatsapp": "+966544680085"},
-                {"name": "Lamia Al Amer", "whatsapp": ""},
+                {"name": "Lamia Al Amer", "whatsapp": "+966557112990"},
                 {"name": "Shayma Abbes", "whatsapp": "+966548145605"},
                 {"name": "Asayel Sultan", "whatsapp": "+966569592077"},
                 {"name": "Sara Mahdi", "whatsapp": "+966562226399"},
