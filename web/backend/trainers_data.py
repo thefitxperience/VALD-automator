@@ -81,7 +81,7 @@ TRAINERS = {
         "RUH - Al Badia": {
             "trainers": [
                 {"name": "Rajae Al-Jabouji", "whatsapp": "+966534411673"},
-                {"name": "Maram Farhawi", "whatsapp": ""},
+                {"name": "Maram Farhawi", "whatsapp": "+966553041682"},
                 {"name": "Safa Radif", "whatsapp": "+966545841571"},
                 {"name": "Nermin Hadi Debaya", "whatsapp": "+966542539814"},
                 {"name": "Hasna AlKayyal", "whatsapp": "+966538121195"},
