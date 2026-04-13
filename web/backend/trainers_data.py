@@ -515,7 +515,7 @@ TRAINERS = {
         },
         "JED - Al Rawdah": {
             "trainers": [
-                {"name": "Youssef Souayah", "whatsapp": ""},
+                {"name": "Youssef Souayah", "whatsapp": "+966500145773"},
                 {"name": "Muhmoud Ayman Saad", "whatsapp": ""},
                 {"name": "Ahmed Elsayed Algammal", "whatsapp": ""},
             ]
