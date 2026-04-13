@@ -160,7 +160,10 @@ export default function ProgramCard({ test, gym }) {
   }
 
   const handleApprove = async () => {
-    if (!branch || !trainer) {
+    // For NEW tests, branch+trainer are required.
+    // For UPDATED tests with no existing branch/trainer, allow approving without them (data-only update).
+    const isDataOnlyUpdate = test.status === 'UPDATED' && !branch && !trainer
+    if (!isDataOnlyUpdate && (!branch || !trainer)) {
       alert('Please select a branch and trainer before approving.')
       return
     }
@@ -168,14 +171,14 @@ export default function ProgramCard({ test, gym }) {
     try {
       const res = await approveProgram({
         gym,
-        branch,
+        branch: branch || test.existing_branch || '',
         client_id: test.external_id !== 'N/A' ? test.external_id : null,
         client_name: test.patient,
         test_type: test.test_type,
         movements: test.movement_count,
         test_date: test.date,
-        trainer_name: trainer,
-        dispatch_date: dispatchDate,
+        trainer_name: trainer || test.existing_trainer_name || null,
+        dispatch_date: dispatchDate || test.existing_dispatch_date || null,
         check_status: test.status,
         asymmetry_values: test.asymmetry_values || null,
       })
