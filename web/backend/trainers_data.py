@@ -143,7 +143,7 @@ TRAINERS = {
                 {"name": "Emna Ben Chalbia", "whatsapp": "+966544624416"},
                 {"name": "Chaima Gharsalli", "whatsapp": "+966569805410"},
                 {"name": "Asmaa Ashraf", "whatsapp": "+966557468380"},
-                {"name": "Aya Maayoufi", "whatsapp": ""},
+                {"name": "Aya Maayoufi", "whatsapp": "+966562467260"},
                 {"name": "Chaima Boutita", "whatsapp": "+966572685488"},
                 {"name": "Asmaa Mahmoud", "whatsapp": "+966540826236"},
             ]
@@ -387,13 +387,13 @@ TRAINERS = {
             "trainers": [
                 {"name": "Ahmad Ramadan", "whatsapp": "+966501671379"},
                 {"name": "Chouaib Suilmi", "whatsapp": "+966509392380"},
-                {"name": "Elsayed Fouad", "whatsapp": ""},
+                {"name": "Elsayed Fouad", "whatsapp": "+966545137704"},
                 {"name": "Karim Hosny Ahmad", "whatsapp": ""},
                 {"name": "Mohamed Hassan Ali Hassan", "whatsapp": ""},
                 {"name": "Mohamed Moustafa Ahmad", "whatsapp": "+966547819642"},
                 {"name": "Sameh Houssein Ali Abed Al-Wahid", "whatsapp": "+966500478919"},
-                {"name": "Oussama Ait Hammou Obrahim", "whatsapp": ""},
-                {"name": "Zakaria Elouali", "whatsapp": ""},
+                {"name": "Oussama Ait Hammou Obrahim", "whatsapp": "+966541872479"},
+                {"name": "Zakaria Elouali", "whatsapp": "+966569596598"},
             ]
         },
         "RUH - Al Kharj": {
