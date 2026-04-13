@@ -251,10 +251,8 @@ TRAINERS = {
         },
         "RUH - Al Aarid": {
             "trainers": [
-                {"name": "Abed Al Menhem Mhamad", "whatsapp": ""},
                 {"name": "Mhamad El Ebri", "whatsapp": ""},
                 {"name": "Chehab Al Dine Al Salihi", "whatsapp": ""},
-                {"name": "Mohamad Rida Irabi", "whatsapp": ""},
                 {"name": "Mahmoud Abed El Rahim", "whatsapp": "+966562436370"},
                 {"name": "Captain Housein Ali Joumaa", "whatsapp": ""},
                 {"name": "Diyaa Al Jraydan", "whatsapp": ""},
@@ -312,7 +310,6 @@ TRAINERS = {
         "RUH - Muzahmiyah": {
             "trainers": [
                 {"name": "Khalifa El Nahrawy", "whatsapp": "+966580808807"},
-                {"name": "Ayoub Benzahra", "whatsapp": "+966549134851"},
                 {"name": "Abdssamad Aballa", "whatsapp": "+966561843132"},
                 {"name": "Nabil Essahraoui", "whatsapp": "+966533423481"},
             ]
@@ -534,12 +531,27 @@ TRAINERS = {
                 {"name": "Omar Al Shankety", "whatsapp": "+966543687234"},
             ]
         },
-        "JED - Obhor": {
+        "JED - Obhor - Al Amwaj": {
             "trainers": [
                 {"name": "Hesham Galal Mahmoud", "whatsapp": "+966581465161"},
                 {"name": "Karim Abdala Wassal", "whatsapp": "+966553284707"},
                 {"name": "Mohammed Joharji", "whatsapp": "+966563274581"},
                 {"name": "Mohammed Mustafa Himsi", "whatsapp": "+966544487711"},
+            ]
+        },
+        "JED - Obhor - Al Sheraa": {
+            "trainers": [
+                {"name": "Mohamad Rida Irabi", "whatsapp": "+966569039676"},
+                {"name": "Abed Al Menhem Mhamad", "whatsapp": "+966561499730"},
+                {"name": "Ayoub Benzahra", "whatsapp": "+966549134851"},
+                {"name": "Ahmed Al Gammal", "whatsapp": "+966578982567"},
+                {"name": "Bader Eddine", "whatsapp": "+966540327695"},
+                {"name": "Abdelrahman Kamal", "whatsapp": "+966502691628"},
+                {"name": "Tarak Othman", "whatsapp": "+966594117809"},
+                {"name": "Mostafa Hamada", "whatsapp": "+966535701729"},
+                {"name": "Nawaf Alanazi", "whatsapp": "+966581632360"},
+                {"name": "Ibrahim Saleh", "whatsapp": "+966531810551"},
+                {"name": "Abdelrahman Faris", "whatsapp": "+966549158644"},
             ]
         },
         "ALQ - Al Rass": {
