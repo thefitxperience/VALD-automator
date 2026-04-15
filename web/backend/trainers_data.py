@@ -503,7 +503,7 @@ TRAINERS = {
                 {"name": "Musa Eltom Ahmed", "whatsapp": "+966557535912"},
             ]
         },
-        "JED - JDR": {
+        "JED - Al Rawdah": {
             "trainers": [
                 {"name": "Abdallah Kandaly", "whatsapp": "+966532200399"},
                 {"name": "Ibrahim Nasr", "whatsapp": "+966591638245"},
@@ -511,10 +511,6 @@ TRAINERS = {
                 {"name": "Sami Serrar", "whatsapp": "+966592586391"},
                 {"name": "Sofiane Sadiq", "whatsapp": "+966507607687"},
                 {"name": "Tawfik Jukh", "whatsapp": "+966537457842"},
-            ]
-        },
-        "JED - Al Rawdah": {
-            "trainers": [
                 {"name": "Youssef Souayah", "whatsapp": "+966500145773"},
                 {"name": "Muhmoud Ayman Saad", "whatsapp": ""},
                 {"name": "Ahmed Elsayed Algammal", "whatsapp": ""},
