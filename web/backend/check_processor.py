@@ -181,11 +181,6 @@ def detect_test_type(patient_rows, src_ws):
     if has_elbow and has_knee and has_hip_abd_add and not has_trunk and not has_hip_flex:
         return "full"
 
-    # Full body: shoulder + elbow + hip_abd/add (no knee, hip extension ignored), no trunk or hip flexion
-    # e.g. shoulder IR/ER/flex/abd + elbow ext/flex + hip abd/add + hip ext
-    if has_upper and has_elbow and has_hip_abd_add and not has_knee and not has_trunk and not has_hip_flex:
-        return "full"
-
     has_any_upper = has_upper or has_elbow
     has_any_lower = has_knee or has_hip_abd_add or has_lower_specific
 
