@@ -386,7 +386,7 @@ TRAINERS = {
                 {"name": "Chouaib Suilmi", "whatsapp": "+966509392380"},
                 {"name": "Elsayed Fouad", "whatsapp": "+966545137704"},
                 {"name": "Karim Hosny Ahmad", "whatsapp": ""},
-                {"name": "Mohamed Hassan Ali Hassan", "whatsapp": ""},
+                {"name": "Mohamed Hassan Ali Hassan", "whatsapp": "+966543091194"},
                 {"name": "Mohamed Moustafa Ahmad", "whatsapp": "+966547819642"},
                 {"name": "Sameh Houssein Ali Abed Al-Wahid", "whatsapp": "+966500478919"},
                 {"name": "Oussama Ait Hammou Obrahim", "whatsapp": "+966541872479"},
