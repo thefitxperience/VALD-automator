@@ -24,7 +24,7 @@ const TRAINERS = {
 
   "Body Masters": {
     "RUH - Al Malaz": ["Abdallah Kamal Ahmad Sayid","Adnan Abdallah Al Jahni","Adnan Abdallah Aljahny","Chady Taha Abdel Rahman","Hicham Mahboub","Mahmoud Bakry","Mohamed Elshabrawy","Mohaned Ahmad","Omar Ismael","Omar Saoud","Trainer Ismail","Yassine Abbich"],
-    "RUH - Al Massif": ["Mohamad Touri","Mahmoud Abdel Rahim Senussi","Ossama Almaslout","Amer Abid","Mohammed Hida","Youssef Lekal","Hamza Said","Oussama Elbaz","Alaa Fathy","Hany Mohamed Yousif Elhadad","Sleiman Al Tayyar","Abed El Hakim Sahou","Asmah Choukeni","Saleh Al Abed","Ahmed Shoeeb","Anouar Aghmour","Mohammad Souud","Ahmed Keshk","Jayson Atlano","Mahmoud Abdel Rahim Senussi Kame"],
+    "RUH - Al Massif": ["Mohamad Touri","Mahmoud Abdel Rahim Senussi","Ossama Almaslout","Amer Abid","Mohammed Hida","Youssef Lekal","Hamza Said","Oussama Elbaz","Alaa Fathy","Hany Mohamed Yousif Elhadad","Sleiman Al Tayyar","Asmah Choukeni","Saleh Al Abed","Ahmed Shoeeb","Anouar Aghmour","Mohammad Souud","Ahmed Keshk","Jayson Atlano","Mahmoud Abdel Rahim Senussi Kame"],
     "RUH - Al Aarid": ["Mhamad El Ebri","Chehab Al Dine Al Salihi","Mahmoud Abed El Rahim","Captain Housein Ali Joumaa","Diyaa Al Jraydan","Mourad Belgacem","Mahmoud Yosri Mahmoud Mahfouz","Amr El Sayed Abdelhamid","Moustafa Nasser Abd Elkader","Khalid Mouazen"],
     "RUH - Al Sahafa": ["Mohamad Fouad G. Amer","Ahmad H. Abed Al Latif","Hisham M. Badih","Diya Y. Aljirdan","Mohamad Zakariah","Rrnniel Villaverde","Magomed Ansarov","Zakaria Jawadi","Renelle Vilaverdi","Badereddine Bouzahar","Safaa Karim","Fawzi Baltaji","Akram M. Hussin","Zakaria Yahia","Youssef Noreddine","Ahmad Fadel","Rachid Sakouti","Hamza Sanbar","Ayman N. Al Chahawi"],
     "RUH - Al Wadi": ["Ahmed Hamid Abdelltif Nogalla","Bander Albalawi","El Kaddioui Adil","Shamsudheen Paramban","Ibrahim Mohamed Fadel Abduljalil Barakat","Abdellatif Zamzim"],
@@ -38,7 +38,7 @@ const TRAINERS = {
     "RUH - Al Fayha": ["Faraj Lakaira","Mahmoud Al Mahdi","Ahmad Hamdi Knawi","Kamal Al-Rayes","Asser Al-Sheikh","Hamza Aissaoui","Hicham Mouhime","Hicham Toualbi","Ibrahim Pokoti"],
     "RUH - Al Khaleej": ["Ahmad Ramadan","Chouaib Suilmi","Elsayed Fouad","Karim Hosny Ahmad","Sameh Houssein Ali Abed Al-Wahid","Mohamed Hassan Ali Hassan","Mohamed Moustafa Ahmad","Oussama Ait Hammou Obrahim","Zakaria Elouali"],
     "RUH - Al Kharj": ["Mahmoud Mohamed","Mohamed Hamdan Mohamed","Adel Ali Mohamed","Boujemaa Elakkad","Nabil Essahraoui","Yassine El Barnoussi"],
-    "RUH - Al Nahda": ["Achraf Fadlallah","Majid Abdessamad","Mhamed Oulahssine","Ramy Alla Tawfeak Ahmed","Rhey Anthony T. Munez","Youssef Al Habib Trabelsi"],
+    "RUH - Al Nahda": ["Achraf Fadlallah","Abed El Hakim Sahou","Majid Abdessamad","Mhamed Oulahssine","Ramy Alla Tawfeak Ahmed","Rhey Anthony T. Munez","Youssef Al Habib Trabelsi"],
     "RUH - Badr": ["Adawi Abdelmounnmadawi","Kamel Mohammed Kamel","Khalled Saeed Saeed Alhasany","Mahmoud Farouk Abdel Karim Badawi","Mohammed Bstan Abd Aljwad","Mohammed Mubarak Mohammed Aldawsari"],
     "RUH - Ezdehar": ["Ahmed Maher Ahmed Nasrelden","Hesham Rady Ismail Rady","Mohsen Hadikhamis","Tarik Maarouf","Ibrahim Ali Ismaiel Ibrahim","Wajih Kamal Matoussi"],
     "RUH - Murooj": ["Abdelaziz El Maydy","Amr Ahmed Abdellatif Rabia","Cherif Bin Ahmed Khlifi"],
@@ -48,7 +48,7 @@ const TRAINERS = {
     "DMM - Hufof": ["Ahmad Abdelgafour Omar Ahmad","Abdelrahman Mohamed","Khalid Karmou","Shehab Ashraf Mohamady Ibrahim"],
     "DMM - Khobar": ["Abbas Okasha","Abd Elrahem Al Ouina","Abed AlWasi","Khalid Mahmoud Saleh","Mahmoud Hassan","Radwan Mohamed Radwan","Shahid Elkhalfy"],
     "JED - Hamadania": ["Abd Elramhan Mokhtar","Mohamed Fathi Abdulsattar","Abdullah Mohammed Alhamdni","Mohamed Ibrahim Mohamed","Musa Eltom Ahmed"],
-    "JED - Al Rawdah": ["Abdallah Kandaly","Ibrahim Nasr","Khaled Al-Masouri","Sami Serrar","Sofiane Sadiq","Tawfik Jukh","Youssef Souayah","Muhmoud Ayman Saad","Ahmed Elsayed Algammal"],
+    "JED - Al Rawdah": ["Abdallah Kandaly","Abed El Rahman Taha","Ibrahim Nasr","Khaled Al-Masouri","Sami Serrar","Sofiane Sadiq","Tawfik Jukh","Youssef Souayah","Muhmoud Ayman Saad","Ahmed Elsayed Algammal"],
     "JED - Makkah": ["Adel Mohammed Abdullah Al-Daos","Imad Al-Zahrani","Khaled Al Barkawi","Mahmoud Al Bihery","Mohamed Ait Ayad","Mohamed Gamea","Omar Al Shankety"],
     "JED - Obhor - Al Amwaj": ["Hesham Galal Mahmoud","Karim Abdala Wassal","Mohammed Joharji","Mohammed Mustafa Himsi"],
     "JED - Obhor - Al Sheraa": ["Mohamad Rida Irabi","Abed Al Menhem Mhamad","Ayoub Benzahra","Ahmed Al Gammal","Bader Eddine","Abdelrahman Kamal","Tarak Othman","Mostafa Hamada","Nawaf Alanazi","Ibrahim Saleh","Abdelrahman Faris"],
