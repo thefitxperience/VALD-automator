@@ -238,10 +238,9 @@ TRAINERS = {
                 {"name": "Alaa Fathy", "whatsapp": ""},
                 {"name": "Hany Mohamed Yousif Elhadad", "whatsapp": "+966557975824"},
                 {"name": "Sleiman Al Tayyar", "whatsapp": ""},
-                {"name": "Abed El Hakim Sahou", "whatsapp": ""},
                 {"name": "Asmah Choukeni", "whatsapp": ""},
                 {"name": "Saleh Al Abed", "whatsapp": ""},
-                {"name": "Ahmed Shoeeb", "whatsapp": ""},
+                {"name": "Ahmed Shoeeb", "whatsapp": "+966540820361"},
                 {"name": "Anouar Aghmour", "whatsapp": "+966564936738"},
                 {"name": "Mohammad Souud", "whatsapp": ""},
                 {"name": "Ahmed Keshk", "whatsapp": "+966546582827"},
@@ -274,7 +273,7 @@ TRAINERS = {
                 {"name": "Magomed Ansarov", "whatsapp": ""},
                 {"name": "Zakaria Jawadi", "whatsapp": ""},
                 {"name": "Renelle Vilaverdi", "whatsapp": ""},
-                {"name": "Badereddine Bouzahar", "whatsapp": ""},
+                {"name": "Badereddine Bouzahar", "whatsapp": "+966540327695"},
                 {"name": "Safaa Karim", "whatsapp": ""},
                 {"name": "Fawzi Baltaji", "whatsapp": ""},
                 {"name": "Akram M. Hussin", "whatsapp": ""},
@@ -406,6 +405,7 @@ TRAINERS = {
         "RUH - Al Nahda": {
             "trainers": [
                 {"name": "Achraf Fadlallah", "whatsapp": "+966543027275"},
+                {"name": "Abed El Hakim Sahou", "whatsapp": "+966556980548"},
                 {"name": "Majid Abdessamad", "whatsapp": "+966503253070"},
                 {"name": "Mhamed Oulahssine", "whatsapp": "+966560798022"},
                 {"name": "Ramy Alla Tawfeak Ahmed", "whatsapp": "+966545322081"},
@@ -506,6 +506,7 @@ TRAINERS = {
         "JED - Al Rawdah": {
             "trainers": [
                 {"name": "Abdallah Kandaly", "whatsapp": "+966532200399"},
+                {"name": "Abed El Rahman Taha", "whatsapp": "+966532455054"},
                 {"name": "Ibrahim Nasr", "whatsapp": "+966591638245"},
                 {"name": "Khaled Al-Masouri", "whatsapp": "+966532394494"},
                 {"name": "Sami Serrar", "whatsapp": "+966592586391"},

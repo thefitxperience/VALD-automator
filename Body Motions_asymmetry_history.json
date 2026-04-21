@@ -9240,6 +9240,19 @@
           "shoulder|abduction": 9.4
         }
       }
+    ],
+    "lower": [
+      {
+        "test_date": "2026-03-09",
+        "processed_at": "2026-04-16 18:12:38",
+        "asymmetries": {
+          "knee|flexion": 5.3,
+          "hip|flexion": 45.0,
+          "hip|extension": 44.0,
+          "hip|adduction": 20.0,
+          "hip|abduction": 57.0
+        }
+      }
     ]
   },
   "Maha Alradhi": {
@@ -34226,7 +34239,7 @@
     "lower": [
       {
         "test_date": "2026-03-16",
-        "processed_at": "2026-03-22 02:31:53",
+        "processed_at": "2026-04-16 18:16:29",
         "asymmetries": {
           "trunk|lateral flexion": 6.0606060606060606,
           "knee|extension": 42.0
@@ -36361,6 +36374,21 @@
           "hip|extension": 58.0,
           "hip|adduction": 8.9,
           "hip|abduction": 71.0
+        }
+      }
+    ]
+  },
+  "Sarah Aljbreen": {
+    "lower": [
+      {
+        "test_date": "2026-03-09",
+        "processed_at": "2026-04-16 18:14:44",
+        "asymmetries": {
+          "knee|extension": 4.1,
+          "hip|flexion": 11.0,
+          "hip|extension": 5.2,
+          "hip|adduction": 81.0,
+          "hip|abduction": 52.0
         }
       }
     ]
