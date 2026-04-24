@@ -273,7 +273,6 @@ TRAINERS = {
                 {"name": "Magomed Ansarov", "whatsapp": ""},
                 {"name": "Zakaria Jawadi", "whatsapp": ""},
                 {"name": "Renelle Vilaverdi", "whatsapp": ""},
-                {"name": "Badereddine Bouzahar", "whatsapp": "+966540327695"},
                 {"name": "Safaa Karim", "whatsapp": ""},
                 {"name": "Fawzi Baltaji", "whatsapp": ""},
                 {"name": "Akram M. Hussin", "whatsapp": ""},
@@ -291,6 +290,7 @@ TRAINERS = {
                 {"name": "Bander Albalawi", "whatsapp": ""},
                 {"name": "El Kaddioui Adil", "whatsapp": ""},
                 {"name": "Shamsudheen Paramban", "whatsapp": ""},
+                {"name": "Omar Mayhoub", "whatsapp": "+966599011997"},
                 {"name": "Ibrahim Mohamed Fadel Abduljalil Barakat", "whatsapp": ""},
                 {"name": "Abdellatif Zamzim", "whatsapp": ""},
             ]
@@ -405,6 +405,7 @@ TRAINERS = {
         "RUH - Al Nahda": {
             "trainers": [
                 {"name": "Achraf Fadlallah", "whatsapp": "+966543027275"},
+                {"name": "Raqan Abdel Mehsen Al-Qahtani", "whatsapp": "+966550284472"},
                 {"name": "Abed El Hakim Sahou", "whatsapp": "+966556980548"},
                 {"name": "Majid Abdessamad", "whatsapp": "+966503253070"},
                 {"name": "Mhamed Oulahssine", "whatsapp": "+966560798022"},
@@ -427,7 +428,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Ahmed Maher Ahmed Nasrelden", "whatsapp": "+966541201190"},
                 {"name": "Hesham Rady Ismail Rady", "whatsapp": ""},
-                {"name": "Mohsen Hadikhamis", "whatsapp": ""},
+                {"name": "Mohsen Hadikhamis", "whatsapp": "+966559292910"},
                 {"name": "Tarik Maarouf", "whatsapp": "+966580464502"},
                 {"name": "Ibrahim Ali Ismaiel Ibrahim", "whatsapp": ""},
                 {"name": "Wajih Kamal Matoussi", "whatsapp": "+966564496193"},
@@ -539,6 +540,7 @@ TRAINERS = {
         "JED - Obhor - Al Sheraa": {
             "trainers": [
                 {"name": "Mohamad Rida Irabi", "whatsapp": "+966569039676"},
+                {"name": "Badereddine Bouzahar", "whatsapp": "+966540327695"},
                 {"name": "Abed Al Menhem Mhamad", "whatsapp": "+966561499730"},
                 {"name": "Ayoub Benzahra", "whatsapp": "+966549134851"},
                 {"name": "Ahmed Al Gammal", "whatsapp": "+966578982567"},
@@ -668,7 +670,7 @@ TRAINERS = {
                 {"name": "Hamdy Helal", "whatsapp": ""},
                 {"name": "Ali Alkobebi", "whatsapp": "+966555244760"},
                 {"name": "Ibrahem Zahran", "whatsapp": "+966540011286"},
-                {"name": "Mustapha Selaoui", "whatsapp": ""},
+                {"name": "Mustapha Selaoui", "whatsapp": "+966565038209"},
                 {"name": "Mohammed Ayed", "whatsapp": ""},
             ]
         },
