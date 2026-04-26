@@ -564,161 +564,167 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
         mv = p.get("movements", 0)
         ignored_lookup[key] = len(mv) if isinstance(mv, list) else (mv or 0)
 
-    # Collect rows per patient
+    # Collect rows per patient per date (prevents cross-date full-body detection)
+    # patients_rows: { patient_name: { date_str: [row, ...] } }
     patients_rows = {}
     patient_external_ids = {}
     for row in range(2, src_ws.max_row + 1):
         name_val = re.sub(r"\s+", " ", nz_str(src_ws[f"A{row}"].value).strip())
         if not name_val:
             continue
+        date_val = src_ws[f"C{row}"].value
+        date_key = normalize_test_date(date_val) or ""
         if name_val not in patients_rows:
-            patients_rows[name_val] = []
+            patients_rows[name_val] = {}
             ext_id = nz_str(src_ws[f"B{row}"].value).strip()
             patient_external_ids[name_val] = ext_id if ext_id else "N/A"
-        patients_rows[name_val].append(row)
+        if date_key not in patients_rows[name_val]:
+            patients_rows[name_val][date_key] = []
+        patients_rows[name_val][date_key].append(row)
 
     new_tests = []
 
-    for patient_name, rows in patients_rows.items():
-        test_types = detect_test_type(rows, src_ws)
-        if isinstance(test_types, str):
-            test_types = [test_types]
+    for patient_name, dates_rows in patients_rows.items():
+        for _date_key, rows in dates_rows.items():
+            test_types = detect_test_type(rows, src_ws)
+            if isinstance(test_types, str):
+                test_types = [test_types]
 
-        for test_type in test_types:
-            movements_present = {}
-            movements_stored = {}
-            rows_with_stored_movements = set()
+            for test_type in test_types:
+                movements_present = {}
+                movements_stored = {}
+                rows_with_stored_movements = set()
 
-            for row in rows:
-                movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
-                region = nz_str(src_ws[f"H{row}"].value).lower().strip()
-                asym_raw = src_ws[f"S{row}"].value
+                for row in rows:
+                    movement = nz_str(src_ws[f"F{row}"].value).lower().strip()
+                    region = nz_str(src_ws[f"H{row}"].value).lower().strip()
+                    asym_raw = src_ws[f"S{row}"].value
 
-                if not movement or not region:
-                    continue
-
-                # Trunk is calculated separately for lower body
-                if test_type == "lower" and region == "trunk":
-                    trunk_pct, _ = calculate_trunk_asymmetry(rows, src_ws)
-                    if trunk_pct is not None:
-                        if ("lateral flexion", "trunk") not in movements_stored:
-                            movements_stored[("lateral flexion", "trunk")] = trunk_pct
-                    continue
-
-                if asym_raw in (None, ""):
-                    continue
-                pct_value, _ = parse_asymmetry(asym_raw)
-                if pct_value is None:
-                    continue
-
-                if len(test_types) > 1:
-                    row_test_type = get_movement_test_type(movement, region)
-                    if row_test_type and row_test_type != test_type:
+                    if not movement or not region:
                         continue
 
-                would_be_stored = False
-                if test_type == "lower":
-                    if region == "knee" and movement in ("extension", "flexion"):
-                        would_be_stored = True
-                    elif region == "hip" and movement in ("abduction", "adduction", "flexion", "extension"):
-                        would_be_stored = True
-                elif test_type == "upper":
-                    if region == "shoulder" and movement in ("external rotation", "internal rotation", "flexion", "abduction", "push", "pull"):
-                        would_be_stored = True
-                    elif region == "elbow" and movement in ("extension", "flexion"):
-                        would_be_stored = True
-                    elif region == "hand" and movement == "grip squeeze":
-                        would_be_stored = True
-                elif test_type == "full":
-                    if region == "shoulder" and movement in ("external rotation", "internal rotation", "flexion", "abduction"):
-                        would_be_stored = True
-                    elif region == "elbow" and movement in ("extension", "flexion"):
-                        would_be_stored = True
-                    elif region == "knee" and movement in ("extension", "flexion"):
-                        would_be_stored = True
-                    elif region == "hip" and movement in ("abduction", "adduction"):
-                        would_be_stored = True
+                    # Trunk is calculated separately for lower body
+                    if test_type == "lower" and region == "trunk":
+                        trunk_pct, _ = calculate_trunk_asymmetry(rows, src_ws)
+                        if trunk_pct is not None:
+                            if ("lateral flexion", "trunk") not in movements_stored:
+                                movements_stored[("lateral flexion", "trunk")] = trunk_pct
+                        continue
 
-                if not would_be_stored:
+                    if asym_raw in (None, ""):
+                        continue
+                    pct_value, _ = parse_asymmetry(asym_raw)
+                    if pct_value is None:
+                        continue
+
+                    if len(test_types) > 1:
+                        row_test_type = get_movement_test_type(movement, region)
+                        if row_test_type and row_test_type != test_type:
+                            continue
+
+                    would_be_stored = False
+                    if test_type == "lower":
+                        if region == "knee" and movement in ("extension", "flexion"):
+                            would_be_stored = True
+                        elif region == "hip" and movement in ("abduction", "adduction", "flexion", "extension"):
+                            would_be_stored = True
+                    elif test_type == "upper":
+                        if region == "shoulder" and movement in ("external rotation", "internal rotation", "flexion", "abduction", "push", "pull"):
+                            would_be_stored = True
+                        elif region == "elbow" and movement in ("extension", "flexion"):
+                            would_be_stored = True
+                        elif region == "hand" and movement == "grip squeeze":
+                            would_be_stored = True
+                    elif test_type == "full":
+                        if region == "shoulder" and movement in ("external rotation", "internal rotation", "flexion", "abduction"):
+                            would_be_stored = True
+                        elif region == "elbow" and movement in ("extension", "flexion"):
+                            would_be_stored = True
+                        elif region == "knee" and movement in ("extension", "flexion"):
+                            would_be_stored = True
+                        elif region == "hip" and movement in ("abduction", "adduction"):
+                            would_be_stored = True
+
+                    if not would_be_stored:
+                        continue
+
+                    key = (movement, region)
+                    if key not in movements_present:
+                        movements_present[key] = []
+                    movements_present[key].append((abs(pct_value), row))
+
+                for key, value_row_pairs in movements_present.items():
+                    max_value, max_row = max(value_row_pairs, key=lambda x: x[0])
+                    movements_stored[key] = max_value
+                    rows_with_stored_movements.add(max_row)
+
+                if len(movements_stored) == 0:
                     continue
 
-                key = (movement, region)
-                if key not in movements_present:
-                    movements_present[key] = []
-                movements_present[key].append((abs(pct_value), row))
+                date_val = None
+                for row in sorted(rows_with_stored_movements):
+                    date_val = src_ws[f"C{row}"].value
+                    if date_val:
+                        break
 
-            for key, value_row_pairs in movements_present.items():
-                max_value, max_row = max(value_row_pairs, key=lambda x: x[0])
-                movements_stored[key] = max_value
-                rows_with_stored_movements.add(max_row)
-
-            if len(movements_stored) == 0:
-                continue
-
-            date_val = None
-            for row in sorted(rows_with_stored_movements):
-                date_val = src_ws[f"C{row}"].value
-                if date_val:
-                    break
-
-            if not date_val:
-                continue
-
-            date_str = normalize_test_date(date_val)
-            movement_count = len(movements_stored)
-
-            lookup_key = (patient_name, test_type, date_str)
-            is_new = lookup_key not in existing_lookup
-            old_count = existing_lookup.get(lookup_key, 0)
-
-            if is_new or movement_count > old_count:
-                # Suppress if this exact test was ignored and hasn't gained new movements
-                ignored_count = ignored_lookup.get(lookup_key)
-                if ignored_count is not None and movement_count <= ignored_count:
+                if not date_val:
                     continue
-                # Build template cell data for program generation
-                cells_dict, stored_movs, _ = _build_cells_for_patient(rows, src_ws, test_type, test_types)
-                # Build asymmetry_values dict (movement_key -> pct 0-100) for future comparisons
-                from program_builder import _CELL_GROUPS, _movement_key
-                av: dict[str, float] = {}
-                for lbl_col, pct_col in _CELL_GROUPS:
-                    for row_num in (21, 23, 25, 27):
-                        lv = str(cells_dict.get(f"{lbl_col}{row_num}", "")).strip()
-                        pv = cells_dict.get(f"{pct_col}{row_num}")
-                        if lv and pv is not None:
-                            mk = _movement_key(lv)
-                            if mk:
-                                av[mk] = round(abs(float(pv)) * 100, 4)
-                cells_data = {
-                    "cells": cells_dict,
-                    "movements": [list(m) for m in stored_movs],
-                }
-                # Get previous asymmetries for this patient+test_type
-                pa_key = (patient_name, test_type)
-                prev_av_raw = prev_asymmetries_lookup.get(pa_key, {})
-                prev_av = {k: v for k, v in prev_av_raw.items() if k != "_date"}
-                # If the previous approved test is the same date as the current test,
-                # it's the same test with more movements added — don't compare (no red font)
-                prev_date = prev_av_raw.get("_date", "")
-                if prev_date == date_str:
-                    prev_av = {}
-                # For updated tests, carry over the existing branch/trainer/dispatch_date
-                existing_details = existing_details_lookup.get(lookup_key, {})
-                new_tests.append({
-                    "status": "NEW" if is_new else "UPDATED",
-                    "patient": patient_name,
-                    "external_id": patient_external_ids.get(patient_name, "N/A"),
-                    "test_type": test_type,
-                    "date": date_str,
-                    "movement_count": movement_count,
-                    "old_count": old_count,
-                    "cells_data": cells_data,
-                    "asymmetry_values": av,
-                    "prev_asymmetries": prev_av if prev_av else None,
-                    "existing_branch": existing_details.get("branch"),
-                    "existing_trainer_name": existing_details.get("trainer_name"),
-                    "existing_dispatch_date": existing_details.get("dispatch_date"),
-                })
+
+                date_str = normalize_test_date(date_val)
+                movement_count = len(movements_stored)
+
+                lookup_key = (patient_name, test_type, date_str)
+                is_new = lookup_key not in existing_lookup
+                old_count = existing_lookup.get(lookup_key, 0)
+
+                if is_new or movement_count > old_count:
+                    # Suppress if this exact test was ignored and hasn't gained new movements
+                    ignored_count = ignored_lookup.get(lookup_key)
+                    if ignored_count is not None and movement_count <= ignored_count:
+                        continue
+                    # Build template cell data for program generation
+                    cells_dict, stored_movs, _ = _build_cells_for_patient(rows, src_ws, test_type, test_types)
+                    # Build asymmetry_values dict (movement_key -> pct 0-100) for future comparisons
+                    from program_builder import _CELL_GROUPS, _movement_key
+                    av: dict[str, float] = {}
+                    for lbl_col, pct_col in _CELL_GROUPS:
+                        for row_num in (21, 23, 25, 27):
+                            lv = str(cells_dict.get(f"{lbl_col}{row_num}", "")).strip()
+                            pv = cells_dict.get(f"{pct_col}{row_num}")
+                            if lv and pv is not None:
+                                mk = _movement_key(lv)
+                                if mk:
+                                    av[mk] = round(abs(float(pv)) * 100, 4)
+                    cells_data = {
+                        "cells": cells_dict,
+                        "movements": [list(m) for m in stored_movs],
+                    }
+                    # Get previous asymmetries for this patient+test_type
+                    pa_key = (patient_name, test_type)
+                    prev_av_raw = prev_asymmetries_lookup.get(pa_key, {})
+                    prev_av = {k: v for k, v in prev_av_raw.items() if k != "_date"}
+                    # If the previous approved test is the same date as the current test,
+                    # it's the same test with more movements added — don't compare (no red font)
+                    prev_date = prev_av_raw.get("_date", "")
+                    if prev_date == date_str:
+                        prev_av = {}
+                    # For updated tests, carry over the existing branch/trainer/dispatch_date
+                    existing_details = existing_details_lookup.get(lookup_key, {})
+                    new_tests.append({
+                        "status": "NEW" if is_new else "UPDATED",
+                        "patient": patient_name,
+                        "external_id": patient_external_ids.get(patient_name, "N/A"),
+                        "test_type": test_type,
+                        "date": date_str,
+                        "movement_count": movement_count,
+                        "old_count": old_count,
+                        "cells_data": cells_data,
+                        "asymmetry_values": av,
+                        "prev_asymmetries": prev_av if prev_av else None,
+                        "existing_branch": existing_details.get("branch"),
+                        "existing_trainer_name": existing_details.get("trainer_name"),
+                        "existing_dispatch_date": existing_details.get("dispatch_date"),
+                    })
 
     if _wb:
         _wb.close()
