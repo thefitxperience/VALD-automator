@@ -481,7 +481,6 @@ TRAINERS = {
                 {"name": "Ahmad Abdelgafour Omar Ahmad", "whatsapp": "+966536019805"},
                 {"name": "Abdelrahman Mohamed", "whatsapp": "+966598042055"},
                 {"name": "Khalid Karmou", "whatsapp": "+966565250428"},
-                {"name": "Shehab Ashraf Mohamady Ibrahim", "whatsapp": "+966547817964"},
             ]
         },
         "DMM - Khobar": {
@@ -489,6 +488,7 @@ TRAINERS = {
                 {"name": "Abbas Okasha", "whatsapp": "+966546570224"},
                 {"name": "Abd Elrahem Al Ouina", "whatsapp": "+966538036523"},
                 {"name": "Abed AlWasi", "whatsapp": "+966580255114"},
+                {"name": "Shehab Ashraf Mohamady Ibrahim", "whatsapp": "+966547817964"},
                 {"name": "Khalid Mahmoud Saleh", "whatsapp": "+966505676495"},
                 {"name": "Mahmoud Hassan", "whatsapp": ""},
                 {"name": "Radwan Mohamed Radwan", "whatsapp": "+966534946448"},
