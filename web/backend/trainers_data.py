@@ -199,7 +199,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Amal Saad", "whatsapp": "+966599486170"},
                 {"name": "Bassant Majed Eid", "whatsapp": "+966545828493"},
-                {"name": "Marwa Jendoubi", "whatsapp": ""},
+                {"name": "Marwa Jendoubi", "whatsapp": "+966569283145"},
                 {"name": "Sahar Mrad Berguiga", "whatsapp": "+966561185546"},
                 {"name": "Ishraf Mohamed Al-Zaghdoudi", "whatsapp": "+966548034943"},
                 {"name": "Nada Ahmed Mohamed", "whatsapp": "+966545946427"},
@@ -281,7 +281,7 @@ TRAINERS = {
                 {"name": "Ahmad Fadel", "whatsapp": ""},
                 {"name": "Rachid Sakouti", "whatsapp": ""},
                 {"name": "Hamza Sanbar", "whatsapp": ""},
-                {"name": "Ayman N. Al Chahawi", "whatsapp": ""},
+                {"name": "Ayman N. Al Chahawi", "whatsapp": "+966563022909"},
             ]
         },
         "RUH - Al Wadi": {
@@ -455,7 +455,7 @@ TRAINERS = {
         },
         "DMM - Al Athir": {
             "trainers": [
-                {"name": "Abdullah Abdulrahman", "whatsapp": ""},
+                {"name": "Abdullah Abdulrahman", "whatsapp": "+966581203193"},
                 {"name": "Abdulrahman Ali", "whatsapp": ""},
                 {"name": "Anas Al-Makenzi", "whatsapp": "+966566249290"},
                 {"name": "Ibrahim Salama", "whatsapp": "+966532439753"},
@@ -514,7 +514,7 @@ TRAINERS = {
                 {"name": "Sofiane Sadiq", "whatsapp": "+966507607687"},
                 {"name": "Tawfik Jukh", "whatsapp": "+966537457842"},
                 {"name": "Youssef Souayah", "whatsapp": "+966500145773"},
-                {"name": "Muhmoud Ayman Saad", "whatsapp": ""},
+                {"name": "Muhmoud Ayman Saad", "whatsapp": "+966583840084"},
                 {"name": "Ahmed Elsayed Algammal", "whatsapp": ""},
                 {"name": "Moez Mustafa", "whatsapp": "+966598360035"},
                 {"name": "Soliman Bakar", "whatsapp": "+966544201272"},
@@ -524,7 +524,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Adel Mohammed Abdullah Al-Daos", "whatsapp": ""},
                 {"name": "Imad Al-Zahrani", "whatsapp": ""},
-                {"name": "Khaled Al Barkawi", "whatsapp": ""},
+                {"name": "Khaled Al Barkawi", "whatsapp": "+966583885346"},
                 {"name": "Mahmoud Al Bihery", "whatsapp": "+966547803835"},
                 {"name": "Mohamed Ait Ayad", "whatsapp": "+966565026095"},
                 {"name": "Mohamed Gamea", "whatsapp": "+966598316907"},
@@ -606,7 +606,7 @@ TRAINERS = {
                 {"name": "Hamza Berahhou", "whatsapp": ""},
                 {"name": "Khaled Ezzat", "whatsapp": "+966580642326"},
                 {"name": "Mohammed Abdelhamid", "whatsapp": ""},
-                {"name": "Moulay Al Hussein", "whatsapp": ""},
+                {"name": "Moulay Al Hussein", "whatsapp": "+966558422010"},
                 {"name": "Wael Mohammed", "whatsapp": ""},
             ]
         },
