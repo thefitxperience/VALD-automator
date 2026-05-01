@@ -254,9 +254,9 @@ def generate_report(
             raise ValueError("week_number required for weekly report")
         period_start, period_end = _week_range(year, month, week_number)
 
-    # Filter programs by test_date in period
+    # Filter programs by dispatch_date in period
     def in_period(p):
-        dd = p.get("test_date")
+        dd = p.get("dispatch_date")
         if not dd:
             return False
         if isinstance(dd, str):
@@ -284,7 +284,7 @@ def generate_report(
     month_end = date(year, month, month_last)
 
     def in_full_month(p):
-        dd = p.get("test_date")
+        dd = p.get("dispatch_date")
         if not dd:
             return False
         if isinstance(dd, str):
