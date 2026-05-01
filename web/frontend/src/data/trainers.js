@@ -48,7 +48,7 @@ const TRAINERS = {
     "DMM - Hufof": ["Ahmad Abdelgafour Omar Ahmad","Abdelrahman Mohamed","Khalid Karmou","Shehab Ashraf Mohamady Ibrahim"],
     "DMM - Khobar": ["Abbas Okasha","Abd Elrahem Al Ouina","Abed AlWasi","Khalid Mahmoud Saleh","Mahmoud Hassan","Radwan Mohamed Radwan","Shahid Elkhalfy"],
     "JED - Hamadania": ["Abd Elramhan Mokhtar","Mohamed Fathi Abdulsattar","Abdullah Mohammed Alhamdni","Mohamed Ibrahim Mohamed","Musa Eltom Ahmed"],
-    "JED - Al Rawdah": ["Abdallah Kandaly","Abed El Rahman Taha","Ibrahim Nasr","Khaled Al-Masouri","Sami Serrar","Sofiane Sadiq","Tawfik Jukh","Youssef Souayah","Muhmoud Ayman Saad","Ahmed Elsayed Algammal"],
+    "JED - Al Rawdah": ["Abdallah Kandaly","Abed El Rahman Taha","Ibrahim Nasr","Khaled Al-Masouri","Sami Serrar","Sofiane Sadiq","Tawfik Jukh","Youssef Souayah","Muhmoud Ayman Saad","Ahmed Elsayed Algammal","Moez Mustafa","Soliman Bakar"],
     "JED - Makkah": ["Adel Mohammed Abdullah Al-Daos","Imad Al-Zahrani","Khaled Al Barkawi","Mahmoud Al Bihery","Mohamed Ait Ayad","Mohamed Gamea","Omar Al Shankety"],
     "JED - Obhor - Al Amwaj": ["Hesham Galal Mahmoud","Karim Abdala Wassal","Mohammed Joharji","Mohammed Mustafa Himsi"],
     "JED - Obhor - Al Sheraa": ["Mohamad Rida Irabi","Badereddine Bouzahar","Abed Al Menhem Mhamad","Ayoub Benzahra","Ahmed Al Gammal","Bader Eddine","Abdelrahman Kamal","Tarak Othman","Mostafa Hamada","Nawaf Alanazi","Ibrahim Saleh","Abdelrahman Faris"],

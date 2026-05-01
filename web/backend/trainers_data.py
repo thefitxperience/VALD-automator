@@ -516,6 +516,8 @@ TRAINERS = {
                 {"name": "Youssef Souayah", "whatsapp": "+966500145773"},
                 {"name": "Muhmoud Ayman Saad", "whatsapp": ""},
                 {"name": "Ahmed Elsayed Algammal", "whatsapp": ""},
+                {"name": "Moez Mustafa", "whatsapp": "+966598360035"},
+                {"name": "Soliman Bakar", "whatsapp": "+966544201272"},
             ]
         },
         "JED - Makkah": {
