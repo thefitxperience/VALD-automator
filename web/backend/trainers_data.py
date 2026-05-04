@@ -42,6 +42,7 @@ TRAINERS = {
                 {"name": "Chaza Ben Miled", "whatsapp": "+966560891607"},
                 {"name": "Nada Mohamed Khalifa", "whatsapp": "+966504693457"},
                 {"name": "Warda Al Hajji", "whatsapp": "+966567225971"},
+                {"name": "Amal Al Chiboub", "whatsapp": "+966572636461"},
             ]
         },
         "RUH - Al Fayha": {
@@ -99,6 +100,7 @@ TRAINERS = {
                 {"name": "Reyouf Saad", "whatsapp": "+966560647501"},
                 {"name": "Shurooq Amer", "whatsapp": "+966530435479"},
                 {"name": "Maha Fayez Al Ahmari", "whatsapp": "+966560480574"},
+                {"name": "Salma Jadli", "whatsapp": "+966537665190"},
             ]
         },
         "JED - Al Faisaliyah": {
@@ -273,7 +275,7 @@ TRAINERS = {
                 {"name": "Magomed Ansarov", "whatsapp": ""},
                 {"name": "Zakaria Jawadi", "whatsapp": ""},
                 {"name": "Renelle Vilaverdi", "whatsapp": ""},
-                {"name": "Safaa Karim", "whatsapp": ""},
+                {"name": "Safaa Karim", "whatsapp": "+966532694802"},
                 {"name": "Fawzi Baltaji", "whatsapp": ""},
                 {"name": "Akram M. Hussin", "whatsapp": ""},
                 {"name": "Zakaria Yahia", "whatsapp": ""},
