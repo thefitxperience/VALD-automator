@@ -183,7 +183,7 @@ TRAINERS = {
                 {"name": "Mona Maatouq", "whatsapp": "+966546342122"},
                 {"name": "Afnan Khalid", "whatsapp": "+966530245994"},
                 {"name": "Marwa Almudyni", "whatsapp": "+966581496551"},
-                {"name": "Amina Mohammad Mosbeh", "whatsapp": ""},
+                {"name": "Amina Mohammad Mosbeh", "whatsapp": "+966541720132"},
                 {"name": "Iman Aboushosha", "whatsapp": "+966547854553"},
             ]
         },
