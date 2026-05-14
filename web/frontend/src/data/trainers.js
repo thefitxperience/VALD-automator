@@ -19,7 +19,7 @@ const TRAINERS = {
     "ALQ - Unaizah": ["Samar Lajnef","Asmaa Aalaa Al-Din","Esraa Labib Noomani","Rim Chabi","Yosra Al-Mzoughi","Roua Al-Hashemi Bin Naeimah","Rana Mohammad Hassan Aaref"],
     "Al Ahsaa": ["Samar Mohammed","Mona Maatouq","Afnan Khalid","Marwa Almudyni","Amina Mohammad Mosbeh","Iman Aboushosha"],
     "AlUla": ["Walaa Ahmed","Amal Saleh","Bayan Al-Anzi","Hanin Barrani","Rehab Naji Al-Nasri","Khouloud Suibgui"],
-    "Tabuk": ["Amal Saad","Bassant Majed Eid","Marwa Jendoubi","Sahar Mrad Berguiga","Ishraf Mohamed Al-Zaghdoudi","Nada Ahmed Mohamed","Rasha Abu Hassan"],
+    "Tabuk": ["Amal Saad","Bassant Majed Eid","Marwa Jendoubi","Sahar Mrad Berguiga","Ishraf Mohamed Al-Zaghdoudi","Nada Ahmed Mohamed","Rasha Abu Hassan","Hanane Bankroum"],
   },
 
   "Body Masters": {
