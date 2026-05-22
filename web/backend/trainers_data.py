@@ -110,7 +110,7 @@ TRAINERS = {
                 {"name": "Mariam Baomar", "whatsapp": ""},
                 {"name": "Ines Rezgui", "whatsapp": "+966566894215"},
                 {"name": "Kholod Khaled", "whatsapp": "+966540899707"},
-                {"name": "Hajer Jamal Al-Deen Khalifa Ali", "whatsapp": ""},
+                {"name": "Hajer Jamal Al-Deen Khalifa Ali", "whatsapp": "+966543880262"},
                 {"name": "Chourouk Sherif", "whatsapp": "+966547439677"},
                 {"name": "Hala Saied", "whatsapp": "+966544680936"},
             ]
