@@ -17,7 +17,7 @@ const TRAINERS = {
     "DMM - Al Jalawiah": ["Emna Ben Chalbia","Chaima Gharsalli","Asmaa Ashraf","Aya Maayoufi","Chaima Boutita","Asmaa Mahmoud"],
     "ALQ - Buraidah": ["Mai Mosleh","Chayma Hannachi","Malath Suleiman Alshamasi","Anwar Ben Rhayem","Lulu Alzaaj","Raja Reeba","Aya Mahmoud Abed Al-Wanis","Ines Souissi","Nouran Emad Jad","Nourhan Ehab Amarah","Anfal Nasser Alhusseini","Rawiya Alarousi Mabrouk"],
     "ALQ - Unaizah": ["Samar Lajnef","Asmaa Aalaa Al-Din","Esraa Labib Noomani","Rim Chabi","Yosra Al-Mzoughi","Roua Al-Hashemi Bin Naeimah","Rana Mohammad Hassan Aaref"],
-    "Al Ahsaa": ["Samar Mohammed","Mona Maatouq","Afnan Khalid","Marwa Almudyni","Amina Mohammad Mosbeh","Iman Aboushosha"],
+    "Al Ahsaa": ["Samar Mohammed","Mona Maatouq","Afnan Khalid","Marwa Almudyni","Amina Mohammad Mosbeh","Iman Aboushosha","Nour Toumi"],
     "AlUla": ["Walaa Ahmed","Amal Saleh","Bayan Al-Anzi","Hanin Barrani","Rehab Naji Al-Nasri","Khouloud Suibgui"],
     "Tabuk": ["Amal Saad","Bassant Majed Eid","Marwa Jendoubi","Sahar Mrad Berguiga","Ishraf Mohamed Al-Zaghdoudi","Nada Ahmed Mohamed","Rasha Abu Hassan","Hanane Bankroum"],
   },

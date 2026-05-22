@@ -49,7 +49,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Feryel Ben Nacer", "whatsapp": "+966545915879"},
                 {"name": "Al Anoud Saleh Al-Qablan", "whatsapp": "+966558359423"},
-                {"name": "Khawla Saif", "whatsapp": ""},
+                {"name": "Khawla Saif", "whatsapp": "+966540315625"},
                 {"name": "Asmaa Adel", "whatsapp": "+966547839720"},
                 {"name": "Hind Al Ahmad", "whatsapp": "+966595529511"},
                 {"name": "Ebtihal Al Kathiri", "whatsapp": "+966539144332"},
@@ -159,7 +159,7 @@ TRAINERS = {
                 {"name": "Lulu Alzaaj", "whatsapp": "+966509643862"},
                 {"name": "Raja Reeba", "whatsapp": "+966538933346"},
                 {"name": "Aya Mahmoud Abed Al-Wanis", "whatsapp": "+966568061997"},
-                {"name": "Ines Souissi", "whatsapp": ""},
+                {"name": "Ines Souissi", "whatsapp": "+966540539626"},
                 {"name": "Nouran Emad Jad", "whatsapp": "+966543396136"},
                 {"name": "Nourhan Ehab Amarah", "whatsapp": "+966546316528"},
                 {"name": "Anfal Nasser Alhusseini", "whatsapp": "+966543348539"},
@@ -185,6 +185,7 @@ TRAINERS = {
                 {"name": "Marwa Almudyni", "whatsapp": "+966581496551"},
                 {"name": "Amina Mohammad Mosbeh", "whatsapp": "+966541720132"},
                 {"name": "Iman Aboushosha", "whatsapp": "+966547854553"},
+                {"name": "Nour Toumi", "whatsapp": ""},
             ]
         },
         "AlUla": {
