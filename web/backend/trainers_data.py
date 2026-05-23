@@ -360,7 +360,7 @@ TRAINERS = {
                 {"name": "Abderrazak Sihabi", "whatsapp": ""},
                 {"name": "Adil Elqady", "whatsapp": "+966545172553"},
                 {"name": "Adil Chahmi", "whatsapp": "+966580530664"},
-                {"name": "Amine Korchi", "whatsapp": ""},
+                {"name": "Amine Korchi", "whatsapp": "+966506261333"},
                 {"name": "El Mehdi Adnani", "whatsapp": "+966545355183"},
                 {"name": "Mohamed Saeed", "whatsapp": "+966563264508"},
                 {"name": "Selim Ben Abdelkader", "whatsapp": "+966562346963"},
