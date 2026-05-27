@@ -87,6 +87,7 @@ TRAINERS = {
                 {"name": "Nermin Hadi Debaya", "whatsapp": "+966542539814"},
                 {"name": "Hasna AlKayyal", "whatsapp": "+966538121195"},
                 {"name": "Takwa Abdelly", "whatsapp": "+966544241126"},
+                {"name": "Nawres Khordeni", "whatsapp": "+966569529765"},
             ]
         },
         "JED - Al Basateen": {
@@ -164,6 +165,7 @@ TRAINERS = {
                 {"name": "Nourhan Ehab Amarah", "whatsapp": "+966546316528"},
                 {"name": "Anfal Nasser Alhusseini", "whatsapp": "+966543348539"},
                 {"name": "Rawiya Alarousi Mabrouk", "whatsapp": "+966539181074"},
+                {"name": "Eilaf Mohamed Al-Fayizi", "whatsapp": "+966506670265"},
             ]
         },
         "ALQ - Unaizah": {
