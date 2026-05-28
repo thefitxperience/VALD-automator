@@ -276,7 +276,6 @@ TRAINERS = {
                 {"name": "Amer Abid", "whatsapp": ""},
                 {"name": "Mohammed Hida", "whatsapp": "+966566220411"},
                 {"name": "Youssef Lekal", "whatsapp": ""},
-                {"name": "Hamza Said", "whatsapp": ""},
                 {"name": "Oussama Elbaz", "whatsapp": ""},
                 {"name": "Alaa Fathy", "whatsapp": ""},
                 {"name": "Hany Mohamed Yousif Elhadad", "whatsapp": "+966557975824"},
@@ -328,13 +327,14 @@ TRAINERS = {
         },
         "RUH - Al Wadi": {
             "trainers": [
-                {"name": "Ahmed Hamid Abdelltif Nogalla", "whatsapp": ""},
+                {"name": "Ahmed Hamid Abdellatif Nogalla", "whatsapp": ""},
                 {"name": "Bander Albalawi", "whatsapp": ""},
                 {"name": "El Kaddioui Adil", "whatsapp": ""},
                 {"name": "Shamsudheen Paramban", "whatsapp": ""},
                 {"name": "Omar Mayhoub", "whatsapp": "+966599011997"},
                 {"name": "Ibrahim Mohamed Fadel Abduljalil Barakat", "whatsapp": ""},
                 {"name": "Abdellatif Zamzim", "whatsapp": ""},
+                {"name": "Abdou Wahed Zraidi", "whatsapp": "+966500386796"},
             ]
         },
         "RUH - Eshbilia": {
@@ -384,7 +384,6 @@ TRAINERS = {
             "trainers": [
                 {"name": "Abdenabi Ktraouach", "whatsapp": "+966565298423"},
                 {"name": "Fikri Acharif", "whatsapp": "+966552611090"},
-                {"name": "Abdou Wahed Zraidi", "whatsapp": "+966500386796"},
                 {"name": "Ahmed Abdelrahman", "whatsapp": "+966564548793"},
                 {"name": "Salman Altayyar", "whatsapp": "+966552181924"},
                 {"name": "Wasem Seed Alhajree", "whatsapp": "+966534060008"},
@@ -392,6 +391,7 @@ TRAINERS = {
                 {"name": "Taib Jadia", "whatsapp": "+966506793930"},
                 {"name": "Mahmoud Nagib", "whatsapp": "+966537830310"},
                 {"name": "Saeed Al Adrham", "whatsapp": "+966535356013"},
+                {"name": "Ahmed Adel Abdellatif Farag", "whatsapp": ""},
             ]
         },
         "RUH - Al Badia": {
@@ -417,7 +417,6 @@ TRAINERS = {
                 {"name": "Asser Al-Sheikh", "whatsapp": "+966562383415"},
                 {"name": "Hamza Aissaoui", "whatsapp": "+966543292026"},
                 {"name": "Hicham Mouhime", "whatsapp": "+966594857442"},
-                {"name": "Hicham Toualbi", "whatsapp": "+966547058178"},
                 {"name": "Ibrahim Pokoti", "whatsapp": "+966592696843"},
             ]
         },
@@ -454,6 +453,8 @@ TRAINERS = {
                 {"name": "Ramy Alla Tawfeak Ahmed", "whatsapp": "+966545322081"},
                 {"name": "Rhey Anthony T. Munez", "whatsapp": "+966500251308"},
                 {"name": "Youssef Al Habib Trabelsi", "whatsapp": "+966537448486"},
+                {"name": "Hicham Toualbi", "whatsapp": "+966547058178"},
+                {"name": "Soufian Bija", "whatsapp": ""},
             ]
         },
         "RUH - Badr": {
@@ -499,23 +500,28 @@ TRAINERS = {
             "trainers": [
                 {"name": "Abdullah Abdulrahman", "whatsapp": "+966581203193"},
                 {"name": "Abdulrahman Ali", "whatsapp": ""},
-                {"name": "Anas Al-Makenzi", "whatsapp": "+966566249290"},
                 {"name": "Ibrahim Salama", "whatsapp": "+966532439753"},
-                {"name": "Mohamed Abdel Moeti", "whatsapp": "+966500780502"},
-                {"name": "Mohamed Rabhi", "whatsapp": "+966598286282"},
                 {"name": "Rashid Elbouazizi", "whatsapp": "+966558648546"},
+                {"name": "Mohamed Elsayed Elzeftawy", "whatsapp": "+966545109222"},
+                {"name": "Alaa El Din Mekhtar", "whatsapp": ""},
+                {"name": "Ammar Ali", "whatsapp": ""},
+                {"name": "Jamal Halabi Assiri", "whatsapp": "+966534907900"},
             ]
         },
         "DMM - Al Jameyeen": {
             "trainers": [
-                {"name": "Hesham Adel Almarshoud", "whatsapp": "+966544643566"},
-                {"name": "Hicham Hassi", "whatsapp": ""},
-                {"name": "Jamal Halabi Assiri", "whatsapp": "+966534907900"},
-                {"name": "Mohamed Abdellatif Radwan", "whatsapp": ""},
-                {"name": "Mohamed Abdelsalam Deyab", "whatsapp": "+966558182982"},
-                {"name": "Mohamed Elsayed Elzeftawy", "whatsapp": "+966545109222"},
-                {"name": "Mohamed Khalid Manni", "whatsapp": ""},
                 {"name": "Nader Maayouf Saleh", "whatsapp": "+966548047548"},
+                {"name": "Hesham Adel Almarshoud", "whatsapp": "+966544643566"},
+                {"name": "Mohamed Khalid Manni", "whatsapp": ""},
+                {"name": "Mohamed Abdelsalam Deyab", "whatsapp": "+966558182982"},
+                {"name": "Hamza El Moumine", "whatsapp": ""},
+                {"name": "Mohamed Araby", "whatsapp": ""},
+                {"name": "Shahid Elkhalfy", "whatsapp": "+966507337412"},
+                {"name": "Mohammed Abdelhamid", "whatsapp": "+966572374523"},
+                {"name": "Ashraf Ezzeldine", "whatsapp": ""},
+                {"name": "Ibrahim Babaker", "whatsapp": ""},
+                {"name": "Mohamad Ahmad", "whatsapp": ""},
+                {"name": "Ali Ahmed Alkhadhir", "whatsapp": ""},
             ]
         },
         "DMM - Hufof": {
@@ -523,24 +529,27 @@ TRAINERS = {
                 {"name": "Ahmad Abdelgafour Omar Ahmad", "whatsapp": "+966536019805"},
                 {"name": "Abdelrahman Mohamed", "whatsapp": "+966598042055"},
                 {"name": "Khalid Karmou", "whatsapp": "+966565250428"},
+                {"name": "Abdul Raouf Mustafa", "whatsapp": "+966547804344"},
             ]
         },
         "DMM - Khobar": {
             "trainers": [
-                {"name": "Abbas Okasha", "whatsapp": "+966546570224"},
-                {"name": "Abd Elrahem Al Ouina", "whatsapp": "+966538036523"},
-                {"name": "Abed AlWasi", "whatsapp": "+966580255114"},
-                {"name": "Shehab Ashraf Mohamady Ibrahim", "whatsapp": "+966547817964"},
-                {"name": "Khalid Mahmoud Saleh", "whatsapp": "+966505676495"},
-                {"name": "Mahmoud Hassan", "whatsapp": ""},
                 {"name": "Radwan Mohamed Radwan", "whatsapp": "+966534946448"},
-                {"name": "Shahid Elkhalfy", "whatsapp": "+966507337412"},
+                {"name": "Abbas Okasha", "whatsapp": "+966546570224"},
+                {"name": "Khalid Mahmoud Saleh", "whatsapp": "+966505676495"},
+                {"name": "Abed AlWasi", "whatsapp": "+966580255114"},
+                {"name": "Mahmoud Hassan", "whatsapp": ""},
+                {"name": "Shehab Ashraf Mohamady Ibrahim", "whatsapp": "+966547817964"},
+                {"name": "Ayoub Chatat", "whatsapp": ""},
+                {"name": "Ahmad Al Dokhi", "whatsapp": ""},
+                {"name": "Joesel Bodota Casimiro", "whatsapp": "+966554587446"},
+                {"name": "Mohamad Maani", "whatsapp": ""},
+                {"name": "Rabana Gabif", "whatsapp": ""},
             ]
         },
         "JED - Hamadania": {
             "trainers": [
                 {"name": "Abd Elramhan Mokhtar", "whatsapp": "+966559995578"},
-                {"name": "Mohamed Fathi Abdulsattar", "whatsapp": ""},
                 {"name": "Abdullah Mohammed Alhamdni", "whatsapp": "+966548911731"},
                 {"name": "Mohamed Ibrahim Mohamed", "whatsapp": "+966593887197"},
                 {"name": "Musa Eltom Ahmed", "whatsapp": "+966557535912"},
@@ -550,7 +559,6 @@ TRAINERS = {
         "JED - Al Rawdah": {
             "trainers": [
                 {"name": "Abdallah Kandaly", "whatsapp": "+966532200399"},
-                {"name": "Abed El Rahman Taha", "whatsapp": "+966532455054"},
                 {"name": "Ibrahim Nasr", "whatsapp": "+966591638245"},
                 {"name": "Khaled Al-Masouri", "whatsapp": "+966532394494"},
                 {"name": "Sami Serrar", "whatsapp": "+966592586391"},
@@ -561,6 +569,8 @@ TRAINERS = {
                 {"name": "Ahmed Elsayed Algammal", "whatsapp": ""},
                 {"name": "Moez Mustafa", "whatsapp": "+966598360035"},
                 {"name": "Soliman Bakar", "whatsapp": "+966544201272"},
+                {"name": "Mohamed Fathi Abdulsattar", "whatsapp": ""},
+                {"name": "Oussama Amzil", "whatsapp": ""},
             ]
         },
         "JED - Makkah": {
@@ -596,6 +606,7 @@ TRAINERS = {
                 {"name": "Nawaf Alanazi", "whatsapp": "+966581632360"},
                 {"name": "Ibrahim Saleh", "whatsapp": "+966531810551"},
                 {"name": "Abdelrahman Faris", "whatsapp": "+966549158644"},
+                {"name": "Abed El Rahman Taha", "whatsapp": "+966532455054"},
             ]
         },
         "ALQ - Al Rass": {
@@ -619,6 +630,7 @@ TRAINERS = {
                 {"name": "Mohamed Amzil", "whatsapp": "+966550132300"},
                 {"name": "Mohamed Othman Gazy", "whatsapp": ""},
                 {"name": "Karim Maarori", "whatsapp": ""},
+                {"name": "Ahmed Tarek Kholafa", "whatsapp": ""},
             ]
         },
         "MED - Shouran": {
@@ -628,6 +640,11 @@ TRAINERS = {
                 {"name": "Lakhdari Abdellatif", "whatsapp": "+966564901566"},
                 {"name": "Mohamed Soliman Ragab", "whatsapp": "+966596708776"},
                 {"name": "Sheref Ashraf Mohamed", "whatsapp": "+966538849138"},
+                {"name": "Ahmed Mohamed Helmy Tohamy", "whatsapp": ""},
+                {"name": "Adham Ahmed Abdelsttar", "whatsapp": ""},
+                {"name": "Ahmed Abdallah Elsayed Ibrahim", "whatsapp": ""},
+                {"name": "Hassan Adel Almughamisi", "whatsapp": ""},
+                {"name": "Amjad Hussein Abbs Abdulaal", "whatsapp": ""},
             ]
         },
         "MED - Taiba": {
@@ -637,20 +654,25 @@ TRAINERS = {
                 {"name": "Amgad Hussein Abbas Abdulaal", "whatsapp": "+966551356507"},
                 {"name": "Mostafa Mahmoud Sayed Mohamed", "whatsapp": "+966504372358"},
                 {"name": "Rabah Salamah Alhujuri", "whatsapp": "+966599831400"},
-                {"name": "Samer Mohammed Abas Kamber", "whatsapp": "+966581195121"},
             ]
         },
         "Uhud": {
             "trainers": [
                 {"name": "Abdallah Mohamed Ali", "whatsapp": "+966548992386"},
                 {"name": "Ahmad Al-Dawkhi", "whatsapp": ""},
-                {"name": "Ali Ahmed Alkhadhir", "whatsapp": ""},
                 {"name": "Hassan Ait Hmida", "whatsapp": "+966543880262"},
                 {"name": "Hamza Berahhou", "whatsapp": ""},
-                {"name": "Khaled Ezzat", "whatsapp": "+966580642326"},
-                {"name": "Mohammed Abdelhamid", "whatsapp": "+966572374523"},
                 {"name": "Moulay Al Hussein", "whatsapp": "+966558422010"},
                 {"name": "Wael Mohammed", "whatsapp": ""},
+                {"name": "Hussein Elsayed", "whatsapp": "+966536212468"},
+                {"name": "Anas Al-Makenzi", "whatsapp": "+966566249290"},
+                {"name": "Mohamed Rabhi", "whatsapp": "+966598286282"},
+                {"name": "Enrique Jr Ravallo-Macorol", "whatsapp": ""},
+                {"name": "Mohamed Abdellatif Radwan", "whatsapp": ""},
+                {"name": "Hamza Said", "whatsapp": ""},
+                {"name": "Hicham Hassi", "whatsapp": ""},
+                {"name": "Mohamed Abdel Moeti", "whatsapp": "+966500780502"},
+                {"name": "Houssem Saggedi", "whatsapp": ""},
             ]
         },
         "AlUla": {
@@ -660,7 +682,6 @@ TRAINERS = {
                 {"name": "Ahmed Khaled", "whatsapp": "+966539211836"},
                 {"name": "Ahmed Khaled El Said", "whatsapp": "+966561786327"},
                 {"name": "ElHassan Nagib", "whatsapp": "+966545935469"},
-                {"name": "Hussein Elsayed", "whatsapp": "+966536212468"},
                 {"name": "Mohamad Amine Azhar", "whatsapp": ""},
                 {"name": "Mohannad Hani", "whatsapp": "+966551564841"},
                 {"name": "Moamed Ata", "whatsapp": "+966566315114"},
@@ -670,23 +691,27 @@ TRAINERS = {
         "Al Mubaraz": {
             "trainers": [
                 {"name": "Abdallah Lazam Faisal Al-Asadi", "whatsapp": "+966569778479"},
-                {"name": "Abdul Raouf Mustafa", "whatsapp": "+966547804344"},
                 {"name": "Hamza Moustaghfir", "whatsapp": "+966542739204"},
-                {"name": "Joesel Bodota Casimiro", "whatsapp": "+966554587446"},
                 {"name": "Mohamed Fouad Amer", "whatsapp": "+966548053519"},
                 {"name": "Ammar Tarek Fathi Ibrahim Ali Mahmoud", "whatsapp": ""},
                 {"name": "Radi Gamal Osman Hussein", "whatsapp": "+966530546638"},
                 {"name": "Sabry Ali Abdelmonem Ezzah", "whatsapp": "+966595271356"},
-                {"name": "Mahmoud El-Sayed Abdelwareth Radwan", "whatsapp": "+966568601329"},
+                {"name": "Samer Mohammed Abas Kamber", "whatsapp": "+966581195121"},
+                {"name": "Khaled Ezzat", "whatsapp": "+966580642326"},
+                {"name": "Abd Elrahem Al Ouina", "whatsapp": "+966538036523"},
+                {"name": "Amar Fathi", "whatsapp": ""},
             ]
         },
         "Hafr El Batin": {
             "trainers": [
                 {"name": "Ahmed Saad Elmamlouk", "whatsapp": "+966570890095"},
-                {"name": "Enrique Jr Ravallo-Macorol", "whatsapp": ""},
                 {"name": "Mohamed Abdel Manaam Yakout", "whatsapp": ""},
-                {"name": "Mohamed Achraf Abed Al-Mawjoud", "whatsapp": ""},
+                {"name": "Mohamed Achraf Abed Al-Mawjoud Mohamed", "whatsapp": ""},
                 {"name": "Mohamed Ibrahim Abdelaal", "whatsapp": "+966593887197"},
+                {"name": "Mahmoud El-Sayed Abdelwareth Radwan", "whatsapp": "+966568601329"},
+                {"name": "Mohamad Ashraf", "whatsapp": ""},
+                {"name": "Abdel Rahman Hamad", "whatsapp": ""},
+                {"name": "Ahmad Al Hussein", "whatsapp": ""},
             ]
         },
         "Tabuk": {
