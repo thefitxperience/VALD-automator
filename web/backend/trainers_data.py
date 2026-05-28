@@ -579,7 +579,7 @@ TRAINERS = {
         "ALQ - Unaizah": {
             "trainers": [
                 {"name": "Mohamed Jaouat", "whatsapp": ""},
-                {"name": "Mohamed Amzil", "whatsapp": ""},
+                {"name": "Mohamed Amzil", "whatsapp": "+966550132300"},
                 {"name": "Mohamed Othman Gazy", "whatsapp": ""},
                 {"name": "Karim Maarori", "whatsapp": ""},
             ]
