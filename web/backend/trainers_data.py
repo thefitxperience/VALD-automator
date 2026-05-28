@@ -143,12 +143,24 @@ TRAINERS = {
         },
         "DMM - Al Jalawiah": {
             "trainers": [
-                {"name": "Emna Ben Chalbia", "whatsapp": "+966544624416"},
-                {"name": "Chaima Gharsalli", "whatsapp": "+966569805410"},
-                {"name": "Asmaa Ashraf", "whatsapp": "+966557468380"},
-                {"name": "Aya Maayoufi", "whatsapp": "+966562467260"},
-                {"name": "Chaima Boutita", "whatsapp": "+966572685488"},
                 {"name": "Asmaa Mahmoud", "whatsapp": "+966540826236"},
+                {"name": "Basma Baza", "whatsapp": ""},
+                {"name": "Mennatllah Saad", "whatsapp": ""},
+                {"name": "Asmaa Ashraf", "whatsapp": "+966557468380"},
+                {"name": "Chaima Gharsalli", "whatsapp": "+966569805410"},
+                {"name": "Fatima Abdallah", "whatsapp": ""},
+                {"name": "Emna Ben Chalbia", "whatsapp": "+966544624416"},
+                {"name": "Hebatallah Ali", "whatsapp": ""},
+                {"name": "Aya Maayoufi", "whatsapp": "+966562467260"},
+            ]
+        },
+        "DMM - Al Nada": {
+            "trainers": [
+                {"name": "Amal Al-Fahat Ghazi Al-Ruwaili", "whatsapp": ""},
+                {"name": "Chaima Boutita", "whatsapp": "+966572685488"},
+                {"name": "Asmaa Shehata", "whatsapp": ""},
+                {"name": "Sarah Rasheeq", "whatsapp": ""},
+                {"name": "Nawal Akermi", "whatsapp": ""},
             ]
         },
         "ALQ - Buraidah": {
