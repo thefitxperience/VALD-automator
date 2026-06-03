@@ -2,6 +2,7 @@ import { Routes, Route, NavLink } from 'react-router-dom'
 import ProgramGeneration from './pages/ProgramGeneration'
 import Reports from './pages/Reports'
 import QuickGenerate from './pages/QuickGenerate'
+import TrainerManager from './pages/TrainerManager'
 
 export default function App() {
   return (
@@ -51,6 +52,18 @@ export default function App() {
           >
             Quick Generate
           </NavLink>
+          <NavLink
+            to="/trainers"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-brand-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`
+            }
+          >
+            Trainers
+          </NavLink>
         </div>
       </nav>
 
@@ -60,6 +73,7 @@ export default function App() {
           <Route path="/" element={<ProgramGeneration />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/quick" element={<QuickGenerate />} />
+          <Route path="/trainers" element={<TrainerManager />} />
         </Routes>
       </main>
     </div>

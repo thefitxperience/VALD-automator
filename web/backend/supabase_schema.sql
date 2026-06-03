@@ -40,3 +40,20 @@ CREATE POLICY "service_role_all" ON programs
 -- Run this in the Supabase dashboard under Storage → New Bucket:
 --   Name: program-pdfs
 --   Public: true (so PDF URLs are directly accessible)
+
+-- Trainer overrides: add new trainers or store/override WhatsApp numbers
+CREATE TABLE IF NOT EXISTS trainer_overrides (
+    id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    gym          TEXT NOT NULL,
+    branch       TEXT NOT NULL,
+    trainer_name TEXT NOT NULL,
+    whatsapp     TEXT NOT NULL DEFAULT '',
+    created_at   TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE (gym, branch, trainer_name)
+);
+
+ALTER TABLE trainer_overrides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_all" ON trainer_overrides
+    USING (true)
+    WITH CHECK (true);

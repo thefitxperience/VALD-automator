@@ -51,5 +51,14 @@ export const quickGenerate = (gym, file) => {
   return api.post('/api/quick-generate', fd)
 }
 
+export const listTrainerOverrides = (gym, branch) =>
+  api.get('/api/trainer-overrides', { params: { gym, ...(branch ? { branch } : {}) } })
+
+export const upsertTrainerOverride = (payload) =>
+  api.post('/api/trainer-overrides', payload)
+
+export const deleteTrainerOverride = (id) =>
+  api.delete(`/api/trainer-overrides/${id}`)
+
 export const listPrograms = (gym, approved, year, month) =>
   api.get('/api/programs', { params: { gym, approved, year, month } })

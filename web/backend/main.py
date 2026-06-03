@@ -10,6 +10,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 from datetime import date, datetime
 from typing import Optional
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
@@ -30,9 +31,29 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 STORAGE_BUCKET = "program-pdfs"
 
+# ── Startup migration ─────────────────────────────────────────────────────────
+
+def _run_migration():
+    """Create trainer_overrides table if it does not exist."""
+    try:
+        # Ping the table; if it exists we're done
+        supabase.table("trainer_overrides").select("id").limit(1).execute()
+    except Exception:
+        # Table missing — tell Railway logs to run the SQL manually
+        import logging
+        logging.warning(
+            "trainer_overrides table not found. "
+            "Run the SQL in supabase_schema.sql in the Supabase SQL editor."
+        )
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    _run_migration()
+    yield
+
 # ── App ───────────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="VALD Automator API")
+app = FastAPI(title="VALD Automator API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -95,20 +116,98 @@ def version():
 
 # -- Trainers --
 
+def _overrides_for(gym: str, branch: str = None) -> list[dict]:
+    """Fetch trainer_overrides rows from Supabase. Returns [] on any error."""
+    try:
+        q = supabase.table("trainer_overrides").select("*").eq("gym", gym)
+        if branch:
+            q = q.eq("branch", branch)
+        return q.execute().data or []
+    except Exception:
+        return []
+
+
 @app.get("/api/branches")
 def api_branches(gym: str = Query(...)):
-    return get_branches(gym)
+    static = get_branches(gym)
+    overrides = _overrides_for(gym)
+    extra = [o["branch"] for o in overrides if o["branch"] not in static]
+    # Deduplicate while preserving order
+    seen = set(static)
+    result = list(static)
+    for b in extra:
+        if b not in seen:
+            seen.add(b)
+            result.append(b)
+    return result
 
 
 @app.get("/api/trainers")
 def api_trainers(gym: str = Query(...), branch: str = Query(...)):
-    return [t["name"] for t in get_trainers(gym, branch)]
+    static = [t["name"] for t in get_trainers(gym, branch)]
+    overrides = _overrides_for(gym, branch)
+    seen = set(static)
+    result = list(static)
+    for o in overrides:
+        if o["trainer_name"] not in seen:
+            seen.add(o["trainer_name"])
+            result.append(o["trainer_name"])
+    return result
 
 
 @app.get("/api/trainer-whatsapp")
 def api_trainer_whatsapp(gym: str = Query(...), branch: str = Query(...), trainer: str = Query(...)):
-    number = get_trainer_whatsapp(gym, branch, trainer)
-    return {"whatsapp": number}
+    # DB override takes priority over hardcoded value
+    overrides = _overrides_for(gym, branch)
+    for o in overrides:
+        if o["trainer_name"] == trainer and o.get("whatsapp"):
+            return {"whatsapp": o["whatsapp"]}
+    return {"whatsapp": get_trainer_whatsapp(gym, branch, trainer)}
+
+
+# -- Trainer management --
+
+class TrainerOverridePayload(BaseModel):
+    gym: str
+    branch: str
+    trainer_name: str
+    whatsapp: str = ""
+
+
+@app.get("/api/trainer-overrides")
+def api_list_overrides(gym: str = Query(...), branch: Optional[str] = Query(None)):
+    return _overrides_for(gym, branch)
+
+
+@app.post("/api/trainer-overrides")
+def api_upsert_override(payload: TrainerOverridePayload):
+    record = {
+        "gym": payload.gym,
+        "branch": payload.branch,
+        "trainer_name": payload.trainer_name,
+        "whatsapp": payload.whatsapp,
+    }
+    res = (
+        supabase.table("trainer_overrides")
+        .upsert(record, on_conflict="gym,branch,trainer_name")
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=500, detail="Failed to save trainer override")
+
+
+@app.delete("/api/trainer-overrides/{override_id}")
+def api_delete_override(override_id: str):
+    res = (
+        supabase.table("trainer_overrides")
+        .delete()
+        .eq("id", override_id)
+        .execute()
+    )
+    if res.data:
+        return {"deleted": True}
+    raise HTTPException(status_code=404, detail="Override not found")
 
 
 # -- Check file --
