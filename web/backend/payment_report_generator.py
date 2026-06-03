@@ -212,14 +212,14 @@ def generate_payment_report(
         last_row = _last_data_row(ws)
 
         def _write_blank_row(r):
-            for col in range(1, ws.max_column + 1):
+            for col in range(1, 6):  # A–E only
                 cell = ws.cell(row=r, column=col)
                 if isinstance(cell, MergedCell):
                     continue
                 cell.value = None
 
         def _write_green_row(r):
-            for col in range(1, ws.max_column + 1):
+            for col in range(1, 6):  # A–E only
                 cell = ws.cell(row=r, column=col)
                 if isinstance(cell, MergedCell):
                     continue

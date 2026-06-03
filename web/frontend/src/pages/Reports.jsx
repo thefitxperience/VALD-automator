@@ -93,8 +93,12 @@ export default function Reports() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-white">Reports</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* ── Left: Monthly / Weekly / Custom report ── */}
+        <div className="space-y-6">
 
       {/* Gym */}
       <div>
@@ -254,10 +258,12 @@ export default function Reports() {
           : ` dispatched in ${MONTHS[month - 1]} ${year}`
         }.
       </p>
+        </div>
 
-      {/* ── Divider ── */}
-      <div className="border-t border-gray-700 pt-6">
-        <PaymentReport />
+        {/* ── Right: Payment report ── */}
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
+          <PaymentReport />
+        </div>
       </div>
     </div>
   )
