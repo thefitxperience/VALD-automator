@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from supabase import create_client, Client
 
-from check_processor import process_check_file
+from check_processor import process_check_file, parse_all_programs
 from report_generator import generate_report
 from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
 from program_builder import generate_program_pdf, generate_program_html
@@ -159,6 +159,18 @@ async def api_check(
         offset += page_size
 
     results = process_check_file(content, gym, existing, ignored)
+    return results
+
+
+# -- Quick generate (no DB) --
+
+@app.post("/api/quick-generate")
+async def api_quick_generate(
+    gym: str = Form(...),
+    file: UploadFile = File(...),
+):
+    content = await file.read()
+    results = parse_all_programs(content, gym)
     return results
 
 

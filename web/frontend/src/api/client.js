@@ -44,5 +44,12 @@ export const generateReport = (params) => {
   return api.post('/api/report/generate', fd, { responseType: 'blob' })
 }
 
+export const quickGenerate = (gym, file) => {
+  const fd = new FormData()
+  fd.append('gym', gym)
+  fd.append('file', file)
+  return api.post('/api/quick-generate', fd)
+}
+
 export const listPrograms = (gym, approved, year, month) =>
   api.get('/api/programs', { params: { gym, approved, year, month } })

@@ -729,3 +729,65 @@ def process_check_file(file_bytes: bytes, gym: str, existing_programs: list[dict
     if _wb:
         _wb.close()
     return new_tests
+
+
+# ── quick generate (no DB, no check) ─────────────────────────────────────────
+
+def parse_all_programs(file_bytes: bytes, gym: str) -> list[dict]:
+    """
+    Parse every patient/test-type from a VALD export file and return their
+    cells_data for program generation — no database interaction, no status check.
+
+    Returns list of dicts:
+        patient, test_type, date, movement_count, cells_data
+    """
+    import io
+    src_ws, _wb = _load_worksheet(file_bytes)
+
+    # Collect rows per patient per date
+    patients_rows: dict[str, dict[str, list]] = {}
+    patient_external_ids: dict[str, str] = {}
+    for row in range(2, src_ws.max_row + 1):
+        name_val = re.sub(r"\s+", " ", nz_str(src_ws[f"A{row}"].value).strip())
+        if not name_val:
+            continue
+        date_val = src_ws[f"C{row}"].value
+        date_key = normalize_test_date(date_val) or ""
+        if name_val not in patients_rows:
+            patients_rows[name_val] = {}
+            ext_id = nz_str(src_ws[f"B{row}"].value).strip()
+            patient_external_ids[name_val] = ext_id if ext_id else "N/A"
+        if date_key not in patients_rows[name_val]:
+            patients_rows[name_val][date_key] = []
+        patients_rows[name_val][date_key].append(row)
+
+    results = []
+    for patient_name, dates_rows in patients_rows.items():
+        for _date_key, rows in dates_rows.items():
+            test_types = detect_test_type(rows, src_ws)
+            if isinstance(test_types, str):
+                test_types = [test_types]
+
+            for test_type in test_types:
+                cells_dict, stored_movs, date_str = _build_cells_for_patient(
+                    rows, src_ws, test_type, test_types
+                )
+                if not stored_movs or not date_str:
+                    continue
+                from program_builder import _CELL_GROUPS, _movement_key
+                cells_data = {
+                    "cells": cells_dict,
+                    "movements": [list(m) for m in stored_movs],
+                }
+                results.append({
+                    "patient": patient_name,
+                    "external_id": patient_external_ids.get(patient_name, "N/A"),
+                    "test_type": test_type,
+                    "date": date_str,
+                    "movement_count": len(stored_movs),
+                    "cells_data": cells_data,
+                })
+
+    if _wb:
+        _wb.close()
+    return results
