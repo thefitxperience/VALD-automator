@@ -96,7 +96,7 @@ export default function Reports() {
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-white">Reports</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
         {/* ── Left: Monthly / Weekly / Custom report ── */}
         <div className="space-y-6">
 
@@ -260,8 +260,11 @@ export default function Reports() {
       </p>
         </div>
 
+        {/* ── Divider ── */}
+        <div className="hidden lg:block bg-gray-700 self-stretch" />
+
         {/* ── Right: Payment report ── */}
-        <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
+        <div className="space-y-6">
           <PaymentReport />
         </div>
       </div>
@@ -301,7 +304,7 @@ function PaymentReport() {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-bold text-white">Payment Report</h2>
+      <h2 className="text-2xl font-bold text-white">Payment Report</h2>
 
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
