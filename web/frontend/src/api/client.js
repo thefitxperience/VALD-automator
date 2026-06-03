@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  timeout: 30000, // 30s default — fails fast instead of hanging forever
 })
 
 export default api
@@ -11,7 +12,7 @@ export const checkFile = (gym, file) => {
   const fd = new FormData()
   fd.append('gym', gym)
   fd.append('file', file)
-  return api.post('/api/check', fd)
+  return api.post('/api/check', fd, { timeout: 90000 })
 }
 
 export const getBranches = (gym) => api.get('/api/branches', { params: { gym } })
@@ -26,29 +27,29 @@ export const unignoreTest = (payload) => api.post('/api/programs/unignore', payl
 export const patchProgram = (id, payload) => api.patch(`/api/programs/${id}`, payload)
 
 export const generatePdf = (payload) =>
-  api.post('/api/programs/generate-pdf', payload, { responseType: 'blob' })
+  api.post('/api/programs/generate-pdf', payload, { responseType: 'blob', timeout: 60000 })
 
 export const previewHtml = (payload) =>
-  api.post('/api/programs/preview', payload, { responseType: 'text' })
+  api.post('/api/programs/preview', payload, { responseType: 'text', timeout: 60000 })
 
 export const uploadPdf = (programId, pdfType, file) => {
   const fd = new FormData()
   fd.append('pdf_type', pdfType)
   fd.append('file', file)
-  return api.post(`/api/programs/${programId}/upload-pdf`, fd)
+  return api.post(`/api/programs/${programId}/upload-pdf`, fd, { timeout: 60000 })
 }
 
 export const generateReport = (params) => {
   const fd = new FormData()
   Object.entries(params).forEach(([k, v]) => v != null && fd.append(k, v))
-  return api.post('/api/report/generate', fd, { responseType: 'blob' })
+  return api.post('/api/report/generate', fd, { responseType: 'blob', timeout: 120000 })
 }
 
 export const quickGenerate = (gym, file) => {
   const fd = new FormData()
   fd.append('gym', gym)
   fd.append('file', file)
-  return api.post('/api/quick-generate', fd)
+  return api.post('/api/quick-generate', fd, { timeout: 90000 })
 }
 
 export const listTrainerOverrides = (gym, branch) =>
