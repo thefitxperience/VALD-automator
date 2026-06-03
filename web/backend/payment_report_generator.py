@@ -152,6 +152,10 @@ def _to_date(value) -> date | None:
     return None
 
 
+# ── Template cutoff: all data up to and including this month is already in the template ──
+TEMPLATE_CUTOFF = (2026, 4)  # April 2026
+
+
 def generate_payment_report(
     programs: list[dict],   # from Supabase (both gyms), keys: gym, branch, client_id,
                             # client_name, trainer_name, test_date, dispatch_date
@@ -160,38 +164,65 @@ def generate_payment_report(
     report_date: date | None = None,
 ) -> bytes:
     """
-    Append a month's programs to the cumulative payment template and return
-    the result as bytes. The original template file is never modified.
+    Append all months from (TEMPLATE_CUTOFF + 1) through (year, month) to the
+    cumulative payment template and return the result as bytes.
+    The original template file is never modified.
+    The REPORT sheet shows counts for the selected (latest) month only.
     """
+    import calendar as _cal
+
     if not os.path.exists(PAYMENT_TEMPLATE_PATH):
         raise FileNotFoundError(f"Payment template not found: {PAYMENT_TEMPLATE_PATH}")
 
     with open(PAYMENT_TEMPLATE_PATH, "rb") as f:
         payment_file_bytes = f.read()
-    import calendar as _cal
-    month_start = date(year, month, 1)
-    month_end = date(year, month, _cal.monthrange(year, month)[1])
 
-    def in_month(p) -> bool:
+    # Build ordered list of months to append: cutoff+1 → selected month
+    months_to_append: list[tuple[int, int]] = []
+    cy, cm = TEMPLATE_CUTOFF
+    cm += 1
+    if cm > 12:
+        cm, cy = 1, cy + 1
+    while (cy, cm) <= (year, month):
+        months_to_append.append((cy, cm))
+        cm += 1
+        if cm > 12:
+            cm, cy = 1, cy + 1
+
+    if not months_to_append:
+        raise ValueError(
+            f"Selected month ({_cal.month_name[month]} {year}) is at or before "
+            f"the template cutoff ({_cal.month_name[TEMPLATE_CUTOFF[1]]} {TEMPLATE_CUTOFF[0]})."
+        )
+
+    # Pre-group all programs by (append_month_year, gym, branch)
+    def _dispatch_ym(p) -> tuple[int, int] | None:
         dd = _to_date(p.get("dispatch_date"))
-        return dd is not None and month_start <= dd <= month_end
+        return (dd.year, dd.month) if dd else None
 
-    monthly = [p for p in programs if in_month(p)]
+    by_month: dict[tuple[int, int], dict[tuple[str, str], list[dict]]] = {}
+    for my in months_to_append:
+        by_month[my] = {}
 
-    # Group by (gym, branch)
-    by_gym_branch: dict[tuple[str, str], list[dict]] = {}
-    for p in monthly:
+    for p in programs:
+        ym = _dispatch_ym(p)
+        if ym not in by_month:
+            continue
         key = (p.get("gym", ""), p.get("branch", ""))
-        by_gym_branch.setdefault(key, []).append(p)
+        by_month[ym].setdefault(key, []).append(p)
 
-    # Sort each branch's programs by dispatch_date then test_date
-    for key in by_gym_branch:
-        by_gym_branch[key].sort(key=lambda p: (
-            _to_date(p.get("dispatch_date")) or date.min,
-            _to_date(p.get("test_date")) or date.min,
-        ))
+    # Sort each group by dispatch_date then test_date
+    for ym in by_month:
+        for key in by_month[ym]:
+            by_month[ym][key].sort(key=lambda p: (
+                _to_date(p.get("dispatch_date")) or date.min,
+                _to_date(p.get("test_date")) or date.min,
+            ))
 
-    wb = load_workbook(io.BytesIO(payment_file_bytes), data_only=False)  # template copy, never overwrites
+    # Selected month data (for REPORT totals)
+    selected_by_gb = by_month.get((year, month), {})
+
+    wb = load_workbook(io.BytesIO(payment_file_bytes), data_only=False)
     rpt_date = report_date or date.today()
     date_fmt = 'DD/MM/YYYY'
 
@@ -201,14 +232,10 @@ def generate_payment_report(
 
         mapping = PAYMENT_SHEET_TO_BRANCH.get(sheet_name)
         if mapping is None:
-            continue  # unknown sheet, leave untouched
+            continue
 
         gym, branch = mapping
-        new_rows = by_gym_branch.get((gym, branch), [])
-
         ws = wb[sheet_name]
-
-        # Separator pattern: blank row → green row → blank row → new data
         last_row = _last_data_row(ws)
 
         def _write_blank_row(r):
@@ -226,75 +253,81 @@ def generate_payment_report(
                 cell.value = None
                 cell.fill = copy(GREEN_FILL)
 
-        _write_blank_row(last_row + 1)
-        _write_green_row(last_row + 2)
-        _write_blank_row(last_row + 3)
-        data_start_row = last_row + 4
-
-        if not new_rows:
-            continue
-
-        # Style reference: use last existing data row for formatting
         style_ref = last_row if last_row >= 7 else 7
 
-        for i, prog in enumerate(new_rows):
-            dest_row = data_start_row + i
-            _copy_row_style(ws, style_ref, ws, dest_row, ws.max_column)
+        for ym in months_to_append:
+            new_rows = by_month[ym].get((gym, branch), [])
 
-            client_id     = prog.get("client_id") or None
-            client_name   = prog.get("client_name", "")
-            trainer_name  = prog.get("trainer_name", "") or ""
-            test_date     = _to_date(prog.get("test_date"))
-            dispatch_date = _to_date(prog.get("dispatch_date"))
+            # Always write separator (blank → green → blank) as month boundary marker
+            _write_blank_row(last_row + 1)
+            _write_green_row(last_row + 2)
+            _write_blank_row(last_row + 3)
+            data_start_row = last_row + 4
+            last_row = last_row + 3  # advance past separator
 
-            def _set(col, val, fmt=None):
-                c = ws.cell(row=dest_row, column=col)
-                if isinstance(c, MergedCell):
-                    return
-                c.value = val
-                if fmt:
-                    c.number_format = fmt
+            for i, prog in enumerate(new_rows):
+                dest_row = data_start_row + i
+                _copy_row_style(ws, style_ref, ws, dest_row, ws.max_column)
 
-            _set(1, client_id)
-            _set(2, client_name)
-            _set(3, trainer_name)
-            _set(4, test_date, date_fmt)
-            _set(5, dispatch_date, date_fmt)
+                client_id     = prog.get("client_id") or None
+                client_name   = prog.get("client_name", "")
+                trainer_name  = prog.get("trainer_name", "") or ""
+                test_date     = _to_date(prog.get("test_date"))
+                dispatch_date = _to_date(prog.get("dispatch_date"))
+
+                def _set(col, val, fmt=None):
+                    c = ws.cell(row=dest_row, column=col)
+                    if isinstance(c, MergedCell):
+                        return
+                    c.value = val
+                    if fmt:
+                        c.number_format = fmt
+
+                _set(1, client_id)
+                _set(2, client_name)
+                _set(3, trainer_name)
+                _set(4, test_date, date_fmt)
+                _set(5, dispatch_date, date_fmt)
+
+                # Col F: Late Upload — test was in a different month than dispatch
+                if test_date and dispatch_date and test_date.month != dispatch_date.month:
+                    c = ws.cell(row=dest_row, column=6)
+                    if not isinstance(c, MergedCell):
+                        c.value = "Late Upload"
+
+                last_row = dest_row
 
     # ── Update REPORT sheet ───────────────────────────────────────────────────
     rpt_ws = wb["REPORT"]
     rpt_ws["B3"] = rpt_date
     # Keep the existing cell format (d-mmm-yy) — don't override it
 
-    # Build monthly count per (gym, branch) key
-    monthly_counts = {key: len(progs) for key, progs in by_gym_branch.items()}
+    # Counts for REPORT: selected month only, split by gym
+    selected_counts = {key: len(progs) for key, progs in selected_by_gb.items()}
 
     def _monthly_total_for_report_branch(branch_label: str, gym_filter: str) -> int:
-        """Sum monthly program counts for sheets matching both branch_label and gym_filter."""
         sheets = _REPORT_BRANCH_TO_SHEETS.get(branch_label, [])
         total = 0
         for s in sheets:
-            mapping = PAYMENT_SHEET_TO_BRANCH.get(s)
-            if mapping and mapping[0] == gym_filter:
-                total += monthly_counts.get(mapping, 0)
+            m = PAYMENT_SHEET_TO_BRANCH.get(s)
+            if m and m[0] == gym_filter:
+                total += selected_counts.get(m, 0)
         return total
 
-    # Fill Masters totals (col B, starting row 9) and Motions totals (col E, starting row 9)
+    # Fill Masters totals (col B) and Motions totals (col E), starting row 9
     row = 9
     while True:
         masters_label = rpt_ws.cell(row=row, column=1).value
         motions_label = rpt_ws.cell(row=row, column=4).value
         if masters_label is None and motions_label is None:
             break
-
         if masters_label:
             rpt_ws.cell(row=row, column=2).value = _monthly_total_for_report_branch(str(masters_label).strip(), "Body Masters")
         if motions_label:
             rpt_ws.cell(row=row, column=5).value = _monthly_total_for_report_branch(str(motions_label).strip(), "Body Motions")
-
         row += 1
         if row > 200:
-            break  # safety guard
+            break
 
     out = io.BytesIO()
     wb.save(out)

@@ -353,7 +353,7 @@ function PaymentReport() {
       </button>
 
       <p className="text-xs text-gray-500 text-center">
-        Appends <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> approved programs to the payment report.
+        Appends all programs from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> to the payment report.
       </p>
     </div>
   )
