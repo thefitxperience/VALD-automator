@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY web/backend/ .
 COPY ["Month YEAR - Body Masters.xlsx", "."]
 COPY ["Month YEAR - Body Motions.xlsx", "."]
+COPY ["Payment - Month YEAR.xlsx", "."]
 COPY ["Body Masters/", "Body Masters/"]
 COPY ["Body Motions/", "Body Motions/"]
 
