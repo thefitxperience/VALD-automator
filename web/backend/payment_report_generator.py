@@ -255,16 +255,15 @@ def generate_payment_report(
     rpt_ws["B3"] = rpt_date
     rpt_ws["B3"].number_format = date_fmt
 
-    # Build sheet→count map (after all appends)
-    sheet_counts: dict[str, int] = {
-        sn: _count_data_rows(wb[sn])
-        for sn in wb.sheetnames
-        if sn != "REPORT"
-    }
+    # Build monthly count per sheet name (from the already-filtered by_gym_branch data)
+    # PAYMENT_SHEET_TO_BRANCH maps sheet_name → (gym, branch)
+    monthly_sheet_counts: dict[str, int] = {}
+    for sheet_name, (gym, branch) in PAYMENT_SHEET_TO_BRANCH.items():
+        monthly_sheet_counts[sheet_name] = len(by_gym_branch.get((gym, branch), []))
 
-    def _total_for_report_branch(branch_label: str) -> int:
+    def _monthly_total_for_report_branch(branch_label: str) -> int:
         sheets = _REPORT_BRANCH_TO_SHEETS.get(branch_label, [])
-        return sum(sheet_counts.get(s, 0) for s in sheets)
+        return sum(monthly_sheet_counts.get(s, 0) for s in sheets)
 
     # Fill Masters totals (col B, starting row 9) and Motions totals (col E, starting row 9)
     row = 9
@@ -275,9 +274,9 @@ def generate_payment_report(
             break
 
         if masters_label:
-            rpt_ws.cell(row=row, column=2).value = _total_for_report_branch(str(masters_label).strip())
+            rpt_ws.cell(row=row, column=2).value = _monthly_total_for_report_branch(str(masters_label).strip())
         if motions_label:
-            rpt_ws.cell(row=row, column=5).value = _total_for_report_branch(str(motions_label).strip())
+            rpt_ws.cell(row=row, column=5).value = _monthly_total_for_report_branch(str(motions_label).strip())
 
         row += 1
         if row > 200:
