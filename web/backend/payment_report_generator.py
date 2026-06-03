@@ -17,7 +17,7 @@ import re
 from datetime import date, datetime
 from copy import copy
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Border, Side
+from openpyxl.styles import PatternFill, Border, Side, Font, Alignment
 from openpyxl.cell.cell import MergedCell
 
 BASE_DIR = os.path.dirname(__file__)
@@ -26,6 +26,8 @@ PAYMENT_TEMPLATE_PATH = os.path.join(BASE_DIR, "Payment - Month YEAR.xlsx")
 # ── Green separator fill & border ────────────────────────────────────────────
 GREEN_FILL = PatternFill(fill_type="solid", fgColor="8CC075")
 WHITE_FILL = PatternFill(fill_type="solid", fgColor="FFFFFF")
+LATE_UPLOAD_FONT = Font(name="Source Sans Pro", size=20)
+LATE_UPLOAD_ALIGN = Alignment(horizontal="left", vertical="center")
 _WHITE_SIDE = Side(style="thin", color="FFFFFF")
 _NO_SIDE = Side(style=None)
 GREEN_BORDER = Border(top=_WHITE_SIDE, bottom=_WHITE_SIDE, left=_NO_SIDE, right=_NO_SIDE)
@@ -300,6 +302,8 @@ def generate_payment_report(
                     c = ws.cell(row=dest_row, column=6)
                     if not isinstance(c, MergedCell):
                         c.value = "Late Upload"
+                        c.font = copy(LATE_UPLOAD_FONT)
+                        c.alignment = copy(LATE_UPLOAD_ALIGN)
 
                 last_row = dest_row
 
