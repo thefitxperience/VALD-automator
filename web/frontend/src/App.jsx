@@ -44,15 +44,17 @@ export default function App() {
         </div>
         {/* Spacer */}
         <div className="flex-1" />
-        {/* Right links */}
+        {/* Divider */}
+        <div className="w-px h-6 bg-gray-700 mx-4" />
+        {/* Right links — utility/secondary style */}
         <div className="flex gap-1">
           <NavLink
             to="/quick"
             className={({ isActive }) =>
               `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  ? 'border border-brand-500 text-brand-300 bg-brand-950/40'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800 border border-transparent'
               }`
             }
           >
@@ -63,8 +65,8 @@ export default function App() {
             className={({ isActive }) =>
               `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  ? 'border border-brand-500 text-brand-300 bg-brand-950/40'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800 border border-transparent'
               }`
             }
           >
