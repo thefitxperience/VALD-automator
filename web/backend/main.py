@@ -585,9 +585,23 @@ def api_generate_payment_report(
     year: int = Form(...),
 ):
     """Append a month's programs to the cumulative payment Excel file."""
-    # Fetch approved programs from both gyms
-    res = supabase.table("programs").select("*").eq("approved", True).execute()
-    all_programs = res.data or []
+    # Fetch ALL approved programs (paginated — same pattern as report generator)
+    page_size = 1000
+    all_programs = []
+    offset = 0
+    while True:
+        res = (
+            supabase.table("programs")
+            .select("gym,branch,client_id,client_name,trainer_name,test_date,dispatch_date")
+            .eq("approved", True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        all_programs.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
 
     try:
         result_bytes = generate_payment_report(
