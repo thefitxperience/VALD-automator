@@ -17,14 +17,17 @@ import re
 from datetime import date, datetime
 from copy import copy
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.cell.cell import MergedCell
 
 BASE_DIR = os.path.dirname(__file__)
 PAYMENT_TEMPLATE_PATH = os.path.join(BASE_DIR, "Payment - Month YEAR.xlsx")
 
-# ── Green separator fill ───────────────────────────────────────────────────────
+# ── Green separator fill & border ────────────────────────────────────────────
 GREEN_FILL = PatternFill(fill_type="solid", fgColor="8CC075")
+_WHITE_SIDE = Side(style="thin", color="FFFFFF")
+_NO_SIDE = Side(style=None)
+GREEN_BORDER = Border(top=_WHITE_SIDE, bottom=_WHITE_SIDE, left=_NO_SIDE, right=_NO_SIDE)
 
 # ── Maps each payment sheet name → (gym, branch key as stored in Supabase) ───
 PAYMENT_SHEET_TO_BRANCH: dict[str, tuple[str, str]] = {
@@ -252,6 +255,7 @@ def generate_payment_report(
                     continue
                 cell.value = None
                 cell.fill = copy(GREEN_FILL)
+                cell.border = copy(GREEN_BORDER)
 
         style_ref = last_row if last_row >= 7 else 7
 
