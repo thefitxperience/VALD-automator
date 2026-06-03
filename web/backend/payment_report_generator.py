@@ -277,14 +277,18 @@ def generate_payment_report(
 
             # Always write separator (blank → green → blank) as month boundary marker
             _write_blank_row(last_row + 1)
+            ws.row_dimensions[last_row + 1].height = 40
             _write_green_row(last_row + 2)
+            ws.row_dimensions[last_row + 2].height = 40
             _write_blank_row(last_row + 3)
+            ws.row_dimensions[last_row + 3].height = 40
             data_start_row = last_row + 4
             last_row = last_row + 3  # advance past separator
 
             for i, prog in enumerate(new_rows):
                 dest_row = data_start_row + i
                 _copy_row_style(style_src_ws, style_ref, ws, dest_row, ws.max_column)
+                ws.row_dimensions[dest_row].height = 58
 
                 client_id     = prog.get("client_id") or None
                 client_name   = prog.get("client_name", "")
