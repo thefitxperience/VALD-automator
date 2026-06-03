@@ -25,6 +25,7 @@ PAYMENT_TEMPLATE_PATH = os.path.join(BASE_DIR, "Payment - Month YEAR.xlsx")
 
 # ── Green separator fill & border ────────────────────────────────────────────
 GREEN_FILL = PatternFill(fill_type="solid", fgColor="8CC075")
+WHITE_FILL = PatternFill(fill_type="solid", fgColor="FFFFFF")
 _WHITE_SIDE = Side(style="thin", color="FFFFFF")
 _NO_SIDE = Side(style=None)
 GREEN_BORDER = Border(top=_WHITE_SIDE, bottom=_WHITE_SIDE, left=_NO_SIDE, right=_NO_SIDE)
@@ -247,6 +248,7 @@ def generate_payment_report(
                 if isinstance(cell, MergedCell):
                     continue
                 cell.value = None
+                cell.fill = copy(WHITE_FILL)
 
         def _write_green_row(r):
             for col in range(1, 6):  # A–E only
