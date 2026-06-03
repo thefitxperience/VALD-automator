@@ -266,15 +266,18 @@ def generate_payment_report(
     rpt_ws["B3"] = rpt_date
     # Keep the existing cell format (d-mmm-yy) — don't override it
 
-    # Build monthly count per sheet name (from the already-filtered by_gym_branch data)
-    # PAYMENT_SHEET_TO_BRANCH maps sheet_name → (gym, branch)
-    monthly_sheet_counts: dict[str, int] = {}
-    for sheet_name, (gym, branch) in PAYMENT_SHEET_TO_BRANCH.items():
-        monthly_sheet_counts[sheet_name] = len(by_gym_branch.get((gym, branch), []))
+    # Build monthly count per (gym, branch) key
+    monthly_counts = {key: len(progs) for key, progs in by_gym_branch.items()}
 
-    def _monthly_total_for_report_branch(branch_label: str) -> int:
+    def _monthly_total_for_report_branch(branch_label: str, gym_filter: str) -> int:
+        """Sum monthly program counts for sheets matching both branch_label and gym_filter."""
         sheets = _REPORT_BRANCH_TO_SHEETS.get(branch_label, [])
-        return sum(monthly_sheet_counts.get(s, 0) for s in sheets)
+        total = 0
+        for s in sheets:
+            mapping = PAYMENT_SHEET_TO_BRANCH.get(s)
+            if mapping and mapping[0] == gym_filter:
+                total += monthly_counts.get(mapping, 0)
+        return total
 
     # Fill Masters totals (col B, starting row 9) and Motions totals (col E, starting row 9)
     row = 9
@@ -285,9 +288,9 @@ def generate_payment_report(
             break
 
         if masters_label:
-            rpt_ws.cell(row=row, column=2).value = _monthly_total_for_report_branch(str(masters_label).strip())
+            rpt_ws.cell(row=row, column=2).value = _monthly_total_for_report_branch(str(masters_label).strip(), "Body Masters")
         if motions_label:
-            rpt_ws.cell(row=row, column=5).value = _monthly_total_for_report_branch(str(motions_label).strip())
+            rpt_ws.cell(row=row, column=5).value = _monthly_total_for_report_branch(str(motions_label).strip(), "Body Motions")
 
         row += 1
         if row > 200:
