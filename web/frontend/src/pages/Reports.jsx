@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { generateReport, generatePaymentReport } from '../api/client'
 
 const GYMS = [
@@ -267,17 +267,14 @@ function PaymentReport() {
   const now = new Date()
   const [payMonth, setPayMonth] = useState(now.getMonth() + 1)
   const [payYear, setPayYear] = useState(now.getFullYear())
-  const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const inputRef = useRef(null)
 
   const handleGenerate = async () => {
-    if (!file) return
     setLoading(true)
     setError(null)
     try {
-      const res = await generatePaymentReport(file, payMonth, payYear)
+      const res = await generatePaymentReport(payMonth, payYear)
       const blob = new Blob([res.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
@@ -300,45 +297,10 @@ function PaymentReport() {
     <div className="space-y-5">
       <h2 className="text-lg font-bold text-white">Payment Report</h2>
 
-      {/* File upload */}
-      <div>
-        <label className="block text-sm text-gray-400 mb-2">
-          Upload current Payment file
-          <span className="text-gray-600 font-normal"> (Payment - Month YEAR.xlsx)</span>
-        </label>
-        <div
-          onClick={() => inputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl px-5 py-4 text-center cursor-pointer transition-colors ${
-            file ? 'border-brand-600 bg-brand-900/20' : 'border-gray-700 hover:border-gray-500'
-          }`}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".xlsx,.xlsm,.xls"
-            className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-          />
-          {file ? (
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-sm text-brand-300 font-medium">{file.name}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); setFile(null); inputRef.current.value = '' }}
-                className="text-xs text-gray-500 hover:text-red-400 transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">Click to select file</p>
-          )}
-        </div>
-      </div>
-
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Month to append</label>
+          <label className="block text-sm text-gray-400 mb-1">Month</label>
           <select
             value={payMonth}
             onChange={(e) => setPayMonth(Number(e.target.value))}
@@ -371,7 +333,7 @@ function PaymentReport() {
 
       <button
         onClick={handleGenerate}
-        disabled={loading || !file}
+        disabled={loading}
         className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
       >
         {loading ? 'Generating…' : 'Generate & Download Payment Report'}
@@ -379,7 +341,7 @@ function PaymentReport() {
 
       <p className="text-xs text-gray-500 text-center">
         Appends <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> approved
-        programs (both gyms) to the uploaded file and downloads the updated version.
+        programs (both gyms) to the payment template and downloads the updated file.
       </p>
     </div>
   )

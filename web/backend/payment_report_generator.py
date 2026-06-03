@@ -12,11 +12,15 @@ Structure of the payment file:
     Green separator row (fill FF8CC075) inserted between months.
 """
 import io
+import os
 import re
 from datetime import date, datetime
 from copy import copy
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+
+BASE_DIR = os.path.dirname(__file__)
+PAYMENT_TEMPLATE_PATH = os.path.join(BASE_DIR, "Payment - Month YEAR.xlsx")
 
 # ── Green separator fill ───────────────────────────────────────────────────────
 GREEN_FILL = PatternFill(fill_type="solid", fgColor="8CC075")
@@ -146,7 +150,6 @@ def _to_date(value) -> date | None:
 
 
 def generate_payment_report(
-    payment_file_bytes: bytes,
     programs: list[dict],   # from Supabase (both gyms), keys: gym, branch, client_id,
                             # client_name, trainer_name, test_date, dispatch_date
     month: int,
@@ -154,10 +157,14 @@ def generate_payment_report(
     report_date: date | None = None,
 ) -> bytes:
     """
-    Append a month's programs to the cumulative payment Excel file.
-
-    Returns the updated file as bytes.
+    Append a month's programs to the cumulative payment template and return
+    the result as bytes. The original template file is never modified.
     """
+    if not os.path.exists(PAYMENT_TEMPLATE_PATH):
+        raise FileNotFoundError(f"Payment template not found: {PAYMENT_TEMPLATE_PATH}")
+
+    with open(PAYMENT_TEMPLATE_PATH, "rb") as f:
+        payment_file_bytes = f.read()
     import calendar as _cal
     month_start = date(year, month, 1)
     month_end = date(year, month, _cal.monthrange(year, month)[1])
@@ -181,7 +188,7 @@ def generate_payment_report(
             _to_date(p.get("test_date")) or date.min,
         ))
 
-    wb = load_workbook(io.BytesIO(payment_file_bytes), data_only=False)
+    wb = load_workbook(io.BytesIO(payment_file_bytes), data_only=False)  # template copy, never overwrites
     rpt_date = report_date or date.today()
     date_fmt = '[$-1010000]d/m/yyyy;@'
 

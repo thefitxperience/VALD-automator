@@ -581,20 +581,16 @@ def api_generate_report(
 
 @app.post("/api/report/payment")
 def api_generate_payment_report(
-    file: UploadFile = File(...),
     month: int = Form(...),
     year: int = Form(...),
 ):
     """Append a month's programs to the cumulative payment Excel file."""
-    file_bytes = file.file.read()
-
     # Fetch approved programs from both gyms
     res = supabase.table("programs").select("*").eq("approved", True).execute()
     all_programs = res.data or []
 
     try:
         result_bytes = generate_payment_report(
-            payment_file_bytes=file_bytes,
             programs=all_programs,
             month=month,
             year=year,

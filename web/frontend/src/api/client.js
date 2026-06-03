@@ -67,9 +67,8 @@ export const deleteTrainerOverride = (id) =>
 export const listPrograms = (gym, approved, year, month) =>
   api.get('/api/programs', { params: { gym, approved, year, month } })
 
-export const generatePaymentReport = (file, month, year) => {
+export const generatePaymentReport = (month, year) => {
   const fd = new FormData()
-  fd.append('file', file)
   fd.append('month', month)
   fd.append('year', year)
   return api.post('/api/report/payment', fd, { responseType: 'blob', timeout: 120000 })
