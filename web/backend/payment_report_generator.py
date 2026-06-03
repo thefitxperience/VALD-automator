@@ -18,6 +18,7 @@ from datetime import date, datetime
 from copy import copy
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+from openpyxl.cell.cell import MergedCell
 
 BASE_DIR = os.path.dirname(__file__)
 PAYMENT_TEMPLATE_PATH = os.path.join(BASE_DIR, "Payment - Month YEAR.xlsx")
@@ -110,6 +111,8 @@ def _copy_row_style(src_ws, src_row: int, dst_ws, dst_row: int, max_col: int):
     for col in range(1, max_col + 1):
         src = src_ws.cell(row=src_row, column=col)
         dst = dst_ws.cell(row=dst_row, column=col)
+        if isinstance(src, MergedCell) or isinstance(dst, MergedCell):
+            continue
         if src.has_style:
             dst.font = copy(src.font)
             dst.fill = copy(src.fill)
@@ -212,6 +215,8 @@ def generate_payment_report(
         # Write green separator row
         for col in range(1, ws.max_column + 1):
             cell = ws.cell(row=sep_row, column=col)
+            if isinstance(cell, MergedCell):
+                continue
             cell.value = None
             cell.fill = copy(GREEN_FILL)
 
@@ -225,23 +230,25 @@ def generate_payment_report(
             dest_row = sep_row + 1 + i
             _copy_row_style(ws, style_ref, ws, dest_row, ws.max_column)
 
-            client_id    = prog.get("client_id") or None
-            client_name  = prog.get("client_name", "")
-            trainer_name = prog.get("trainer_name", "") or ""
-            test_date    = _to_date(prog.get("test_date"))
+            client_id     = prog.get("client_id") or None
+            client_name   = prog.get("client_name", "")
+            trainer_name  = prog.get("trainer_name", "") or ""
+            test_date     = _to_date(prog.get("test_date"))
             dispatch_date = _to_date(prog.get("dispatch_date"))
 
-            ws.cell(row=dest_row, column=1).value = client_id
-            ws.cell(row=dest_row, column=2).value = client_name
-            ws.cell(row=dest_row, column=3).value = trainer_name
+            def _set(col, val, fmt=None):
+                c = ws.cell(row=dest_row, column=col)
+                if isinstance(c, MergedCell):
+                    return
+                c.value = val
+                if fmt:
+                    c.number_format = fmt
 
-            d_cell = ws.cell(row=dest_row, column=4)
-            d_cell.value = test_date
-            d_cell.number_format = date_fmt
-
-            e_cell = ws.cell(row=dest_row, column=5)
-            e_cell.value = dispatch_date
-            e_cell.number_format = date_fmt
+            _set(1, client_id)
+            _set(2, client_name)
+            _set(3, trainer_name)
+            _set(4, test_date, date_fmt)
+            _set(5, dispatch_date, date_fmt)
 
     # ── Update REPORT sheet ───────────────────────────────────────────────────
     rpt_ws = wb["REPORT"]
