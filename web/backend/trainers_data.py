@@ -167,7 +167,7 @@ TRAINERS = {
                 {"name": "Asmaa Mahmoud", "whatsapp": "+966540826236"},
                 {"name": "Basma Baza", "whatsapp": ""},
                 {"name": "Mennatllah Saad", "whatsapp": ""},
-                {"name": "Wyssal Ben Dhieb", "whatsapp": ""},
+                {"name": "Wyssal Ben Dhieb", "whatsapp": "+21655523491"},
                 {"name": "Asmaa Ashraf", "whatsapp": "+966557468380"},
                 {"name": "Chaima Gharsalli", "whatsapp": "+966569805410"},
                 {"name": "Fatima Abdallah", "whatsapp": ""},
