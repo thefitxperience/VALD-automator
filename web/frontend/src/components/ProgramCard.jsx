@@ -134,7 +134,7 @@ export default function ProgramCard({ test, gym }) {
   // Generate program PDF on demand
   const handleOpen = async () => {
     if (!test.cells_data) {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://vald-automator.onrender.com'
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://vald-automator-production.up.railway.app'
       window.open(`${API_BASE}/api/programs/preview-demo?gym=${encodeURIComponent(gym)}&test_type=${test.test_type}`, '_blank')
       return
     }

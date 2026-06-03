@@ -2,8 +2,8 @@
 
 Full-stack web application for VALD program generation, approval, and reporting.
 
-- **Frontend**: React + Vite + Tailwind — deployable to Vercel or GitHub Pages  
-- **Backend**: FastAPI (Python) — deployable to Render.com  
+- **Frontend**: React + Vite + Tailwind — deployed to GitHub Pages  
+- **Backend**: FastAPI (Python) — deployed to Railway  
 - **Database + Storage**: Supabase (free tier)
 
 ---
@@ -12,8 +12,8 @@ Full-stack web application for VALD program generation, approval, and reporting.
 
 ```
 web/
-├── frontend/      React app (static, deployed to Vercel)
-└── backend/       FastAPI (deployed to Render.com)
+├── frontend/      React app (static, deployed to GitHub Pages)
+└── backend/       FastAPI (deployed to Railway)
 ```
 
 ---
@@ -28,19 +28,17 @@ web/
 
 ---
 
-## 2. Backend — Deploy to Render.com
+## 2. Backend — Deploy to Railway
 
-1. Create a free account at [render.com](https://render.com)
-2. New → **Web Service** → connect your GitHub repo
+1. Create a free account at [railway.app](https://railway.app)
+2. New Project → **Deploy from GitHub repo**
 3. Set the root directory to `web/backend`
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-6. Add **Environment Variables**:
+4. Add **Environment Variables**:
    ```
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_SERVICE_KEY=your-service-role-key
    ```
-7. Deploy. Note the service URL (e.g. `https://vald-automator.onrender.com`)
+5. Deploy. Note the service URL (e.g. `https://vald-automator-production.up.railway.app`)
 
 > **Note**: The backend needs access to the report Excel templates.
 > Make sure `Month YEAR - Body Masters.xlsx` and `Month YEAR - Body Motions.xlsx`
@@ -48,22 +46,11 @@ web/
 
 ---
 
-## 3. Frontend — Deploy to Vercel (recommended) or GitHub Pages
+## 3. Frontend — Deploy to GitHub Pages
 
-### Vercel (easiest)
-1. Create a free account at [vercel.com](https://vercel.com)
-2. Import your GitHub repo
-3. Set **Root Directory** to `web/frontend`
-4. Add **Environment Variable**:
-   ```
-   VITE_API_URL=https://your-render-service.onrender.com
-   ```
-5. Deploy
-
-### GitHub Pages
-1. In `web/frontend/vite.config.js`, uncomment and set `base: '/your-repo-name/'`
+1. In `web/frontend/vite.config.js`, set `base: '/your-repo-name/'`
 2. Build: `cd web/frontend && npm run build`
-3. Deploy the `dist/` folder to the `gh-pages` branch
+3. Commit the `dist/` folder and push to `main`
 
 ---
 
