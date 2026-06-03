@@ -232,6 +232,11 @@ def generate_payment_report(
     rpt_date = report_date or date.today()
     date_fmt = 'DD/MM/YYYY'
 
+    # Universal style reference: row 195 of Body Masters - RUH - Al Massif
+    # Used as fallback for sheets that have no existing data rows to copy from
+    _STYLE_REF_WS = wb["Body Masters - RUH - Al Massif"]
+    _STYLE_REF_ROW = 195
+
     for sheet_name in wb.sheetnames:
         if sheet_name == "REPORT":
             continue
@@ -261,7 +266,11 @@ def generate_payment_report(
                 cell.fill = copy(GREEN_FILL)
                 cell.border = copy(GREEN_BORDER)
 
-        style_ref = last_row if last_row >= 7 else 7
+        # Use sheet's own last data row as style source; fall back to universal reference for empty sheets
+        if last_row >= 7:
+            style_src_ws, style_ref = ws, last_row
+        else:
+            style_src_ws, style_ref = _STYLE_REF_WS, _STYLE_REF_ROW
 
         for ym in months_to_append:
             new_rows = by_month[ym].get((gym, branch), [])
@@ -275,7 +284,7 @@ def generate_payment_report(
 
             for i, prog in enumerate(new_rows):
                 dest_row = data_start_row + i
-                _copy_row_style(ws, style_ref, ws, dest_row, ws.max_column)
+                _copy_row_style(style_src_ws, style_ref, ws, dest_row, ws.max_column)
 
                 client_id     = prog.get("client_id") or None
                 client_name   = prog.get("client_name", "")
