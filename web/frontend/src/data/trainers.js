@@ -14,7 +14,7 @@ const TRAINERS = {
     "JED - Al Faisaliyah": ["Wiem Dridi","Shourooq Al Jundi","Mariam Baomar","Ines Rezgui","Kholod Khaled","Hajer Jamal Al-Deen Khalifa Ali","Chourouk Sherif","Hala Saied"],
     "JED - Al Naeem": ["Sara Mahdi","Siwar Al Habib","Shayma Abbes","Nahla Al Hajri","Afraa Almasri","Lamia Al Amer","Diaa Sobhi","Maysem Mohamed","Asayel Sultan","Nadine Shawky","Mayssa Bin Mohamad Nasser Mejri"],
     "DMM - Al Faisaliyah": ["Sirine Jawadi","Moulouk Al Lawi","Rasha Hamid","Soulaima Hassan","Rahma Qays","Cyrine Ali","Al Bandari Al Harbi","Mirna Mostafa","Nourhan Hosny","Amira Omar","Mariem Laamiri"],
-    "DMM - Al Jalawiah": ["Asmaa Mahmoud","Basma Baza","Mennatllah Saad","Asmaa Ashraf","Chaima Gharsalli","Fatima Abdallah","Emna Ben Chalbia","Hebatallah Ali","Aya Maayoufi"],
+    "DMM - Al Jalawiah": ["Asmaa Mahmoud","Basma Baza","Mennatllah Saad","Wyssal Ben Dhieb","Asmaa Ashraf","Chaima Gharsalli","Fatima Abdallah","Emna Ben Chalbia","Hebatallah Ali","Aya Maayoufi"],
     "DMM - Al Nada": ["Amal Al-Fahat Ghazi Al-Ruwaili","Chaima Boutita","Asmaa Shehata","Sarah Rasheeq","Nawal Akermi"],
     "ALQ - Buraidah": ["Mai Mosleh","Chayma Hannachi","Malath Suleiman Alshamasi","Anwar Ben Rhayem","Lulu Alzaaj","Raja Reeba","Aya Mahmoud Abed Al-Wanis","Ines Souissi","Nouran Emad Jad","Nourhan Ehab Amarah","Anfal Nasser Alhusseini","Rawiya Alarousi Mabrouk","Eilaf Mohamed Al-Fayizi"],
     "ALQ - Unaizah": ["Samar Lajnef","Asmaa Aalaa Al-Din","Esraa Labib Noomani","Rim Chabi","Yosra Al-Mzoughi","Roua Al-Hashemi Bin Naeimah","Rana Mohammad Hassan Aaref"],

@@ -239,7 +239,7 @@ TRAINER_ORDER = {
         "Sirine Jawadi","Moulouk Al Lawi","Nourhan Hosny","Al Bandari Al Harbi",
         "Mirna Mostafa","Mariem Laamiri","Rahma Qays",
         # DMM - Al Jalawiah
-        "Asmaa Mahmoud","Basma Baza","Mennatllah Saad","Asmaa Ashraf",
+        "Asmaa Mahmoud","Basma Baza","Mennatllah Saad","Wyssal Ben Dhieb","Asmaa Ashraf",
         "Chaima Gharsalli","Fatima Abdallah","Emna Ben Chalbia",
         "Hebatallah Ali","Aya Maayoufi",
         # DMM - Al Nada
