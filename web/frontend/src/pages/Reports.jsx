@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { generateReport } from '../api/client'
+import { useState, useRef } from 'react'
+import { generateReport, generatePaymentReport } from '../api/client'
 
 const GYMS = [
   { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
@@ -253,6 +253,133 @@ export default function Reports() {
           ? ` dispatched between day ${startDay || 1} and day ${endDay || daysInMonth} of ${MONTHS[month - 1]} ${year}`
           : ` dispatched in ${MONTHS[month - 1]} ${year}`
         }.
+      </p>
+
+      {/* ── Divider ── */}
+      <div className="border-t border-gray-700 pt-6">
+        <PaymentReport />
+      </div>
+    </div>
+  )
+}
+
+function PaymentReport() {
+  const now = new Date()
+  const [payMonth, setPayMonth] = useState(now.getMonth() + 1)
+  const [payYear, setPayYear] = useState(now.getFullYear())
+  const [file, setFile] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
+
+  const handleGenerate = async () => {
+    if (!file) return
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await generatePaymentReport(file, payMonth, payYear)
+      const blob = new Blob([res.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const disposition = res.headers?.['content-disposition'] || ''
+      const match = disposition.match(/filename="([^"]+)"/)
+      a.href = url
+      a.download = match ? match[1] : `Payment - ${MONTHS[payMonth - 1]} ${payYear}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Failed to generate payment report')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <h2 className="text-lg font-bold text-white">Payment Report</h2>
+
+      {/* File upload */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">
+          Upload current Payment file
+          <span className="text-gray-600 font-normal"> (Payment - Month YEAR.xlsx)</span>
+        </label>
+        <div
+          onClick={() => inputRef.current?.click()}
+          className={`border-2 border-dashed rounded-xl px-5 py-4 text-center cursor-pointer transition-colors ${
+            file ? 'border-brand-600 bg-brand-900/20' : 'border-gray-700 hover:border-gray-500'
+          }`}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".xlsx,.xlsm,.xls"
+            className="hidden"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+          {file ? (
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-sm text-brand-300 font-medium">{file.name}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setFile(null); inputRef.current.value = '' }}
+                className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Click to select file</p>
+          )}
+        </div>
+      </div>
+
+      {/* Month + Year */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Month to append</label>
+          <select
+            value={payMonth}
+            onChange={(e) => setPayMonth(Number(e.target.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {MONTHS.map((m, i) => (
+              <option key={i + 1} value={i + 1}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Year</label>
+          <select
+            value={payYear}
+            onChange={(e) => setPayYear(Number(e.target.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-lg bg-red-900/40 border border-red-700 text-red-300 px-4 py-3 text-sm">
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handleGenerate}
+        disabled={loading || !file}
+        className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
+      >
+        {loading ? 'Generating…' : 'Generate & Download Payment Report'}
+      </button>
+
+      <p className="text-xs text-gray-500 text-center">
+        Appends <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> approved
+        programs (both gyms) to the uploaded file and downloads the updated version.
       </p>
     </div>
   )

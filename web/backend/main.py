@@ -20,6 +20,7 @@ from supabase import create_client, Client
 
 from check_processor import process_check_file, parse_all_programs
 from report_generator import generate_report
+from payment_report_generator import generate_payment_report
 from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
 from program_builder import generate_program_pdf, generate_program_html
 
@@ -573,6 +574,43 @@ def api_generate_report(
 
     return StreamingResponse(
         io.BytesIO(report_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/report/payment")
+def api_generate_payment_report(
+    file: UploadFile = File(...),
+    month: int = Form(...),
+    year: int = Form(...),
+):
+    """Append a month's programs to the cumulative payment Excel file."""
+    file_bytes = file.file.read()
+
+    # Fetch approved programs from both gyms
+    res = supabase.table("programs").select("*").eq("approved", True).execute()
+    all_programs = res.data or []
+
+    try:
+        result_bytes = generate_payment_report(
+            payment_file_bytes=file_bytes,
+            programs=all_programs,
+            month=month,
+            year=year,
+            report_date=date.today(),
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    import calendar
+    month_name = calendar.month_name[month]
+    filename = f"Payment - {month_name} {year}.xlsx"
+
+    return StreamingResponse(
+        io.BytesIO(result_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
