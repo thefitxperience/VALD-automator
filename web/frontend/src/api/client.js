@@ -54,6 +54,9 @@ export const quickGenerate = (gym, file) => {
 export const listTrainerOverrides = (gym, branch) =>
   api.get('/api/trainer-overrides', { params: { gym, ...(branch ? { branch } : {}) } })
 
+export const getTrainersFull = (gym, branch) =>
+  api.get('/api/trainers-full', { params: { gym, branch } })
+
 export const upsertTrainerOverride = (payload) =>
   api.post('/api/trainer-overrides', payload)
 

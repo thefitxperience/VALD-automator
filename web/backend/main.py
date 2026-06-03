@@ -210,6 +210,44 @@ def api_delete_override(override_id: str):
     raise HTTPException(status_code=404, detail="Override not found")
 
 
+@app.get("/api/trainers-full")
+def api_trainers_full(gym: str = Query(...), branch: str = Query(...)):
+    """
+    Returns every trainer for a branch with their effective WhatsApp number.
+    DB overrides take priority over hardcoded numbers.
+    Response: [{name, whatsapp, override_id, is_static}]
+    """
+    static = get_trainers(gym, branch)           # list[dict] with name + whatsapp
+    overrides = _overrides_for(gym, branch)      # list[dict] with trainer_name + whatsapp + id
+    override_map = {o["trainer_name"]: o for o in overrides}
+
+    result = []
+    seen = set()
+
+    for t in static:
+        name = t["name"]
+        seen.add(name)
+        ov = override_map.get(name)
+        result.append({
+            "name": name,
+            "whatsapp": ov["whatsapp"] if ov and ov.get("whatsapp") else (t.get("whatsapp") or ""),
+            "override_id": ov["id"] if ov else None,
+            "is_static": True,
+        })
+
+    # DB-only trainers (added via UI)
+    for ov in overrides:
+        if ov["trainer_name"] not in seen:
+            result.append({
+                "name": ov["trainer_name"],
+                "whatsapp": ov.get("whatsapp") or "",
+                "override_id": ov["id"],
+                "is_static": False,
+            })
+
+    return result
+
+
 # -- Check file --
 
 @app.post("/api/check")

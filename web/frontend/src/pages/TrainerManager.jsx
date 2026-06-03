@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getBranches, getTrainers } from '../data/trainers'
-import { listTrainerOverrides, upsertTrainerOverride, deleteTrainerOverride } from '../api/client'
+import { getBranches } from '../data/trainers'
+import { getTrainersFull, upsertTrainerOverride, deleteTrainerOverride } from '../api/client'
 
 const GYMS = [
   { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
@@ -91,7 +91,7 @@ function TrainerRow({ gym, branch, name, initialNumber, overrideId, isNew, onSav
 export default function TrainerManager() {
   const [gym, setGym] = useState('Body Motions')
   const [branch, setBranch] = useState('')
-  const [overrides, setOverrides] = useState([])   // DB records: { id, gym, branch, trainer_name, whatsapp }
+  const [trainers, setTrainers] = useState([])   // [{name, whatsapp, override_id, is_static}]
   const [loading, setLoading] = useState(false)
 
   // New trainer form
@@ -104,49 +104,49 @@ export default function TrainerManager() {
   // When gym changes reset branch
   useEffect(() => {
     setBranch('')
-    setOverrides([])
+    setTrainers([])
   }, [gym])
 
-  // Load overrides whenever branch changes
+  // Load trainers with numbers whenever branch changes
   useEffect(() => {
-    if (!branch) { setOverrides([]); return }
+    if (!branch) { setTrainers([]); return }
     setLoading(true)
-    listTrainerOverrides(gym, branch)
-      .then((r) => setOverrides(r.data || []))
-      .catch(() => setOverrides([]))
+    getTrainersFull(gym, branch)
+      .then((r) => setTrainers(r.data || []))
+      .catch(() => setTrainers([]))
       .finally(() => setLoading(false))
   }, [gym, branch])
 
-  const staticTrainers = branch ? getTrainers(gym, branch) : []
-
-  // Overrides for this branch that are NOT in the static list = "added" trainers
-  const addedTrainers = overrides.filter(
-    (o) => !staticTrainers.includes(o.trainer_name)
-  )
-
-  // Map trainer name → override record
-  const overrideByName = Object.fromEntries(overrides.map((o) => [o.trainer_name, o]))
-
   const handleSaved = (newRecord) => {
-    setOverrides((prev) => {
-      const idx = prev.findIndex((o) => o.id === newRecord.id || o.trainer_name === newRecord.trainer_name)
+    setTrainers((prev) => {
+      const idx = prev.findIndex((t) => t.name === newRecord.trainer_name)
       if (idx >= 0) {
         const next = [...prev]
-        next[idx] = newRecord
+        next[idx] = {
+          ...next[idx],
+          whatsapp: newRecord.whatsapp,
+          override_id: newRecord.id,
+        }
         return next
       }
-      return [...prev, newRecord]
+      // DB-only new trainer
+      return [...prev, {
+        name: newRecord.trainer_name,
+        whatsapp: newRecord.whatsapp,
+        override_id: newRecord.id,
+        is_static: false,
+      }]
     })
   }
 
   const handleDeleted = (id) => {
-    setOverrides((prev) => prev.filter((o) => o.id !== id))
+    setTrainers((prev) => prev.filter((t) => t.override_id !== id))
   }
 
   const handleAddTrainer = async () => {
     if (!newName.trim()) return
-    if (staticTrainers.includes(newName.trim())) {
-      alert(`"${newName.trim()}" already exists in the static list for this branch. Edit their number directly in the row above.`)
+    if (trainers.some((t) => t.name === newName.trim())) {
+      alert(`"${newName.trim()}" already exists in this branch. Edit their number directly in the list.`)
       return
     }
     setAdding(true)
@@ -209,29 +209,25 @@ export default function TrainerManager() {
             <p className="text-gray-500 text-sm">Loading…</p>
           ) : (
             <>
-              {/* Existing trainers */}
-              {staticTrainers.length > 0 && (
+              {/* Trainer list */}
+              {trainers.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                    Trainers ({staticTrainers.length + addedTrainers.length})
+                    Trainers ({trainers.length})
                   </p>
-                  {[...staticTrainers, ...addedTrainers.map((o) => o.trainer_name)].map((name) => {
-                    const ov = overrideByName[name]
-                    const isNew = !staticTrainers.includes(name)
-                    return (
-                      <TrainerRow
-                        key={name}
-                        gym={gym}
-                        branch={branch}
-                        name={name}
-                        initialNumber={ov?.whatsapp || ''}
-                        overrideId={ov?.id || null}
-                        isNew={isNew}
-                        onSaved={handleSaved}
-                        onDeleted={handleDeleted}
-                      />
-                    )
-                  })}
+                  {trainers.map((t) => (
+                    <TrainerRow
+                      key={t.name}
+                      gym={gym}
+                      branch={branch}
+                      name={t.name}
+                      initialNumber={t.whatsapp}
+                      overrideId={t.override_id}
+                      isNew={!t.is_static}
+                      onSaved={handleSaved}
+                      onDeleted={handleDeleted}
+                    />
+                  ))}
                 </div>
               )}
 
