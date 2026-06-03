@@ -94,7 +94,11 @@ export default function Reports() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Reports</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8">
+        <h1 className="text-2xl font-bold text-white">Reports</h1>
+        <div />
+        <h1 className="text-2xl font-bold text-white hidden lg:block">Payment Report</h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
         {/* ── Left: Monthly / Weekly / Custom report ── */}
@@ -140,20 +144,8 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Year + Month */}
+      {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Year</label>
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
-          >
-            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
         <div>
           <label className="block text-sm text-gray-400 mb-1">Month</label>
           <select
@@ -163,6 +155,18 @@ export default function Reports() {
           >
             {MONTHS.map((m, i) => (
               <option key={i + 1} value={i + 1}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Year</label>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
             ))}
           </select>
         </div>
@@ -304,7 +308,7 @@ function PaymentReport() {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-bold text-white">Payment Report</h2>
+      <h1 className="text-2xl font-bold text-white lg:hidden">Payment Report</h1>
 
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
@@ -349,8 +353,7 @@ function PaymentReport() {
       </button>
 
       <p className="text-xs text-gray-500 text-center">
-        Appends <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> approved
-        programs (both gyms) to the payment template and downloads the updated file.
+        Appends <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> approved programs to the payment report.
       </p>
     </div>
   )
