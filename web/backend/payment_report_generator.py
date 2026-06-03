@@ -193,7 +193,7 @@ def generate_payment_report(
 
     wb = load_workbook(io.BytesIO(payment_file_bytes), data_only=False)  # template copy, never overwrites
     rpt_date = report_date or date.today()
-    date_fmt = '[$-1010000]d/m/yyyy;@'
+    date_fmt = 'DD/MM/YYYY'
 
     for sheet_name in wb.sheetnames:
         if sheet_name == "REPORT":
@@ -208,17 +208,28 @@ def generate_payment_report(
 
         ws = wb[sheet_name]
 
-        # Always insert a green separator (even if no new rows — acts as a month marker)
+        # Separator pattern: blank row → green row → blank row → new data
         last_row = _last_data_row(ws)
-        sep_row = last_row + 1
 
-        # Write green separator row
-        for col in range(1, ws.max_column + 1):
-            cell = ws.cell(row=sep_row, column=col)
-            if isinstance(cell, MergedCell):
-                continue
-            cell.value = None
-            cell.fill = copy(GREEN_FILL)
+        def _write_blank_row(r):
+            for col in range(1, ws.max_column + 1):
+                cell = ws.cell(row=r, column=col)
+                if isinstance(cell, MergedCell):
+                    continue
+                cell.value = None
+
+        def _write_green_row(r):
+            for col in range(1, ws.max_column + 1):
+                cell = ws.cell(row=r, column=col)
+                if isinstance(cell, MergedCell):
+                    continue
+                cell.value = None
+                cell.fill = copy(GREEN_FILL)
+
+        _write_blank_row(last_row + 1)
+        _write_green_row(last_row + 2)
+        _write_blank_row(last_row + 3)
+        data_start_row = last_row + 4
 
         if not new_rows:
             continue
@@ -227,7 +238,7 @@ def generate_payment_report(
         style_ref = last_row if last_row >= 7 else 7
 
         for i, prog in enumerate(new_rows):
-            dest_row = sep_row + 1 + i
+            dest_row = data_start_row + i
             _copy_row_style(ws, style_ref, ws, dest_row, ws.max_column)
 
             client_id     = prog.get("client_id") or None
@@ -253,7 +264,7 @@ def generate_payment_report(
     # ── Update REPORT sheet ───────────────────────────────────────────────────
     rpt_ws = wb["REPORT"]
     rpt_ws["B3"] = rpt_date
-    rpt_ws["B3"].number_format = date_fmt
+    # Keep the existing cell format (d-mmm-yy) — don't override it
 
     # Build monthly count per sheet name (from the already-filtered by_gym_branch data)
     # PAYMENT_SHEET_TO_BRANCH maps sheet_name → (gym, branch)
