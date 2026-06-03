@@ -8,12 +8,13 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Navbar */}
-      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center gap-8">
+      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center">
         {/* Logos stacked */}
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="flex flex-col items-center gap-0.5 mr-8">
           <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-12 w-auto object-contain mt-1" />
           <img src={`${import.meta.env.BASE_URL}VALD.png`} alt="VALD" className="h-12 w-auto object-contain -mb-2" />
         </div>
+        {/* Left links */}
         <div className="flex gap-1">
           <NavLink
             to="/"
@@ -40,6 +41,11 @@ export default function App() {
           >
             Reports
           </NavLink>
+        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
+        {/* Right links */}
+        <div className="flex gap-1">
           <NavLink
             to="/quick"
             className={({ isActive }) =>
