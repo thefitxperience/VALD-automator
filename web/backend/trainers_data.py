@@ -124,7 +124,7 @@ TRAINERS = {
             "trainers": [
                 {"name": "Wiem Dridi", "whatsapp": "+966569896504"},
                 {"name": "Shourooq Al Jundi", "whatsapp": "+966564036118"},
-                {"name": "Mariam Baomar", "whatsapp": ""},
+                {"name": "Mariam Baomar", "whatsapp": "+966543700291"},
                 {"name": "Ines Rezgui", "whatsapp": "+966566894215"},
                 {"name": "Kholod Khaled", "whatsapp": "+966540899707"},
                 {"name": "Hajer Jamal Al-Deen Khalifa Ali", "whatsapp": "+966543880262"},
@@ -379,6 +379,7 @@ TRAINERS = {
                 {"name": "Naoufel Jabnouni", "whatsapp": "+966563263180"},
                 {"name": "Khalid Chatir", "whatsapp": "+966500944133"},
                 {"name": "Mohammed Korchi", "whatsapp": "+966503803175"},
+                {"name": "Ahmed Elsayed", "whatsapp": "+966547401898"},
             ]
         },
         "RUH - Takhasousi": {
@@ -483,6 +484,7 @@ TRAINERS = {
                 {"name": "Abdelaziz El Maydy", "whatsapp": "+966542101523"},
                 {"name": "Amr Ahmed Abdellatif Rabia", "whatsapp": "+966532172357"},
                 {"name": "Cherif Bin Ahmed Khlifi", "whatsapp": "+966530440204"},
+                {"name": "Meshari Saad Alharbi", "whatsapp": ""},
             ]
         },
         "RUH - Shubra": {
@@ -608,6 +610,7 @@ TRAINERS = {
                 {"name": "Ibrahim Saleh", "whatsapp": "+966531810551"},
                 {"name": "Abdelrahman Faris", "whatsapp": "+966549158644"},
                 {"name": "Abed El Rahman Taha", "whatsapp": "+966532455054"},
+                {"name": "Mahmoud Fawzy", "whatsapp": "+966557197298"},
             ]
         },
         "ALQ - Al Rass": {
@@ -679,7 +682,6 @@ TRAINERS = {
         "AlUla": {
             "trainers": [
                 {"name": "Ahmed Abdelmaqsoud", "whatsapp": "+966550105380"},
-                {"name": "Ahmed Elsayed", "whatsapp": "+966547401898"},
                 {"name": "Ahmed Khaled", "whatsapp": "+966539211836"},
                 {"name": "Ahmed Khaled El Said", "whatsapp": "+966561786327"},
                 {"name": "ElHassan Nagib", "whatsapp": "+966545935469"},
