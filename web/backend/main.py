@@ -597,6 +597,7 @@ def api_generate_payment_report(
             supabase.table("programs")
             .select("gym,branch,client_id,client_name,trainer_name,test_date,dispatch_date")
             .eq("approved", True)
+            .neq("ignored", True)
             .range(offset, offset + page_size - 1)
             .execute()
         )
