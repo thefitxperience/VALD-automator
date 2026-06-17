@@ -9,6 +9,9 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from copy import copy
 
+LATE_UPLOAD_FONT = Font(name="Source Sans Pro", size=20)
+LATE_UPLOAD_ALIGN = Alignment(horizontal="left", vertical="center")
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Template files are copied into the same directory as this file in the container
 TEMPLATE_MAP = {
@@ -472,7 +475,9 @@ def generate_report(
 
             # Column F: mark late uploads (test done in a previous month)
             if isinstance(test_date, date) and test_date.month != month:
-                ws.cell(row=dest_row, column=6, value="Late Upload")
+                c = ws.cell(row=dest_row, column=6, value="Late Upload")
+                c.font = copy(LATE_UPLOAD_FONT)
+                c.alignment = copy(LATE_UPLOAD_ALIGN)
 
     # Save to bytes
     buf = io.BytesIO()
