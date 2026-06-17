@@ -523,9 +523,25 @@ def api_generate_report(
     start_day: Optional[int] = Form(None),
     end_day: Optional[int] = Form(None),
 ):
-    # Fetch all approved, non-ignored programs for this gym
-    res = supabase.table("programs").select("*").eq("gym", gym).eq("approved", True).neq("ignored", True).execute()
-    all_programs = res.data or []
+    # Fetch all approved, non-ignored programs for this gym (paginated — Supabase default limit is 1000)
+    page_size = 1000
+    all_programs = []
+    offset = 0
+    while True:
+        res = (
+            supabase.table("programs")
+            .select("*")
+            .eq("gym", gym)
+            .eq("approved", True)
+            .neq("ignored", True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        all_programs.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
 
     # Fetch trainer order from DB: {branch: [name, ...]} ordered by sort_order
     trainer_rows = _trainers_for(gym)
