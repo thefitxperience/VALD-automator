@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getBranches, getTrainers, getAllTrainers, getBranchForTrainer } from '../data/trainers'
+import { useTrainers } from '../context/TrainersContext'
 import { approveProgram, unapproveProgram, getTrainerWhatsapp, previewHtml, ignoreTest, unignoreTest } from '../api/client'
 
 const TYPE_LABEL = { upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body' }
@@ -97,10 +97,14 @@ function SearchableSelect({ options, value, onChange, onSelect, placeholder, dis
 }
 
 export default function ProgramCard({ test, gym }) {
+  const { getBranches, getTrainers, getAllTrainers, getBranchForTrainer, load } = useTrainers()
   const [branch, setBranch] = useState(test.existing_branch || '')
   const [trainer, setTrainer] = useState(test.existing_trainer_name || '')
   const trainerInputRef = useRef(null)
   const [dispatchDate, setDispatchDate] = useState(test.existing_dispatch_date || new Date().toISOString().split('T')[0])
+
+  // Load trainer data for this gym on mount
+  useEffect(() => { load(gym) }, [gym, load])
 
   // Program PDF (generated on demand)
   const [opening, setOpening] = useState(false)

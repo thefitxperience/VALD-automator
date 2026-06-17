@@ -21,7 +21,7 @@ from supabase import create_client, Client
 from check_processor import process_check_file, parse_all_programs
 from report_generator import generate_report
 from payment_report_generator import generate_payment_report
-from trainers_data import get_branches, get_trainers, get_trainer_whatsapp, TRAINERS
+
 from program_builder import generate_program_pdf, generate_program_html
 
 # ── Supabase ──────────────────────────────────────────────────────────────────
@@ -35,17 +35,12 @@ STORAGE_BUCKET = "program-pdfs"
 # ── Startup migration ─────────────────────────────────────────────────────────
 
 def _run_migration():
-    """Create trainer_overrides table if it does not exist."""
+    """Verify trainers table exists."""
     try:
-        # Ping the table; if it exists we're done
-        supabase.table("trainer_overrides").select("id").limit(1).execute()
+        supabase.table("trainers").select("id").limit(1).execute()
     except Exception:
-        # Table missing — tell Railway logs to run the SQL manually
         import logging
-        logging.warning(
-            "trainer_overrides table not found. "
-            "Run the SQL in supabase_schema.sql in the Supabase SQL editor."
-        )
+        logging.warning("trainers table not found. Run trainers_migration.sql in Supabase SQL Editor.")
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
@@ -117,12 +112,13 @@ def version():
 
 # -- Trainers --
 
-def _overrides_for(gym: str, branch: str = None) -> list[dict]:
-    """Fetch trainer_overrides rows from Supabase. Returns [] on any error."""
+def _trainers_for(gym: str, branch: str = None) -> list[dict]:
+    """Fetch trainers from the trainers table, ordered by sort_order."""
     try:
-        q = supabase.table("trainer_overrides").select("*").eq("gym", gym)
+        q = supabase.table("trainers").select("*").eq("gym", gym)
         if branch:
             q = q.eq("branch", branch)
+        q = q.order("sort_order")
         return q.execute().data or []
     except Exception:
         return []
@@ -130,123 +126,107 @@ def _overrides_for(gym: str, branch: str = None) -> list[dict]:
 
 @app.get("/api/branches")
 def api_branches(gym: str = Query(...)):
-    static = get_branches(gym)
-    overrides = _overrides_for(gym)
-    extra = [o["branch"] for o in overrides if o["branch"] not in static]
-    # Deduplicate while preserving order
-    seen = set(static)
-    result = list(static)
-    for b in extra:
+    from report_generator import BRANCH_ORDER
+    rows = _trainers_for(gym)
+    seen = set()
+    db_branches = []
+    for r in rows:
+        b = r["branch"]
         if b not in seen:
             seen.add(b)
-            result.append(b)
-    return result
+            db_branches.append(b)
+    order = BRANCH_ORDER.get(gym, [])
+    ordered = [b for b in order if b in seen]
+    # append any branches in DB but not in BRANCH_ORDER (e.g. newly added)
+    for b in db_branches:
+        if b not in ordered:
+            ordered.append(b)
+    return ordered
 
 
 @app.get("/api/trainers")
 def api_trainers(gym: str = Query(...), branch: str = Query(...)):
-    static = [t["name"] for t in get_trainers(gym, branch)]
-    overrides = _overrides_for(gym, branch)
-    seen = set(static)
-    result = list(static)
-    for o in overrides:
-        if o["trainer_name"] not in seen:
-            seen.add(o["trainer_name"])
-            result.append(o["trainer_name"])
-    return result
+    return [r["name"] for r in _trainers_for(gym, branch)]
 
 
 @app.get("/api/trainer-whatsapp")
 def api_trainer_whatsapp(gym: str = Query(...), branch: str = Query(...), trainer: str = Query(...)):
-    # DB override takes priority over hardcoded value
-    overrides = _overrides_for(gym, branch)
-    for o in overrides:
-        if o["trainer_name"] == trainer and o.get("whatsapp"):
-            return {"whatsapp": o["whatsapp"]}
-    return {"whatsapp": get_trainer_whatsapp(gym, branch, trainer)}
-
-
-# -- Trainer management --
-
-class TrainerOverridePayload(BaseModel):
-    gym: str
-    branch: str
-    trainer_name: str
-    whatsapp: str = ""
-
-
-@app.get("/api/trainer-overrides")
-def api_list_overrides(gym: str = Query(...), branch: Optional[str] = Query(None)):
-    return _overrides_for(gym, branch)
-
-
-@app.post("/api/trainer-overrides")
-def api_upsert_override(payload: TrainerOverridePayload):
-    record = {
-        "gym": payload.gym,
-        "branch": payload.branch,
-        "trainer_name": payload.trainer_name,
-        "whatsapp": payload.whatsapp,
-    }
-    res = (
-        supabase.table("trainer_overrides")
-        .upsert(record, on_conflict="gym,branch,trainer_name")
-        .execute()
-    )
-    if res.data:
-        return res.data[0]
-    raise HTTPException(status_code=500, detail="Failed to save trainer override")
-
-
-@app.delete("/api/trainer-overrides/{override_id}")
-def api_delete_override(override_id: str):
-    res = (
-        supabase.table("trainer_overrides")
-        .delete()
-        .eq("id", override_id)
-        .execute()
-    )
-    if res.data:
-        return {"deleted": True}
-    raise HTTPException(status_code=404, detail="Override not found")
+    rows = _trainers_for(gym, branch)
+    for r in rows:
+        if r["name"] == trainer:
+            return {"whatsapp": r.get("whatsapp") or ""}
+    return {"whatsapp": ""}
 
 
 @app.get("/api/trainers-full")
 def api_trainers_full(gym: str = Query(...), branch: str = Query(...)):
-    """
-    Returns every trainer for a branch with their effective WhatsApp number.
-    DB overrides take priority over hardcoded numbers.
-    Response: [{name, whatsapp, override_id, is_static}]
-    """
-    static = get_trainers(gym, branch)           # list[dict] with name + whatsapp
-    overrides = _overrides_for(gym, branch)      # list[dict] with trainer_name + whatsapp + id
-    override_map = {o["trainer_name"]: o for o in overrides}
+    """Returns trainers for a branch: [{id, name, whatsapp, sort_order}]"""
+    return _trainers_for(gym, branch)
 
-    result = []
-    seen = set()
 
-    for t in static:
-        name = t["name"]
-        seen.add(name)
-        ov = override_map.get(name)
-        result.append({
-            "name": name,
-            "whatsapp": ov["whatsapp"] if ov and ov.get("whatsapp") else (t.get("whatsapp") or ""),
-            "override_id": ov["id"] if ov else None,
-            "is_static": True,
-        })
-
-    # DB-only trainers (added via UI)
-    for ov in overrides:
-        if ov["trainer_name"] not in seen:
-            result.append({
-                "name": ov["trainer_name"],
-                "whatsapp": ov.get("whatsapp") or "",
-                "override_id": ov["id"],
-                "is_static": False,
-            })
-
+@app.get("/api/trainers/all")
+def api_trainers_all(gym: str = Query(...)):
+    """Returns all trainers grouped by branch: {branch: [{id, name, whatsapp, sort_order}]}"""
+    rows = _trainers_for(gym)
+    result: dict = {}
+    for r in rows:
+        result.setdefault(r["branch"], []).append(r)
     return result
+
+
+class TrainerPayload(BaseModel):
+    gym: str
+    branch: str
+    name: str
+    whatsapp: str = ""
+    sort_order: Optional[int] = None
+
+
+class TrainerUpdatePayload(BaseModel):
+    name: Optional[str] = None
+    whatsapp: Optional[str] = None
+    branch: Optional[str] = None
+    sort_order: Optional[int] = None
+
+
+@app.post("/api/trainers")
+def api_add_trainer(payload: TrainerPayload):
+    # Default sort_order = max + 1 for the branch
+    if payload.sort_order is None:
+        rows = _trainers_for(payload.gym, payload.branch)
+        sort_order = max((r["sort_order"] for r in rows), default=-1) + 1
+    else:
+        sort_order = payload.sort_order
+    record = {
+        "gym": payload.gym,
+        "branch": payload.branch,
+        "name": payload.name,
+        "whatsapp": payload.whatsapp,
+        "sort_order": sort_order,
+    }
+    res = supabase.table("trainers").insert(record).execute()
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=500, detail="Failed to add trainer")
+
+
+@app.put("/api/trainers/{trainer_id}")
+def api_update_trainer(trainer_id: str, payload: TrainerUpdatePayload):
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    res = supabase.table("trainers").update(update).eq("id", trainer_id).execute()
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=404, detail="Trainer not found")
+
+
+@app.delete("/api/trainers/{trainer_id}")
+def api_delete_trainer(trainer_id: str):
+    res = supabase.table("trainers").delete().eq("id", trainer_id).execute()
+    if res.data:
+        return {"deleted": True}
+    raise HTTPException(status_code=404, detail="Trainer not found")
 
 
 # -- Check file --
@@ -547,6 +527,12 @@ def api_generate_report(
     res = supabase.table("programs").select("*").eq("gym", gym).eq("approved", True).neq("ignored", True).execute()
     all_programs = res.data or []
 
+    # Fetch trainer order from DB: {branch: [name, ...]} ordered by sort_order
+    trainer_rows = _trainers_for(gym)
+    trainer_order_by_branch: dict = {}
+    for r in trainer_rows:
+        trainer_order_by_branch.setdefault(r["branch"], []).append(r["name"])
+
     try:
         report_bytes = generate_report(
             gym=gym,
@@ -555,6 +541,7 @@ def api_generate_report(
             year=year,
             month=month,
             week_number=week_number,
+            trainer_order_by_branch=trainer_order_by_branch,
             start_day=start_day,
             end_day=end_day,
             report_date=date.today(),

@@ -7,6 +7,7 @@ import os
 from datetime import date, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.worksheet.formula import ArrayFormula
 from copy import copy
 
 LATE_UPLOAD_FONT = Font(name="Source Sans Pro", size=20)
@@ -306,6 +307,108 @@ def _copy_row_style(src_ws, src_row: int, dst_ws, dst_row: int, max_col: int):
             dst_cell.number_format = src_cell.number_format
 
 
+def _rebuild_report_sheet(ws, trainer_order_by_branch: dict, branch_order: list):
+    """
+    Rewrite all trainer/branch rows in the REPORT sheet from the DB trainer data.
+    Copies styling from template reference rows 7 (branch row) and 8 (continuation row).
+    Writes row-number-aware COUNTIF / COUNTIFS formulas in cols C and D.
+    """
+    max_col = ws.max_column
+    row_height = ws.row_dimensions[7].height or 50
+
+    # Capture styles from template reference rows before clearing
+    def capture_style(row, col):
+        cell = ws.cell(row=row, column=col)
+        return {
+            'font': copy(cell.font),
+            'fill': copy(cell.fill),
+            'alignment': copy(cell.alignment),
+            'border': copy(cell.border),
+            'number_format': cell.number_format,
+        }
+
+    branch_row_styles = {c: capture_style(7, c) for c in range(1, max_col + 1)}
+    cont_row_styles   = {c: capture_style(8, c) for c in range(1, max_col + 1)}
+
+    # Clear all existing data rows
+    for r in range(7, ws.max_row + 1):
+        for c in range(1, max_col + 1):
+            ws.cell(row=r, column=c).value = None
+        ws.row_dimensions[r].height = row_height
+
+    thin_bottom = Side(style='thin', color='FF000000')
+
+    # Pre-compute the last branch that has trainers, so we skip its bottom border
+    last_branch_with_trainers = None
+    for branch in reversed(branch_order):
+        if trainer_order_by_branch.get(branch):
+            last_branch_with_trainers = branch
+            break
+
+    # Write new rows from DB trainer order
+    current_row = 7
+    for branch in branch_order:
+        trainers = sorted(trainer_order_by_branch.get(branch, []))  # A-Z
+        if not trainers:
+            continue
+        for i, trainer_name in enumerate(trainers):
+            is_branch_row = (i == 0)
+            styles = branch_row_styles if is_branch_row else cont_row_styles
+
+            # Apply styles to all columns (strip bottom border — applied per-branch below)
+            for c in range(1, max_col + 1):
+                cell = ws.cell(row=current_row, column=c)
+                s = styles[c]
+                cell.font = copy(s['font'])
+                cell.fill = copy(s['fill'])
+                cell.alignment = copy(s['alignment'])
+                existing = copy(s['border'])
+                cell.border = Border(
+                    left=existing.left,
+                    right=existing.right,
+                    top=existing.top,
+                    bottom=Side(),  # no bottom — set explicitly per-branch
+                )
+                cell.number_format = s['number_format']
+
+            r = current_row
+            if is_branch_row:
+                ws.cell(row=r, column=1).value = branch
+            ws.cell(row=r, column=2).value = trainer_name
+
+            # Col C: COUNTIF formula — counts trainer appearances in branch sheet col C
+            ws.cell(row=r, column=3).value = (
+                f'=IFERROR(\n   COUNTIF(INDIRECT("\'" & LOOKUP("zzz",$A$7:A{r}) & "\'!C:C"), B{r}),\n   0\n)'
+            )
+
+            # Col D: COUNTIFS array formula — last 7 days
+            d_formula = (
+                f'=IFERROR(\n  COUNTIFS(\n'
+                f'    INDIRECT("\'" & LOOKUP(2,1/($A$7:A{r}<>""),$A$7:A{r}) & "\'!C:C"), $B{r},\n'
+                f'    INDIRECT("\'" & LOOKUP(2,1/($A$7:A{r}<>""),$A$7:A{r}) & "\'!E:E"), ">=" & ($B$3-6),\n'
+                f'    INDIRECT("\'" & LOOKUP(2,1/($A$7:A{r}<>""),$A$7:A{r}) & "\'!E:E"), "<=" & $B$3\n'
+                f'  ),\n0)'
+            )
+            ws.cell(row=r, column=4).value = ArrayFormula(f'D{r}', d_formula)
+
+            ws.row_dimensions[r].height = row_height
+            current_row += 1
+
+        # Add thin black bottom border to last row of this branch (cols A-D only),
+        # but skip the very last branch — nothing below it to separate from.
+        if branch != last_branch_with_trainers:
+            last_branch_row = current_row - 1
+            for c in range(1, 5):
+                cell = ws.cell(row=last_branch_row, column=c)
+                existing = cell.border
+                cell.border = Border(
+                    left=existing.left,
+                    right=existing.right,
+                    top=existing.top,
+                    bottom=thin_bottom,
+                )
+
+
 def generate_report(
     gym: str,
     programs: list[dict],
@@ -316,6 +419,7 @@ def generate_report(
     start_day: int | None = None,
     end_day: int | None = None,
     report_date: date | None = None,
+    trainer_order_by_branch: dict | None = None,  # {branch: [name, ...]} from DB
 ) -> bytes:
     """
     Build a report Excel file and return its bytes.
@@ -405,22 +509,33 @@ def generate_report(
         if sheet_name in ("REPORT", "REPORT 2"):
             # Update report date cell (B3)
             ws["B3"] = summary_date
-            # For weekly/custom reports, fill column C from C7 with branch counts
-            # (monthly uses a formula that counts from branch sheets directly)
             is_partial = period_type == "weekly" or bool(start_day or end_day)
+
+            if sheet_name == "REPORT":
+                # Always rebuild rows from DB trainer order
+                b_order = BRANCH_ORDER.get(gym, [])
+                t_order = trainer_order_by_branch or {}
+                if t_order:
+                    _rebuild_report_sheet(ws, t_order, b_order)
+                # For weekly/partial: overwrite col C with monthly counts
+                if is_partial and t_order:
+                    r = 7
+                    for branch in b_order:
+                        for trainer_name in t_order.get(branch, []):
+                            count = monthly_by_trainer.get(trainer_name, 0)
+                            ws.cell(row=r, column=3).value = count
+                            r += 1
+                elif is_partial:
+                    # Fallback to static TRAINER_ORDER if no DB data
+                    for idx, trainer in enumerate(TRAINER_ORDER.get(gym, [])):
+                        count = monthly_by_trainer.get(trainer, 0)
+                        ws.cell(row=7 + idx, column=3).value = count
+
             if is_partial and sheet_name == "REPORT 2":
                 branch_order = BRANCH_ORDER.get(gym, [])
                 for idx, branch in enumerate(branch_order):
                     count = monthly_by_branch.get(branch, 0)
                     cell = ws.cell(row=7 + idx, column=3)
-                    cell.value = None
-                    cell.value = count
-            if is_partial and sheet_name == "REPORT":
-                trainer_order = TRAINER_ORDER.get(gym, [])
-                for idx, trainer in enumerate(trainer_order):
-                    count = monthly_by_trainer.get(trainer, 0)
-                    cell = ws.cell(row=7 + idx, column=3)
-                    cell.value = None
                     cell.value = count
             continue
 

@@ -52,17 +52,20 @@ export const quickGenerate = (gym, file) => {
   return api.post('/api/quick-generate', fd, { timeout: 90000 })
 }
 
-export const listTrainerOverrides = (gym, branch) =>
-  api.get('/api/trainer-overrides', { params: { gym, ...(branch ? { branch } : {}) } })
+export const getAllTrainersData = (gym) =>
+  api.get('/api/trainers/all', { params: { gym } })
 
 export const getTrainersFull = (gym, branch) =>
   api.get('/api/trainers-full', { params: { gym, branch } })
 
-export const upsertTrainerOverride = (payload) =>
-  api.post('/api/trainer-overrides', payload)
+export const addTrainer = (payload) =>
+  api.post('/api/trainers', payload)
 
-export const deleteTrainerOverride = (id) =>
-  api.delete(`/api/trainer-overrides/${id}`)
+export const updateTrainer = (id, payload) =>
+  api.put(`/api/trainers/${id}`, payload)
+
+export const deleteTrainer = (id) =>
+  api.delete(`/api/trainers/${id}`)
 
 export const listPrograms = (gym, approved, year, month) =>
   api.get('/api/programs', { params: { gym, approved, year, month } })

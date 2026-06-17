@@ -3,9 +3,11 @@ import ProgramGeneration from './pages/ProgramGeneration'
 import Reports from './pages/Reports'
 import QuickGenerate from './pages/QuickGenerate'
 import TrainerManager from './pages/TrainerManager'
+import { TrainersProvider } from './context/TrainersContext'
 
 export default function App() {
   return (
+    <TrainersProvider>
     <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Navbar */}
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center">
@@ -85,5 +87,6 @@ export default function App() {
         </Routes>
       </main>
     </div>
+    </TrainersProvider>
   )
 }
