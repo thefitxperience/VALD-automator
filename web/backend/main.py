@@ -543,8 +543,8 @@ def api_generate_report(
     start_day: Optional[int] = Form(None),
     end_day: Optional[int] = Form(None),
 ):
-    # Fetch all approved programs for this gym
-    res = supabase.table("programs").select("*").eq("gym", gym).eq("approved", True).execute()
+    # Fetch all approved, non-ignored programs for this gym
+    res = supabase.table("programs").select("*").eq("gym", gym).eq("approved", True).neq("ignored", True).execute()
     all_programs = res.data or []
 
     try:
