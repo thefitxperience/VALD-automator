@@ -291,7 +291,11 @@ def generate_payment_report(
                 ws.row_dimensions[dest_row].height = 58
 
                 client_id     = prog.get("client_id") or None
-                client_name   = prog.get("client_name", "")
+                _raw_name     = prog.get("client_name", "")
+                _test_type    = prog.get("test_type", "") or ""
+                _type_labels  = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body"}
+                _label        = _type_labels.get(_test_type, "")
+                client_name   = f"{_raw_name} - {_label}" if _label else _raw_name
                 trainer_name  = prog.get("trainer_name", "") or ""
                 test_date     = _to_date(prog.get("test_date"))
                 dispatch_date = _to_date(prog.get("dispatch_date"))
