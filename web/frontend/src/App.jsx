@@ -3,6 +3,7 @@ import ProgramGeneration from './pages/ProgramGeneration'
 import Reports from './pages/Reports'
 import QuickGenerate from './pages/QuickGenerate'
 import TrainerManager from './pages/TrainerManager'
+import Bodydot from './pages/Bodydot'
 import { TrainersProvider } from './context/TrainersContext'
 
 export default function App() {
@@ -11,10 +12,9 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Navbar */}
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center">
-        {/* Logos stacked */}
-        <div className="flex flex-col items-center gap-0.5 mr-8">
-          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-12 w-auto object-contain mt-1" />
-          <img src={`${import.meta.env.BASE_URL}VALD.png`} alt="VALD" className="h-12 w-auto object-contain -mb-2" />
+        {/* Logo — fixed height preserves the original navbar height */}
+        <div className="flex items-center justify-center mr-12 h-[90px] w-[85px]">
+          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-[49px] w-auto object-contain translate-x-[6px]" />
         </div>
         {/* Left links */}
         <div className="flex gap-1">
@@ -29,7 +29,19 @@ export default function App() {
               }`
             }
           >
-            Program Generation
+            VALD Generation
+          </NavLink>
+          <NavLink
+            to="/bodydot"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-brand-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`
+            }
+          >
+            Bodydot Generation
           </NavLink>
           <NavLink
             to="/reports"
@@ -84,6 +96,7 @@ export default function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/quick" element={<QuickGenerate />} />
           <Route path="/trainers" element={<TrainerManager />} />
+          <Route path="/bodydot" element={<Bodydot />} />
         </Routes>
       </main>
     </div>

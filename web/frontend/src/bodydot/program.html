@@ -1,0 +1,4289 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posture Correction Form</title>
+    <link rel="icon" type="image/png" href="./icon.ico">
+    <link rel="shortcut icon" type="image/png" href="./icon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- tesseract.js (OCR) and supabase-js CDNs removed: this build only renders Bodydot-sourced programs. -->
+    <script>
+        // Redirect to mobile version if on mobile device
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+            window.location.href = 'mobile.html';
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #displayPage[dir="rtl"] {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+        }
+        /* ── Arabic compact overrides ─────────────────────────────── */
+
+        /* Tighten line-height for Cairo font across the whole display page */
+        #displayPage[dir="rtl"] .container,
+        #displayPage[dir="rtl"] .container * {
+            line-height: 1.37;
+        }
+
+        /* Reduce table cell padding so rows aren't taller */
+        #displayPage[dir="rtl"] td {
+            padding: 5.5px 8px;
+        }
+        #displayPage[dir="rtl"] th {
+            padding: 6.5px 8px;
+        }
+        #displayPage[dir="rtl"] .section-left-column td,
+        #displayPage[dir="rtl"] .section-content-lower-body td {
+            padding: 5px 8px;
+        }
+        #displayPage[dir="rtl"] .section-left-column th,
+        #displayPage[dir="rtl"] .section-content-lower-body th {
+            padding: 5px 8px;
+        }
+        #displayPage[dir="rtl"] table:has(#upperBodyExercises) th,
+        #displayPage[dir="rtl"] table:has(#upperBodyExercises) td {
+            padding: 8.5px 8.5px;
+        }
+
+        /* Exercise name alignment and font in RTL */
+        #displayPage[dir="rtl"] .exercise-name {
+            text-align: right !important;
+            font-size: 11px;
+        }
+        /* Name header right-aligned in RTL (overrides inline style) */
+        #displayPage[dir="rtl"] thead th:first-child {
+            text-align: right !important;
+        }
+        #displayPage[dir="rtl"] .section-left-column .exercise-name,
+        #displayPage[dir="rtl"] .section-content-lower-body .exercise-name {
+            font-size: 11.5px;
+        }
+        #displayPage[dir="rtl"] th {
+            text-align: right;
+        }
+        /* Keep sets/reps/duration headers and cells centered in RTL */
+        #displayPage[dir="rtl"] thead th:not(:first-child),
+        #displayPage[dir="rtl"] tbody td:not(.exercise-name) {
+            text-align: center;
+        }
+
+        /* Tighten remark rows */
+        #displayPage[dir="rtl"] .remark-item {
+            direction: rtl;
+            padding: 3.5px 9px;
+            gap: 8px;
+        }
+        #displayPage[dir="rtl"] .remark-label {
+            font-size: 11.5px;
+            line-height: 1.2;
+        }
+
+        /* Section & block title sizes */
+        #displayPage[dir="rtl"] .section-title {
+            font-size: 16px;
+        }
+        #displayPage[dir="rtl"] .block-title {
+            font-size: 13.5px;
+            margin-bottom: 4px;
+            padding-bottom: 3px;
+        }
+        #displayPage[dir="rtl"] .section-left-column .block-title {
+            font-size: 14.5px;
+        }
+
+        /* exercises-block inner padding */
+        #displayPage[dir="rtl"] .exercises-block {
+            padding: 7px 8px;
+        }
+        #displayPage[dir="rtl"] .section-left-column .exercises-block {
+            padding: 8px 8px;
+        }
+        #displayPage[dir="rtl"] .remarks {
+            padding: 7px 8px;
+            gap: 4px;
+        }
+
+        /* Column headers value/normal alignment */
+        #displayPage[dir="rtl"] .remark-header .remark-value,
+        #displayPage[dir="rtl"] .remark-item:not(.remark-header) .remark-value {
+            padding-left: 0;
+            padding-right: 50px;
+        }
+        #displayPage[dir="rtl"] .remark-header .remark-normal,
+        #displayPage[dir="rtl"] .remark-item:not(.remark-header) .remark-normal {
+            padding-left: 0;
+            padding-right: 50px;
+        }
+        #displayPage[dir="rtl"] .comparison-indicator {
+            margin-left: 0;
+            margin-right: 4px;
+        }
+        #displayPage[dir="rtl"] .header-buttons {
+            flex-direction: row-reverse;
+        }
+        #displayPage[dir="rtl"] .date {
+            flex-direction: row-reverse;
+        }
+        .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .lang-toggle .lang-option {
+            padding: 2px 8px;
+            border-radius: 14px;
+            transition: background 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+        .lang-toggle .lang-option:hover {
+            background: #e0e0e0;
+        }
+        .lang-toggle .lang-option.active {
+            background: #1a73e8;
+            color: white;
+        }
+        .lang-toggle .lang-option.active:hover {
+            background: #1a73e8;
+        }
+        @media print {
+            .lang-toggle { display: none !important; }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            padding: 0;
+            color: #1B3448;
+            background-image: url('background.png');
+            background-repeat: no-repeat;
+            background-position: right center;
+            background-size: 900px auto; /* Change 600px to adjust width, or use 'auto 800px' to adjust height */
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 15px auto 0;
+            background: transparent;
+            padding: 5px 25px 15px;
+            box-shadow: none;
+            min-height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Input Page Styles */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        #inputPage {
+            background: linear-gradient(135deg, #5B9FA4 0%, #1B3448 100%);
+            min-height: 100vh;
+            padding: 20px 20px 5px;
+            position: relative;
+        }
+
+        #inputPage::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('background 2.png') center/cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #automatedPage {
+            background: linear-gradient(135deg, #5B9FA4 0%, #1B3448 100%);
+            min-height: 100vh;
+            padding: 20px 20px 5px;
+            position: relative;
+        }
+
+        #automatedPage::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('background 2.png') center/cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .input-page {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: transparent;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-header {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 30px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid #e9ecef;
+        }
+
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .input-header h1 {
+            color: #1B3448;
+            font-size: 20px;
+            margin: 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-header p {
+            color: #666;
+            font-size: 13px;
+            margin: 5px 0 0 0;
+        }
+
+        .input-header img {
+            height: 50px;
+            margin-right: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-client-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .client-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #1B3448;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-group label .required {
+            color: #dc3545;
+        }
+
+        .input-group input {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #5B9FA4;
+            box-shadow: 0 0 0 3px rgba(91, 159, 164, 0.1);
+        }
+
+        .test-section {
+            margin-bottom: 25px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .test-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1B3448;
+            margin-bottom: 20px;
+            padding-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .measurement-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-left: 0;
+        }
+
+        @media (max-width: 1200px) {
+            .measurement-inputs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .measurement-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .measurement-field:hover {
+            background: #e9ecef;
+        }
+
+        .measurement-field label {
+            font-size: 12px;
+            color: #1B3448;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .measurement-field input {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .measurement-field input:focus {
+            outline: none;
+            border-color: #5B9FA4;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            opacity: 0.3;
+        }
+
+        .color-btn.green {
+            background: #28a745;
+        }
+
+        .color-btn.green:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+            opacity: 0.6;
+        }
+
+        .color-btn.green.selected {
+            opacity: 1;
+        }
+
+        .color-btn.red {
+            background: #dc3545;
+        }
+
+        .color-btn.red:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+            opacity: 0.6;
+        }
+
+        .color-btn.red.selected {
+            opacity: 1;
+        }
+
+        .measurement-field select {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .measurement-field select:focus {
+            outline: none;
+            border-color: #5B9FA4;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #5B9FA4 0%, #1B3448 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(27, 52, 72, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(27, 52, 72, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(27, 52, 72, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #5B9FA4;
+            position: relative;
+        }
+
+        .header-buttons {
+            position: static;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-right: 40px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 52px;
+        }
+
+        .client-info h1 {
+            color: #1B3448;
+            font-size: 21px;
+            margin-bottom: 5px;
+        }
+
+        .client-info p {
+            color: #5B9FA4;
+            font-size: 13px;
+        }
+
+        .date {
+            text-align: right;
+        }
+
+        .date label {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-bottom: 0px;
+            padding: 0 12px;
+        }
+
+        .date-value {
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1B3448;
+            font-weight: 600;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.2fr;
+            gap: 10px;
+            flex: 1;
+            overflow: visible;
+            align-items: stretch;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 7px;
+            border-left: 3px solid #5B9FA4;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .section-left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-self: stretch;
+        }
+
+        .section-content-lower-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 0 5px;
+            height: 100%;
+        }
+        
+        .section-assessment-only {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 0 5px;
+            height: 100%;
+        }
+        
+        .section-assessment-only > div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-assessment-only > div:last-child {
+            flex: 1;
+        }
+
+        .section-assessment-only > div .remarks {
+            flex: 1;
+        }
+
+        #withinRangeResults,
+        #outOfRangeResults {
+            gap: 0;
+        }
+
+        #withinRangeResults .remark-item,
+        #outOfRangeResults .remark-item {
+            padding: 8px 9px;
+        }
+
+        #withinRangeResults .remark-item:not(.remark-header),
+        #outOfRangeResults .remark-item:not(.remark-header) {
+            flex: 1;
+        }
+
+        .section-title {
+            color: #1B3448;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding: 0 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            padding: 0 5px;
+        }
+
+        .exercises-block {
+            background: white;
+            padding: 7px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .exercises-block table {
+            flex: 1;
+        }
+        
+        .section-content-lower-body .exercises-block {
+            padding: 9px 10px;
+        }
+        
+        .section-content-lower-body .exercises-block table {
+            flex: 1;
+        }
+
+        .block-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5B9FA4;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #5B9FA4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-content-lower-body .block-title {
+            font-size: 15px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+        }
+
+        .sets-reps-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Upper Body & Neck positioning */
+        .upperbody-sets-label {
+            margin-right: 40px; /* Adjust this to move Upper Body Sets left/right */
+        }
+
+        .upperbody-reps-label {
+            margin-right: 45px; /* Adjust this to move Upper Body Reps left/right */
+        }
+
+        /* Lower Body & Spine positioning */
+        .lowerbody-sets-label {
+            margin-right: 18px; /* Adjust this to move Lower Body Sets left/right */
+        }
+
+        .lowerbody-reps-label {
+            margin-right: 23px; /* Adjust this to move Lower Body Reps left/right */
+        }
+
+        /* Stretching positioning */
+        .stretching-sets-label {
+            margin-right: 4px; /* Adjust this to move Stretching Sets left/right */
+        }
+
+        .stretching-reps-label {
+            margin-right: 19px; /* Adjust this to move Stretching Reps left/right */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        thead {
+            background: #3d5a6d;
+            color: white;
+        }
+
+        th {
+            padding: 7px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        th:first-child {
+            text-align: left;
+        }
+
+        td {
+            padding: 6px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        td:first-child {
+            text-align: left;
+        }
+        
+        .section-content-lower-body td {
+            padding: 8px 10px;
+        }
+        
+        .section-content-lower-body th {
+            padding: 8px 10px;
+        }
+
+        /* Stretching table row height — adjust padding here */
+        #stretchingExercises td,
+        table:has(#stretchingExercises) th {
+            padding: 8px 10px;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f0f8f9;
+        }
+
+        tbody tr:hover {
+            background: #e0f2f4 !important;
+        }
+
+        .exercise-name {
+            text-align: left !important;
+            font-size: 11px;
+            color: #1B3448;
+        }
+
+        /* Center the numeric columns (sets/reps/duration) */
+        thead th:not(:first-child),
+        tbody td:not(.exercise-name) {
+            text-align: center;
+        }
+        
+        .section-content-lower-body .exercise-name {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .section-left-column .section:nth-child(2) {
+            flex: 1;
+        }
+        
+        .section-left-column .exercises-block {
+            padding: 9.5px 10px;
+        }
+        
+        .section-left-column td {
+            padding: 8px 10px;
+        }
+        
+        .section-left-column th {
+            padding: 8px 10px;
+        }
+        
+        .section-left-column .block-title {
+            font-size: 15px;
+            margin-bottom: 8px;
+            padding-bottom: 6.5px;
+        }
+        
+        .section-left-column .exercise-name {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        table:has(#upperBodyExercises) th,
+        table:has(#upperBodyExercises) td {
+            padding: 8.75px 8.75px;
+        }
+
+        .remarks {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .remark-item {
+            display: grid;
+            grid-template-columns: 1fr 100px 110px;
+            gap: 12px;
+            align-items: center;
+            padding: 4px 9px;
+            font-size: 12px;
+            border-bottom: 1px dashed #e0e0e0;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        
+        .remark-item:hover {
+            background: #f8f9fa;
+        }
+
+        .remark-item:last-child {
+            border-bottom: none;
+        }
+        
+        .remark-item.last-visible {
+            border-bottom: none;
+        }
+
+        .remark-label {
+            font-weight: 500;
+            color: #1B3448;
+        }
+
+        .remark-value {
+            color: #1B3448;
+            font-weight: 600;
+            font-size: 11px;
+            padding-left: 40px;
+        }
+        
+        .remark-item:not(.remark-header) .remark-value {
+            padding-left: 45px;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .remark-normal {
+            color: #6c757d;
+            font-size: 11px;
+            font-weight: 400;
+            padding-left: 40px;
+        }
+        
+        .remark-item:not(.remark-header) .remark-normal {
+            padding-left: 28px;
+            text-align: center;
+        }
+        
+        .remark-header {
+            font-weight: 600;
+            color: #1B3448;
+            background: transparent !important;
+            border-bottom: none !important;
+            padding: 6px 9px !important;
+        }
+        
+        .remark-header .remark-value,
+        .remark-header .remark-normal {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1B3448;
+        }
+
+        .abnormal {
+            color: #d9534f !important;
+        }
+
+        .middle {
+            color: #f0ad4e !important;
+        }
+
+        .normal {
+            color: #5cb85c !important;
+        }
+
+        .sets-reps-header {
+            background: #5B9FA4 !important;
+        }
+
+        @media screen and (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
+            .container {
+                height: auto;
+            }
+        }
+
+        @media print {
+            @page {
+                size: 410mm 296mm;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+                background-image: url('background.png');
+                background-repeat: no-repeat;
+                background-position: right center;
+                background-size: 1050px auto;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .notification-toast {
+                display: none !important;
+            }
+
+            #inputPage {
+                display: none !important;
+            }
+
+            #displayPage {
+                display: block !important;
+            }
+
+            .page {
+                display: none !important;
+            }
+
+            .page.active {
+                display: block !important;
+            }
+
+            .container {
+                margin: 15px auto 0;
+                padding: 10px 25px 30px;
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                max-width: 100%;
+                min-height: unset;
+            }
+
+            .content {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1.2fr !important;
+                gap: 10px !important;
+            }
+
+            .header-buttons {
+                display: none !important;
+            }
+
+            .exercises-block,
+            .remarks {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
+
+            .section {
+                box-shadow: none !important;
+            }
+        }
+
+        .measurement-field.pelvic-tilt-row {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .measurement-field.pelvic-tilt-row > div {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .measurement-field.pelvic-tilt-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .measurement-field.pelvic-tilt-row select {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Autocomplete dropdown */
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-item:hover {
+            background: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-name {
+            font-weight: 500;
+            color: #1B3448;
+        }
+
+        .autocomplete-date {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .autocomplete-empty {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        /* Comparison indicators */
+        .comparison-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 14px;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .comparison-improved {
+            color: #28a745;
+        }
+
+        .comparison-worsened {
+            color: #dc3545;
+        }
+
+        .comparison-same {
+            color: #6c757d;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #5B9FA4;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1B3448;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6c757d;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #1B3448;
+        }
+
+        .history-item {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+
+        .history-date {
+            font-weight: 600;
+            color: #1B3448;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateY(80px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(80px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- INPUT PAGE -->
+    <div id="inputPage" class="page active">
+        <div class="input-page">
+            <div class="input-header">
+                <div class="header-top-row">
+                    <div class="header-content">
+                        <img src="FIT_LOGO.png" alt="Logo" style="height: 50px; margin-right: 20px;">
+                        <div>
+                            <h1>Posture Correction Assessment Form</h1>
+                            <p style="color: #666; margin: 5px 0 0 0; font-size: 13px;">Enter client information and measurement data</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="processImages(event)">
+                        <button type="button" onclick="autoFillForm()" class="btn-primary" style="background: #6c757d;">Auto Fill (Test)</button>
+                        <button type="button" onclick="goToAutomated()" class="btn-primary" style="background:#117a65;">Automated</button>
+                        <button type="submit" form="assessmentForm" class="btn-primary">Generate Form</button>
+                    </div>
+                </div>
+                
+                <!-- Client Information -->
+                <div class="header-client-inputs">
+                    <div class="input-group autocomplete-container">
+                        <label for="clientName">Client Name</label>
+                        <input type="text" id="clientName" required placeholder="Enter client name" autocomplete="off">
+                        <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="assessmentDate">Assessment Date</label>
+                        <input type="date" id="assessmentDate" required>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+            <form id="assessmentForm">
+
+                <!-- STANDING FRONT -->
+                <div class="test-section">
+                    <div class="test-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>STANDING FRONT</span>
+                        <button type="button" onclick="scanSection('standingFront')" style="background: #6c757d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Scan Standing Front image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="measurement-inputs">
+                        <div class="measurement-field">
+                            <label>Left Shoulder Slope</label>
+                            <input type="number" step="0.1" id="leftShoulderSlope" placeholder="e.g., 19.2">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Left HKA Angle</label>
+                            <input type="number" step="0.1" id="leftHKA" placeholder="e.g., -0.3">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Right Shoulder Slope</label>
+                            <input type="number" step="0.1" id="rightShoulderSlope" placeholder="e.g., 23.0">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Right HKA Angle</label>
+                            <input type="number" step="0.1" id="rightHKA" placeholder="e.g., -0.2">
+                        </div>
+                        <div class="measurement-field pelvic-tilt-row">
+                            <label>Pelvic Tilt</label>
+                            <div>
+                                <input type="number" step="0.1" id="pelvicTilt" placeholder="e.g., -0.4">
+                                <select id="pelvicTiltSide" style="padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px;">
+                                    <option value="">Select</option>
+                                    <option value="Left">Left</option>
+                                    <option value="Right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STANDING RIGHT -->
+                <div class="test-section">
+                    <div class="test-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>STANDING RIGHT</span>
+                        <button type="button" onclick="scanSection('standingRight')" style="background: #6c757d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Scan Standing Right image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="measurement-inputs">
+                        <div class="measurement-field">
+                            <label>Forward Head Posture Angle</label>
+                            <input type="number" step="0.1" id="forwardHeadRight" placeholder="e.g., 32.4">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Rounded Shoulder Angle</label>
+                            <input type="number" step="0.1" id="roundedShoulderRight" placeholder="e.g., 38.6">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Thoracic Kyphosis Angle</label>
+                            <input type="number" step="0.1" id="thoracicKyphosisRight" placeholder="e.g., 48.1">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Lumbar Lordosis Angle</label>
+                            <input type="number" step="0.1" id="lumbarLordosisRight" placeholder="e.g., 57.7">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Kendall Knee Angle</label>
+                            <input type="number" step="0.1" id="kendallKneeRight" placeholder="e.g., 8.6">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STANDING LEFT -->
+                <div class="test-section">
+                    <div class="test-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>STANDING LEFT</span>
+                        <button type="button" onclick="scanSection('standingLeft')" style="background: #6c757d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Scan Standing Left image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="measurement-inputs">
+                        <div class="measurement-field">
+                            <label>Forward Head Angle</label>
+                            <input type="number" step="0.1" id="forwardHeadLeft" placeholder="e.g., 35.9">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Rounded Shoulder Angle</label>
+                            <input type="number" step="0.1" id="forwardShoulderLeft" placeholder="e.g., 42.8">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Thoracic Kyphosis</label>
+                            <input type="number" step="0.1" id="thoracicKyphosisLeft" placeholder="e.g., 46.1">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Lumbar Lordosis</label>
+                            <input type="number" step="0.1" id="lumbarLordosisLeft" placeholder="e.g., 55.7">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Kendall Knee Angle</label>
+                            <input type="number" step="0.1" id="kendallKneeLeft" placeholder="e.g., 11.5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OVERHEAD SQUAT -->
+                <div class="test-section">
+                    <div class="test-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>OVERHEAD SQUAT</span>
+                        <button type="button" onclick="scanSection('overheadSquat')" style="background: #6c757d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Scan Overhead Squat image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="measurement-inputs">
+                        <div class="measurement-field">
+                            <label>Shoulder Stability</label>
+                            <input type="number" step="0.1" id="shoulderStability" placeholder="e.g., 131.9">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Squat Depth</label>
+                            <input type="number" step="0.1" id="squatDepth" placeholder="e.g., 52.2">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Spinal Neutrality</label>
+                            <input type="number" step="0.1" id="spineNeutrality" placeholder="e.g., 59.0">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Pelvic Stability</label>
+                            <input type="number" step="0.1" id="pelvicStability" placeholder="e.g., 0.2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOE TOUCH TEST -->
+                <div class="test-section">
+                    <div class="test-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>TOE TOUCH TEST</span>
+                        <button type="button" onclick="scanSection('toeTouchTest')" style="background: #6c757d; border: none; color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Scan Toe Touch Test image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="measurement-inputs">
+                        <div class="measurement-field">
+                            <label>Knee Extension Angle</label>
+                            <input type="number" step="0.1" id="kneeExtension" placeholder="e.g., 177.5">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Finger to Floor</label>
+                            <input type="number" step="0.1" id="fingerToFloor" placeholder="e.g., 15.6">
+                        </div>
+                        <div class="measurement-field">
+                            <label>Hip Hinge Angle</label>
+                            <input type="number" step="0.1" id="hipHinge" placeholder="e.g., 83.1">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!-- AUTOMATED PAGE -->
+    <div id="automatedPage" class="page">
+        <div class="input-page">
+            <div class="input-header">
+                <div class="header-top-row">
+                    <div class="header-content">
+                        <img src="FIT_LOGO.png" alt="Logo" style="height: 50px; margin-right: 20px;">
+                        <div>
+                            <h1>Automated PDF Generation</h1>
+                            <p style="color: #666; margin: 5px 0 0 0; font-size: 13px;">Select a center, then generate reports for each client.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="goBackFromAutomated()" class="btn-secondary">← Back to Form</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Org selector -->
+            <div id="autoOrgList" style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;"></div>
+
+            <!-- Client list area -->
+            <div id="autoClientArea" style="display:none;background:white;border-radius:8px;padding:20px 30px;border:2px solid #e9ecef;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:25px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                    <h3 id="autoOrgTitle" style="margin:0;font-size:20px;font-weight:700;color:#1B3448;text-transform:uppercase;letter-spacing:0.5px;flex:1;"></h3>
+                    <input id="autoClientSearch" type="text" placeholder="Filter clients…" oninput="filterAutoClients()" style="padding:8px 12px;border:2px solid #e0e0e0;border-radius:6px;font-size:13px;max-width:260px;font-family:inherit;">
+                </div>
+                <div id="autoClientList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DISPLAY PAGE -->
+    <div id="displayPage" class="page display-page">
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img src="FIT_LOGO.png" alt="Logo" class="logo">
+                <div class="client-info">
+                    <h1 data-i18n="programTitle">Posture Correction Program</h1>
+                    <p id="displayName"></p>
+                </div>
+            </div>
+            <div class="header-buttons">
+                <div class="lang-toggle">
+                    <span class="lang-option active" id="langBILINGUAL" onclick="setLanguage('bilingual')">EN/AR</span>
+                    <span class="lang-option" id="langEN" onclick="setLanguage('en')">EN</span>
+                    <span class="lang-option" id="langAR" onclick="setLanguage('ar')">AR</span>
+                </div>
+                <button onclick="downloadPDF()" class="btn-primary">Download PDF</button>
+            </div>
+            <div class="date">
+                <label data-i18n="dateLabel">Date:</label>
+                <div class="date-value" id="displayDate"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- LEFT COLUMN: UPPER BODY + STRETCHING -->
+            <div class="section-left-column">
+                <!-- UPPER BODY AND NECK SECTION -->
+                <div class="section">
+                    <div class="section-title" data-i18n="upperBodyNeck">Upper body & neck</div>
+                    <div class="section-content">
+                        <div class="exercises-block">
+                        <div class="block-title">
+                            <span data-i18n="exercises">Exercises</span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;" data-i18n="colName">Name</th>
+                                    <th data-i18n="colSets">Sets</th>
+                                    <th data-i18n="colReps">Reps</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upperBodyExercises">
+                                <tr>
+                                    <td class="exercise-name">Single hand shrugs</td>
+                                    <td>2</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Farmer walk</td>
+                                    <td>2</td>
+                                    <td>3</td>
+                                    <td>10</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Rowing Back Machine Single Hand</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Reverse flies DB</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Rowing Back DB</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Rowing Back Cable</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Reverse Flies Cable</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STRETCHING SECTION -->
+                <div class="section">
+                    <div class="section-title" data-i18n="stretching">Stretching</div>
+                    <div class="section-content">
+                        <div class="exercises-block">
+                        <div class="block-title">
+                            <span data-i18n="exercises">Exercises</span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;" data-i18n="colName">Name</th>
+                                    <th data-i18n="colSets">Sets</th>
+                                    <th data-i18n="colDuration">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stretchingExercises">
+                                <tr>
+                                    <td class="exercise-name">Hamstring Stretching</td>
+                                    <td>2</td>
+                                    <td>1 min</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Pigeon stretching</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>1 min</td>
+                                    <td>1 min</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Chest Stretching</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>1 min</td>
+                                    <td>1 min</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Child Pose</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>1 min</td>
+                                    <td>1 min</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Hip flexors stretching</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>1 min</td>
+                                    <td>1 min</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE COLUMN: LOWER BODY AND SPINE -->
+            <div class="section">
+                <div class="section-title" data-i18n="lowerBodySpine">Lower body & spine</div>
+                <div class="section-content-lower-body">
+                    <div class="exercises-block">
+                        <div class="block-title">
+                            <span data-i18n="exercises">Exercises</span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;" data-i18n="colName">Name</th>
+                                    <th data-i18n="colSets">Sets</th>
+                                    <th data-i18n="colReps">Reps</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lowerBodyExercises">
+                                <tr>
+                                    <td class="exercise-name">Anterior pelvic tilt (Lying)</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Dead Bug</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Reverse crunches</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Half superman</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Lower back machine</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                                <tr>
+                                    <td class="exercise-name">Bird dog</td>
+                                    <td>2</td>
+                                    <td>2</td>
+                                    <td>15</td>
+                                    <td>15</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: ALL ASSESSMENT RESULTS -->
+            <div class="section">
+                <div class="section-title" data-i18n="assessmentResults">Assessment Results</div>
+                <div class="section-assessment-only">
+                    <!-- Within Range Section -->
+                    <div>
+                        <div class="block-title">
+                            <span data-i18n="withinRange">Within Range</span>
+                        </div>
+                        <div class="remark-item remark-header">
+                            <span class="remark-label"></span>
+                            <span class="remark-value" data-i18n="colResults">Results</span>
+                            <span class="remark-normal" data-i18n="colNormal">Normal</span>
+                        </div>
+                        <div class="remarks" id="withinRangeResults">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Out of Range Section -->
+                    <div>
+                        <div class="block-title">
+                            <span data-i18n="outOfRange">Out of Range</span>
+                        </div>
+                        <div class="remark-item remark-header">
+                            <span class="remark-label"></span>
+                            <span class="remark-value" data-i18n="colResults">Results</span>
+                            <span class="remark-normal" data-i18n="colNormal">Normal</span>
+                        </div>
+                        <div class="remarks" id="outOfRangeResults">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        console.log('Script starting to load...');
+
+        // ====================
+        // LANGUAGE / i18n SYSTEM
+        // ====================
+        let currentLang = 'en';
+        let currentMode = 'bilingual';
+
+        const translations = {
+            en: {
+                // Page header
+                pageTitle: 'Posture Correction Assessment Form',
+                pageSubtitle: 'Enter client information and measurement data',
+                autoFill: 'Auto Fill (Test)',
+                generateForm: 'Generate Form',
+                clientName: 'Client Name',
+                clientNamePlaceholder: 'Enter client name',
+                assessmentDate: 'Assessment Date',
+                // Section titles (input)
+                sectionStandingFront: 'STANDING FRONT',
+                sectionStandingRight: 'STANDING RIGHT',
+                sectionStandingLeft: 'STANDING LEFT',
+                sectionOverheadSquat: 'OVERHEAD SQUAT',
+                sectionToeTouch: 'TOE TOUCH TEST',
+                // Measurement labels
+                leftShoulderSlope: 'Left Shoulder Slope',
+                leftHKAAngle: 'Left HKA Angle',
+                rightShoulderSlope: 'Right Shoulder Slope',
+                rightHKAAngle: 'Right HKA Angle',
+                pelvicTilt: 'Pelvic Tilt',
+                coronalBalance: 'Coronal Balance',
+                forwardHeadPostureAngle: 'Forward Head Posture Angle',
+                t1PelvicAngle: 'T1 Pelvic Angle',
+                roundedShoulderAngle: 'Rounded Shoulder Angle',
+                sagittalVerticalAxis: 'Sagittal Vertical Axis',
+                thoracicKyphosisAngle: 'Thoracic Kyphosis Angle',
+                lumbarLordosisAngle: 'Lumbar Lordosis Angle',
+                anteriorPelvicTiltAngle: 'Anterior Pelvic Tilt Angle',
+                kendallKneeAngle: 'Kendall Knee Angle',
+                forwardHeadAngle: 'Forward Head Angle',
+                thoracicKyphosis: 'Thoracic Kyphosis',
+                lumbarLordosis: 'Lumbar Lordosis',
+                shoulderStability: 'Shoulder Stability',
+                squatDepth: 'Squat Depth',
+                spinalNeutrality: 'Spinal Neutrality',
+                pelvicStability: 'Pelvic Stability',
+                kneeExtensionAngle: 'Knee Extension Angle',
+                fingerToFloor: 'Finger to Floor',
+                hipHingeAngle: 'Hip Hinge Angle',
+                // Select options
+                selectOption: 'Select',
+                leftOption: 'Left',
+                rightOption: 'Right',
+                // Display page
+                programTitle: 'Posture Correction Program',
+                newProfile: 'New Profile',
+                backToEdit: 'Back To Edit',
+                downloadPDF: 'Download PDF',
+                dateLabel: 'Date:',
+                clientPrefix: 'Client:',
+                // Section titles (display)
+                lowerBodySpine: 'Lower body & spine',
+                upperBodyNeck: 'Upper body & neck',
+                stretching: 'Stretching',
+                assessmentResults: 'Assessment Results',
+                exercises: 'Exercises',
+                // Table headers
+                colName: 'Name',
+                colSets: 'Sets',
+                colReps: 'Reps',
+                colDuration: 'Duration',
+                colResults: 'Results',
+                colNormal: 'Normal',
+                withinRange: 'Within Range',
+                outOfRange: 'Out of Range',
+                // Measurement labels used in results
+                ml_PelvicTilt: 'Pelvic Tilt',
+                ml_CoronalBalance: 'Coronal Balance',
+                ml_LeftHKA: 'Left HKA Angle',
+                ml_RightHKA: 'Right HKA Angle',
+                ml_LeftShoulderSlope: 'Left Shoulder Slope',
+                ml_RightShoulderSlope: 'Right Shoulder Slope',
+                ml_LumbarLordosisRight: 'Lumbar Lordosis Angle (Right)',
+                ml_AntPelvicRight: 'Anterior Pelvic Tilt Angle (Right)',
+                ml_T1Right: 'T1 Pelvic Angle (Right)',
+                ml_SagRight: 'Sagittal Vertical Axis (Right)',
+                ml_FHARight: 'Forward Head Posture Angle (Right)',
+                ml_RSRight: 'Rounded Shoulder Angle (Right)',
+                ml_TKRight: 'Thoracic Kyphosis Angle (Right)',
+                ml_KKRight: 'Kendall Knee Angle (Right)',
+                ml_LumbarLordosisLeft: 'Lumbar Lordosis Angle (Left)',
+                ml_AntPelvicLeft: 'Anterior Pelvic Tilt Angle (Left)',
+                ml_T1Left: 'T1 Pelvic Angle (Left)',
+                ml_SagLeft: 'Sagittal Vertical Axis (Left)',
+                ml_FHALeft: 'Forward Head Angle (Left)',
+                ml_RSLeft: 'Rounded Shoulder Angle (Left)',
+                ml_TKLeft: 'Thoracic Kyphosis Angle (Left)',
+                ml_KKLeft: 'Kendall Knee Angle (Left)',
+                ml_PelvicStability: 'Pelvic Stability',
+                ml_SpinalNeutrality: 'Spinal Neutrality',
+                ml_SquatDepth: 'Squat Depth',
+                ml_ShoulderStability: 'Shoulder Stability',
+                ml_HipHinge: 'Hip Hinge Angle',
+                ml_FingerToFloor: 'Finger to Floor',
+                ml_KneeExtension: 'Knee Extension Angle',
+                // Exercise names (dynamic)
+                ex_LeftUpperTrapStretch: 'Stretching left upper traps',
+                ex_RightUpperTrapStretch: 'Stretching right upper traps',
+                ex_ElbowPlank: 'Elbow plank',
+                ex_SidePlank: 'Side plank',
+                ex_RightHipHike: 'Right hip hike',
+                ex_LeftHipHike: 'Left hip hike',
+                ex_LeftHalfKneelingSideBend: 'Left half kneeling side bend',
+                ex_RightHalfKneelingSideBend: 'Right half kneeling side bend',
+                ex_SeatedHipAbduction: 'Seated hip abduction',
+                ex_LeftGluteKickbacks: 'Left glute kickbacks',
+                ex_RightGluteKickbacks: 'Right glute kickbacks',
+                ex_ChinTucks: 'Chin tucks',
+                ex_ReverseFlys: 'Reverse flys',
+                ex_LeftPecDoorway: 'Left pec doorway stretch',
+                ex_RightPecDoorway: 'Right pec doorway stretch',
+                ex_CluteBridges: 'Glute bridges',
+                ex_SwissBallDeadBug: 'Swiss ball dead bug',
+                ex_SpineExtensions: 'Spine extensions',
+                ex_CobraStretch: 'Cobra pose',
+                ex_Crunches: 'Crunches',
+                ex_CamelStretch: 'Camel stretch',
+                ex_LowerBackExtensions: 'Lower back extensions',
+                ex_CatStretch: 'Cat stretch',
+                ex_SwissBallExtCrunch: 'Swiss ball extension to crunch',
+                ex_CatCamelStretch: 'Cat-camel stretch',
+                ex_LyingPosteriorPelvic: 'Lying posterior pelvic tilt',
+                ex_HipFlexorFloor: 'Hip flexor floor stretch',
+                ex_LyingAnteriorPelvic: 'Lying anterior pelvic tilt',
+                ex_FigureFourFloor: 'Figure four floor stretch',
+                ex_LyingAntPostPelvic: 'Lying anterior/posterior pelvic tilt',
+                ex_WorldsGreatestStretch: "World's greatest stretch",
+                ex_LeftLegExtensions: 'Left leg extensions',
+                ex_LeftHamstringStretch: 'Left hamstring stretch',
+                ex_LeftHamstringCurls: 'Left hamstring curls',
+                ex_LeftStandingQuadStretch: 'Left standing quad stretch',
+                ex_RightLegExtensions: 'Right leg extensions',
+                ex_RightHamstringStretch: 'Right hamstring stretch',
+                ex_RightHamstringCurls: 'Right hamstring curls',
+                ex_RightStandingQuadStretch: 'Right standing quad stretch',
+                ex_GobletSquat: 'Goblet squat',
+                ex_HamQuadStretch: 'Hamstring/quads stretch',
+                ex_YRaises: 'Y raises',
+                ex_ChildPoseStretch: 'Child pose stretch',
+                ex_KneeToWall: 'Knee to wall',
+                ex_CalvesStretch: 'Calves stretch',
+                ex_FrogPoseStretch: 'Frog pose stretch',
+                ex_FullRomLegPress: 'Leg press full ROM',
+                ex_TrxGarland: 'TRX assisted garland pose',
+                ex_WallAssistedHinge: 'Wall assisted hinge',
+                ex_LizardPoseStretch: 'Lizard pose stretch',
+                ex_JeffersonCurl: 'Jefferson curl',
+                ex_SeatedForwardFold: 'Seated forward fold stretch',
+                ex_RomanianDeadlift: 'Romanian deadlift',
+                ex_StiffLegDeadlift: 'Stiff leg deadlift',
+                ex_HamstringStretching: 'Hamstring stretching',
+                ex_SingleLegDeadlift: 'Single leg deadlift',
+                ex_BarMilitaryPress: 'Bar military press',
+                ex_ArnoldPress: 'Arnold press',
+                ex_BentOverShoulderStretch: 'Stretching shoulder (bent over flexion)',
+                ex_HipThrust: 'Hip thrust',
+                ex_HipAdductions: 'Hip adductions',
+                ex_HipAbductions: 'Hip abductions',
+                ex_BackSquatsFullRom: 'Back squats full ROM',
+                ex_GarlandPose: 'Garland pose (hip opening)',
+                ex_HipAbductionCableLeft: 'Left hip abduction cable',
+                ex_HipAbductionCableRight: 'Right hip abduction cable',
+                ex_AdductorStretch: 'Stretching adductor',
+                ex_SingleLegSquatsLeft: 'Single leg squats left',
+                ex_SingleLegPressLeft: 'Single leg press left',
+                ex_SingleLegSquatsRight: 'Single leg squats right',
+                ex_SingleLegPressRight: 'Single leg press right',
+                ex_Plank: 'Plank',
+                ex_LegRaise: 'Leg raise',
+                ex_SideCrunches: 'Side crunches',
+                ex_HipFlexorStretch: 'Stretching hip flexors',
+                ex_BackExtensions: 'Back extensions',
+                ex_RowingBack: 'Rowing back',
+                ex_SingleArmPushdownFront: 'Front single arm pushdown',
+                ex_SingleArmPushdownSide: 'Side single arm pushdown',
+                ex_SingleArmPushdownFrontLeft: 'Left front single arm pushdown',
+                ex_SingleArmPushdownSideLeft: 'Left side single arm pushdown',
+                ex_SingleArmPushdownFrontRight: 'Right front single arm pushdown',
+                ex_SingleArmPushdownSideRight: 'Right side single arm pushdown',
+                ex_FacePull: 'Face pull',
+                ex_ChestStretch: 'Stretching chest',
+                ex_ExternalRotation: 'External rotation',
+                // Misc
+                noExercises: 'No exercises based on measurements',
+                notifSaved: '✓ Assessment saved successfully',
+                notifError: 'Error saving assessment',
+                notifLoaded: 'Loaded previous test for comparison',
+            },
+            ar: {
+                // Page header
+                pageTitle: 'استمارة تقييم تصحيح الوضعية',
+                pageSubtitle: 'أدخل معلومات العميل وبيانات القياسات',
+                autoFill: 'ملء تلقائي (اختبار)',
+                generateForm: 'إنشاء النموذج',
+                clientName: 'اسم العميل',
+                clientNamePlaceholder: 'أدخل اسم العميل',
+                assessmentDate: 'تاريخ التقييم',
+                // Section titles (input)
+                sectionStandingFront: 'الوقوف الأمامي',
+                sectionStandingRight: 'الوقوف جانب أيمن',
+                sectionStandingLeft: 'الوقوف جانب أيسر',
+                sectionOverheadSquat: 'القرفصاء فوق الرأس',
+                sectionToeTouch: 'اختبار لمس أصابع القدم',
+                // Measurement labels
+                leftShoulderSlope: 'ميل الكتف الأيسر',
+                leftHKAAngle: 'زاوية HKA اليسرى',
+                rightShoulderSlope: 'ميل الكتف الأيمن',
+                rightHKAAngle: 'زاوية HKA اليمنى',
+                pelvicTilt: 'إمالة الحوض',
+                coronalBalance: 'التوازن التاجي',
+                forwardHeadPostureAngle: 'زاوية وضع الرأس للأمام',
+                t1PelvicAngle: 'زاوية T1 الحوضية',
+                roundedShoulderAngle: 'زاوية الكتف المائل',
+                sagittalVerticalAxis: 'المحور العمودي السهمي',
+                thoracicKyphosisAngle: 'زاوية الحدب الصدري',
+                lumbarLordosisAngle: 'زاوية القعس القطني',
+                anteriorPelvicTiltAngle: 'زاوية إمالة الحوض الأمامية',
+                kendallKneeAngle: 'زاوية ركبة كينيدال',
+                forwardHeadAngle: 'زاوية الرأس للأمام',
+                thoracicKyphosis: 'الحدب الصدري',
+                lumbarLordosis: 'القعس القطني',
+                shoulderStability: 'ثبات الكتف',
+                squatDepth: 'عمق القرفصاء',
+                spinalNeutrality: 'استقامة العمود الفقري',
+                pelvicStability: 'ثبات الحوض',
+                kneeExtensionAngle: 'زاوية تمديد الركبة',
+                fingerToFloor: 'المسافة من الإصبع إلى الأرض',
+                hipHingeAngle: 'زاوية مفصلة الورك',
+                // Select options
+                selectOption: 'اختر',
+                leftOption: 'يسار',
+                rightOption: 'يمين',
+                // Display page
+                programTitle: 'برنامج تصحيح الوضعية',
+                newProfile: 'ملف جديد',
+                backToEdit: 'العودة للتعديل',
+                downloadPDF: 'تحميل PDF',
+                dateLabel: 'التاريخ:',
+                clientPrefix: 'العميل:',
+                // Section titles (display)
+                lowerBodySpine: 'الجسم السفلي والعمود الفقري',
+                upperBodyNeck: 'الجسم العلوي والرقبة',
+                stretching: 'تمارين التمدد',
+                assessmentResults: 'نتائج التقييم',
+                exercises: 'التمارين',
+                // Table headers
+                colName: 'الاسم',
+                colSets: 'المجموعات',
+                colReps: 'التكرارات',
+                colDuration: 'المدة',
+                colResults: 'النتائج',
+                colNormal: 'الطبيعي',
+                withinRange: 'ضمن النطاق الطبيعي',
+                outOfRange: 'خارج النطاق الطبيعي',
+                // Measurement labels used in results
+                ml_PelvicTilt: 'إمالة الحوض',
+                ml_CoronalBalance: 'التوازن التاجي',
+                ml_LeftHKA: 'زاوية HKA اليسرى',
+                ml_RightHKA: 'زاوية HKA اليمنى',
+                ml_LeftShoulderSlope: 'ميل الكتف الأيسر',
+                ml_RightShoulderSlope: 'ميل الكتف الأيمن',
+                ml_LumbarLordosisRight: 'زاوية القعس القطني (يمين)',
+                ml_AntPelvicRight: 'زاوية إمالة الحوض الأمامية (يمين)',
+                ml_T1Right: 'زاوية T1 الحوضية (يمين)',
+                ml_SagRight: 'المحور العمودي السهمي (يمين)',
+                ml_FHARight: 'زاوية وضع الرأس للأمام (يمين)',
+                ml_RSRight: 'زاوية الكتف المائل (يمين)',
+                ml_TKRight: 'زاوية الحدب الصدري (يمين)',
+                ml_KKRight: 'زاوية ركبة كينيدال (يمين)',
+                ml_LumbarLordosisLeft: 'زاوية القعس القطني (يسار)',
+                ml_AntPelvicLeft: 'زاوية إمالة الحوض الأمامية (يسار)',
+                ml_T1Left: 'زاوية T1 الحوضية (يسار)',
+                ml_SagLeft: 'المحور العمودي السهمي (يسار)',
+                ml_FHALeft: 'زاوية الرأس للأمام (يسار)',
+                ml_RSLeft: 'زاوية الكتف المائل (يسار)',
+                ml_TKLeft: 'زاوية الحدب الصدري (يسار)',
+                ml_KKLeft: 'زاوية ركبة كينيدال (يسار)',
+                ml_PelvicStability: 'ثبات الحوض',
+                ml_SpinalNeutrality: 'استقامة العمود الفقري',
+                ml_SquatDepth: 'عمق القرفصاء',
+                ml_ShoulderStability: 'ثبات الكتف',
+                ml_HipHinge: 'زاوية مفصلة الورك',
+                ml_FingerToFloor: 'المسافة من الإصبع إلى الأرض',
+                ml_KneeExtension: 'زاوية تمديد الركبة',
+                // Exercise names (dynamic)
+                ex_LeftUpperTrapStretch: 'تمديد الترابيس يسار',
+                ex_RightUpperTrapStretch: 'تمديد الترابيس يمين',
+                ex_ElbowPlank: 'البلانك على الكوعين',
+                ex_SidePlank: 'البلانك الجانبي',
+                ex_RightHipHike: 'رفع الورك الأيمن',
+                ex_LeftHipHike: 'رفع الورك الأيسر',
+                ex_LeftHalfKneelingSideBend: 'الانحناء الجانبي على الركبة اليسرى',
+                ex_RightHalfKneelingSideBend: 'الانحناء الجانبي على الركبة اليمنى',
+                ex_SeatedHipAbduction: 'فرجة الورك جلوساً',
+                ex_LeftGluteKickbacks: 'ركلات الأرداف اليسرى',
+                ex_RightGluteKickbacks: 'ركلات الأرداف اليمنى',
+                ex_ChinTucks: 'ثني الذقن',
+                ex_ReverseFlys: 'الطيران العكسي',
+                ex_LeftPecDoorway: 'تمدد عضلة الصدر اليسرى بالباب',
+                ex_RightPecDoorway: 'تمدد عضلة الصدر اليمنى بالباب',
+                ex_CluteBridges: 'جسر الأرداف',
+                ex_SwissBallDeadBug: 'حشرة ميتة بالكرة السويسرية',
+                ex_SpineExtensions: 'تمديد العمود الفقري',
+                ex_CobraStretch: 'تمدد الظهر كوبرا',
+                ex_Crunches: 'تقريب البطن',
+                ex_CamelStretch: 'تمدد وضعية الجمل',
+                ex_LowerBackExtensions: 'تمديد أسفل الظهر',
+                ex_CatStretch: 'تمدد وضعية القطة',
+                ex_SwissBallExtCrunch: 'تمديد إلى تقريب بالكرة السويسرية',
+                ex_CatCamelStretch: 'تمدد القطة والجمل',
+                ex_LyingPosteriorPelvic: 'إمالة الحوض الخلفية مستلقياً',
+                ex_HipFlexorFloor: 'تمدد ثاني الفخذ أرضياً',
+                ex_LyingAnteriorPelvic: 'إمالة الحوض الأمامية مستلقياً',
+                ex_FigureFourFloor: 'تمدد الرقم 4 أرضياً',
+                ex_LyingAntPostPelvic: 'إمالة الحوض الأمامية والخلفية مستلقياً',
+                ex_WorldsGreatestStretch: 'أعظم تمدد في العالم',
+                ex_LeftLegExtensions: 'تمديد الرجل اليسرى',
+                ex_LeftHamstringStretch: 'تمدد أوتار الركبة اليسرى',
+                ex_LeftHamstringCurls: 'ثني أوتار الركبة اليسرى',
+                ex_LeftStandingQuadStretch: 'تمدد الفخذ الأيسر وقوفاً',
+                ex_RightLegExtensions: 'تمديد الرجل اليمنى',
+                ex_RightHamstringStretch: 'تمدد أوتار الركبة اليمنى',
+                ex_RightHamstringCurls: 'ثني أوتار الركبة اليمنى',
+                ex_RightStandingQuadStretch: 'تمدد الفخذ الأيمن وقوفاً',
+                ex_GobletSquat: 'القرفصاء بالوزن الأمامي',
+                ex_HamQuadStretch: 'تمدد أوتار الركبة والفخذ',
+                ex_YRaises: 'رفع حرف Y',
+                ex_ChildPoseStretch: 'تمدد وضعية الطفل',
+                ex_KneeToWall: 'الركبة إلى الحائط',
+                ex_CalvesStretch: 'تمدد عضلة الساق',
+                ex_FrogPoseStretch: 'تمدد وضعية الضفدع',
+                ex_FullRomLegPress: 'ضغط الساقين بنطاق كامل',
+                ex_TrxGarland: 'وضعية الإكليل بمساعدة TRX',
+                ex_WallAssistedHinge: 'مفصلة الورك بالحائط',
+                ex_LizardPoseStretch: 'تمدد وضعية السحلية',
+                ex_JeffersonCurl: 'كيرل جيفرسون',
+                ex_SeatedForwardFold: 'تمدد الانحناء الأمامي جلوساً',
+                ex_RomanianDeadlift: 'الديدلفت الروماني',
+                ex_StiffLegDeadlift: 'الديدلفت برجلين مستقيمة',
+                ex_HamstringStretching: 'تمديد عضلات الخلفية',
+                ex_SingleLegDeadlift: 'ديدلفت رجل واحدة',
+                ex_BarMilitaryPress: 'ضغط كتف بار مستقيم',
+                ex_ArnoldPress: 'دمبل أرنولد',
+                ex_BentOverShoulderStretch: 'إطالة الكتف بوضعية الانحناء',
+                ex_HipThrust: 'رفع الحوض بالبار',
+                ex_HipAdductions: 'تقريب الفخذ',
+                ex_HipAbductions: 'فتح الحوض',
+                ex_BackSquatsFullRom: 'سكوات خلفي كامل',
+                ex_GarlandPose: 'سكوات ثابت عميق',
+                ex_HipAbductionCableLeft: 'أرجل رفرفة خارجي كيبل يسار',
+                ex_HipAbductionCableRight: 'أرجل رفرفة خارجي كيبل يمين',
+                ex_AdductorStretch: 'تمديد الفخذ الداخلي',
+                ex_SingleLegSquatsLeft: 'سكوات رجل واحدة يسار',
+                ex_SingleLegPressLeft: 'ليج برس رجل واحدة يسار',
+                ex_SingleLegSquatsRight: 'سكوات رجل واحدة يمين',
+                ex_SingleLegPressRight: 'ليج برس رجل واحدة يمين',
+                ex_Plank: 'بلانك',
+                ex_LegRaise: 'رفع الأرجل',
+                ex_SideCrunches: 'كرانش جانبي',
+                ex_HipFlexorStretch: 'تمديد الورك الأمامي',
+                ex_BackExtensions: 'رفع الظهر',
+                ex_RowingBack: 'تمرين التجديف',
+                ex_SingleArmPushdownFront: 'خفض الكتف أمامي',
+                ex_SingleArmPushdownSide: 'خفض الكتف جانبي',
+                ex_SingleArmPushdownFrontLeft: 'خفض الكتف أمامي يسار',
+                ex_SingleArmPushdownSideLeft: 'خفض الكتف جانبي يسار',
+                ex_SingleArmPushdownFrontRight: 'خفض الكتف أمامي يمين',
+                ex_SingleArmPushdownSideRight: 'خفض الكتف جانبي يمين',
+                ex_FacePull: 'تمرين سحب للوجه',
+                ex_ChestStretch: 'تمديد الصدر',
+                ex_ExternalRotation: 'دوران خارجي للكتف',
+                // Misc
+                noExercises: 'لا توجد تمارين بناءً على القياسات',
+                notifSaved: '✓ تم حفظ التقييم بنجاح',
+                notifError: 'خطأ في حفظ التقييم',
+                notifLoaded: 'تم تحميل الاختبار السابق للمقارنة',
+            }
+        };
+
+        function t(key) {
+            return (translations[currentLang] && translations[currentLang][key]) ||
+                   (translations['en'][key]) || key;
+        }
+
+        function toArabicNumerals(str) {
+            const map = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+            return String(str).replace(/[0-9]/g, d => map[d]);
+        }
+
+        function numFmt(val) {
+            return currentLang === 'ar' ? toArabicNumerals(String(val)) : String(val);
+        }
+
+        // Translate a reps/duration value: converts digits and unit words
+        function translateReps(raw, lang) {
+            if (lang !== 'ar') return String(raw);
+            return toArabicNumerals(String(raw))
+                .replace(/\s*min\s*/gi, ' د')
+                .replace(/s$/i, 'ث');
+        }
+
+        // Translate unit words and Left/Right for Arabic
+        function localiseText(str, lang) {
+            if (lang !== 'ar') return str;
+            return str
+                .replace(/\bLeft\b/g, 'يسار')
+                .replace(/\bRight\b/g, 'يمين')
+                .replace(/\bcm\b/g, 'سم');
+        }
+
+        // Build a reverse map: translated text → translation key (for ex_ or ml_ prefixes)
+        function buildKeyMap(prefix) {
+            const map = {};
+            Object.keys(translations.en).forEach(k => {
+                if (k.startsWith(prefix)) {
+                    if (translations.en[k]) map[translations.en[k]] = k;
+                    if (translations.ar && translations.ar[k]) map[translations.ar[k]] = k;
+                }
+            });
+            return map;
+        }
+
+        function setLanguage(lang) {
+            currentMode = lang;
+            currentLang = (lang === 'ar') ? 'ar' : 'en';
+            const effectiveLang = currentLang;
+            const html = document.documentElement;
+            html.setAttribute('lang', effectiveLang);
+            const displayPage = document.getElementById('displayPage');
+            if (displayPage) displayPage.setAttribute('dir', effectiveLang === 'ar' ? 'rtl' : 'ltr');
+
+            // Update toggle button visual state
+            document.getElementById('langBILINGUAL').classList.toggle('active', lang === 'bilingual');
+            document.getElementById('langEN').classList.toggle('active', lang === 'en');
+            document.getElementById('langAR').classList.toggle('active', lang === 'ar');
+
+            // Update all data-i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[effectiveLang][key] !== undefined) {
+                    el.textContent = translations[effectiveLang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[effectiveLang][key] !== undefined) {
+                    el.placeholder = translations[effectiveLang][key];
+                }
+            });
+
+            // Update displayName prefix if currently visible
+            const displayName = document.getElementById('displayName');
+            if (displayName && displayName.textContent) {
+                const parts = displayName.textContent.split(': ');
+                if (parts.length >= 2) {
+                    displayName.textContent = t('clientPrefix') + ' ' + parts.slice(1).join(': ');
+                }
+            }
+
+            // Re-translate exercise names
+            const exKeyMap = buildKeyMap('ex_');
+            document.querySelectorAll('.exercise-name[data-ex-key]').forEach(el => {
+                const key = el.getAttribute('data-ex-key');
+                const enName = translations.en[key] || key;
+                const arName = translations.ar[key] || '';
+                if (lang === 'bilingual' && arName) {
+                    el.textContent = `${enName} / ${arName}`;
+                } else {
+                    el.textContent = t(key);
+                }
+            });
+
+            // Re-translate measurement field labels
+            document.querySelectorAll('.remark-label[data-ml-key]').forEach(el => {
+                el.textContent = t(el.getAttribute('data-ml-key'));
+            });
+
+            // Reformat date
+            const displayDateEl = document.getElementById('displayDate');
+            const rawDate = displayDateEl && displayDateEl.getAttribute('data-date-raw');
+            if (rawDate) {
+                const d = new Date(rawDate + 'T12:00:00');
+                displayDateEl.textContent = d.toLocaleDateString(
+                    lang === 'ar' ? 'ar-SA' : 'en-US',
+                    { year: 'numeric', month: 'long', day: 'numeric' }
+                );
+            }
+
+            // Reformat sets/reps cells in exercise tables
+            document.querySelectorAll('[data-num]').forEach(el => {
+                const raw = el.getAttribute('data-num');
+                el.textContent = translateReps(raw, lang);
+            });
+
+            // Reformat measurement values
+            document.querySelectorAll('.remark-value[data-raw-value]').forEach(el => {
+                const raw   = el.getAttribute('data-raw-value');
+                const pfx   = localiseText(el.getAttribute('data-prefix') || '', lang);
+                const unit  = localiseText(el.getAttribute('data-unit')   || '', lang);
+                const sfx   = localiseText(el.getAttribute('data-suffix') || '', lang);
+                const arrow = el.querySelector('.comparison-improved, .comparison-worsened, .comparison-same');
+                const arrowHtml = arrow ? arrow.outerHTML : '';
+                const num = lang === 'ar' ? toArabicNumerals(raw) : raw;
+                el.innerHTML = pfx + num + unit + (sfx ? ' ' + sfx : '') + arrowHtml;
+            });
+
+            // Reformat normal range labels
+            document.querySelectorAll('.remark-normal[data-raw-range]').forEach(el => {
+                const raw = el.getAttribute('data-raw-range');
+                el.textContent = lang === 'ar' ? localiseText(toArabicNumerals(raw), lang) : raw;
+            });
+        }
+
+        function toggleLanguage() {
+            if (currentMode === 'bilingual') setLanguage('en');
+            else if (currentMode === 'en') setLanguage('ar');
+            else setLanguage('bilingual');
+        }
+
+        // ====================
+        // SUPABASE CONFIGURATION
+        // ====================
+        const SUPABASE_URL = 'https://tozlkgcsghmcjozilrjh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvemxrZ2NzZ2htY2pvemlscmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwMTE3NTAsImV4cCI6MjA4NTU4Nzc1MH0.BbSxMpMwZ_EusKnfbtF6z6csguzglkPGja71jQwGUXA';
+        
+        // Initialize Supabase client
+        let supabaseClient = null;
+        let previousTestData = null; // Store previous test for comparison
+        
+        try {
+            if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+            } else {
+                console.warn('Supabase not configured. Database features disabled.');
+            }
+        } catch (error) {
+            console.error('Error initializing Supabase:', error);
+            console.warn('Database features disabled due to initialization error.');
+        }
+        
+        // Detect OS and inject appropriate print page size
+        (function detectOS() {
+            const userAgent = window.navigator.userAgent;
+            const platform = window.navigator.platform;
+            const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
+            const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
+            
+            const isMac = macosPlatforms.indexOf(platform) !== -1;
+            const isWin = windowsPlatforms.indexOf(platform) !== -1;
+            if (isMac) document.body.classList.add('mac-os');
+            else if (isWin) document.body.classList.add('windows-os');
+            else document.body.classList.add('mac-os');
+            // Page size is injected dynamically at print time based on language mode
+        })();
+        
+        // ====================
+        // DATABASE FUNCTIONS
+        // ====================
+        
+        // Save assessment to database
+        async function saveAssessment(clientName, assessmentDate, measurements) {
+            if (!supabaseClient) {
+                console.warn('Supabase not configured');
+                return null;
+            }
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('assessments')
+                    .insert([
+                        {
+                            client_name: clientName,
+                            assessment_date: assessmentDate,
+                            measurements: measurements
+                        }
+                    ])
+                    .select();
+                
+                if (error) throw error;
+                
+                showNotification('✓ Assessment saved successfully', 'success');
+                return data[0];
+            } catch (error) {
+                console.error('Error saving assessment:', error);
+                showNotification('Error saving assessment', 'error');
+                return null;
+            }
+        }
+        
+        // Get all assessments for a client
+        async function getClientAssessments(clientName) {
+            if (!supabaseClient) return [];
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('assessments')
+                    .select('*')
+                    .ilike('client_name', clientName)
+                    .order('assessment_date', { ascending: false });
+                
+                if (error) throw error;
+                return data || [];
+            } catch (error) {
+                console.error('Error fetching assessments:', error);
+                return [];
+            }
+        }
+        
+        // Get most recent assessment for a client
+        async function getLatestAssessment(clientName) {
+            if (!supabaseClient) return null;
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('assessments')
+                    .select('*')
+                    .ilike('client_name', clientName)
+                    .order('assessment_date', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                return data && data.length > 0 ? data[0] : null;
+            } catch (error) {
+                console.error('Error fetching latest assessment:', error);
+                return null;
+            }
+        }
+        
+        // Search clients by name
+        async function searchClients(searchTerm) {
+            if (!supabaseClient || searchTerm.length < 2) return [];
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('assessments')
+                    .select('client_name, assessment_date')
+                    .ilike('client_name', `%${searchTerm}%`)
+                    .order('assessment_date', { ascending: false });
+                
+                if (error) throw error;
+                
+                // Group by client name and get latest date
+                const clientMap = {};
+                data.forEach(item => {
+                    if (!clientMap[item.client_name] || item.assessment_date > clientMap[item.client_name]) {
+                        clientMap[item.client_name] = item.assessment_date;
+                    }
+                });
+                
+                return Object.entries(clientMap).map(([name, date]) => ({ name, latestDate: date }));
+            } catch (error) {
+                console.error('Error searching clients:', error);
+                return [];
+            }
+        }
+        
+
+        
+        // ====================
+        // AUTOCOMPLETE FUNCTIONALITY
+        // ====================
+        
+        let autocompleteTimeout = null;
+        
+        function initializeAutocomplete() {
+            const clientNameInput = document.getElementById('clientName');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            if (!clientNameInput || !dropdown) return;
+            
+            clientNameInput.addEventListener('input', async function() {
+                const searchTerm = this.value.trim();
+                
+                // Clear previous timeout
+                clearTimeout(autocompleteTimeout);
+                
+                if (searchTerm.length < 2) {
+                    dropdown.classList.remove('active');
+                    dropdown.innerHTML = '';
+                    return;
+                }
+                
+                // Debounce search
+                autocompleteTimeout = setTimeout(async () => {
+                    const results = await searchClients(searchTerm);
+                    
+                    if (results.length === 0) {
+                        dropdown.classList.remove('active');
+                        dropdown.innerHTML = '';
+                    } else {
+                        dropdown.innerHTML = results.map(client => `
+                            <div class="autocomplete-item" data-name="${client.name}">
+                                <span class="autocomplete-name">${client.name}</span>
+                                <span class="autocomplete-date">Latest: ${new Date(client.latestDate).toLocaleDateString()}</span>
+                            </div>
+                        `).join('');
+                        dropdown.classList.add('active');
+                        
+                        // Add click handlers
+                        dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                            item.addEventListener('click', async function() {
+                                const selectedName = this.dataset.name;
+                                clientNameInput.value = selectedName;
+                                dropdown.classList.remove('active');
+                                
+                                // Load previous test data for comparison
+                                previousTestData = await getLatestAssessment(selectedName);
+                                if (previousTestData) {
+                                    showNotification(`Loaded previous test for comparison (${new Date(previousTestData.assessment_date).toLocaleDateString()})`, 'info');
+                                }
+                            });
+                        });
+                    }
+                }, 300);
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.autocomplete-container')) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+        
+        // ====================
+        // COMPARISON INDICATORS
+        // ====================
+        
+        // Add comparison indicators to measurement inputs
+        function setupComparisonIndicators() {
+            const measurementInputs = document.querySelectorAll('input[type="number"][id]');
+            
+            measurementInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    updateComparisonIndicator(this);
+                });
+            });
+        }
+        
+        function updateComparisonIndicator(input) {
+            const fieldId = input.id;
+            const currentValue = parseFloat(input.value);
+            
+            // Find the label for this input
+            const label = input.parentElement.querySelector('label');
+            if (!label) return;
+            
+            // Remove existing indicator from label
+            const existingIndicator = label.querySelector('.comparison-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            if (!previousTestData || !previousTestData.measurements || isNaN(currentValue)) {
+                return;
+            }
+            
+            const previousValue = previousTestData.measurements[fieldId];
+            if (previousValue === undefined || previousValue === null) {
+                return;
+            }
+            
+            const prevValue = parseFloat(previousValue);
+            if (isNaN(prevValue)) {
+                return;
+            }
+            
+            // Determine if improvement based on normal range
+            const rangeData = normalValues[fieldId];
+            if (!rangeData) return;
+            
+            const currentResult = calculateColorCategory(currentValue, rangeData);
+            const previousResult = calculateColorCategory(prevValue, rangeData);
+            
+            let indicator = '';
+            let className = '';
+            
+            if (currentResult.category === 'normal' && previousResult.category !== 'normal') {
+                // Moved to normal
+                indicator = '↑';
+                className = 'comparison-improved';
+            } else if (currentResult.category === 'abnormal' && previousResult.category !== 'abnormal') {
+                // Moved to abnormal
+                indicator = '↓';
+                className = 'comparison-worsened';
+            } else if (currentResult.category === previousResult.category) {
+                // Check if value moved closer or further from normal
+                const currentDist = getDistanceFromNormal(currentValue, rangeData);
+                const previousDist = getDistanceFromNormal(prevValue, rangeData);
+                
+                if (currentDist < previousDist) {
+                    indicator = '↑';
+                    className = 'comparison-improved';
+                } else if (currentDist > previousDist) {
+                    indicator = '↓';
+                    className = 'comparison-worsened';
+                } else {
+                    indicator = '–';
+                    className = 'comparison-same';
+                }
+            } else if (currentResult.category === 'middle') {
+                if (previousResult.category === 'abnormal') {
+                    indicator = '↑';
+                    className = 'comparison-improved';
+                } else {
+                    indicator = '↓';
+                    className = 'comparison-worsened';
+                }
+            } else if (previousResult.category === 'middle') {
+                if (currentResult.category === 'normal') {
+                    indicator = '↑';
+                    className = 'comparison-improved';
+                } else {
+                    indicator = '↓';
+                    className = 'comparison-worsened';
+                }
+            }
+            
+            if (indicator) {
+                const span = document.createElement('span');
+                span.className = `comparison-indicator ${className}`;
+                span.textContent = indicator;
+                label.appendChild(span);
+            }
+        }
+        
+        function getDistanceFromNormal(value, rangeData) {
+            const { type, values } = rangeData;
+            
+            if (type === 'red-red') {
+                const [minAbn, normLow, normHigh, maxAbn] = values;
+                if (value >= normLow && value <= normHigh) return 0;
+                if (value < normLow) return normLow - value;
+                return value - normHigh;
+            } else if (type === 'blue-red') {
+                const [normStart, normEnd, maxAbn] = values;
+                if (value >= normStart && value <= normEnd) return 0;
+                return Math.abs(value - normEnd);
+            } else if (type === 'red-blue') {
+                const [minAbn, normStart, normEnd] = values;
+                if (value >= normStart && value <= normEnd) return 0;
+                return Math.abs(value - normStart);
+            }
+            return 0;
+        }
+        
+
+        
+        // ====================
+        // NOTIFICATION SYSTEM
+        // ====================
+        
+        function showNotification(message, type = 'info') {
+            return; // temporarily disabled
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545',
+                info: '#17a2b8'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification-toast';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${colors[type]};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+                font-weight: 500;
+                max-width: 350px;
+                animation: toastSlideIn 0.3s ease forwards;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'toastSlideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 900);
+        }
+        
+        // Image OCR Processing
+        let ocrProgress = null;
+        let currentSection = null;
+        
+        function scanSection(section) {
+            currentSection = section;
+            document.getElementById('imageUpload').click();
+        }
+        
+        async function processImages(event) {
+            const files = event.target.files;
+            if (files.length === 0 || !currentSection) return;
+            
+            const file = files[0]; // Only process first image
+            
+            // Show progress indicator
+            showOCRProgress(`Scanning ${getSectionName(currentSection)}...`);
+            
+            try {
+                const result = await Tesseract.recognize(
+                    file,
+                    'eng',
+                    {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                showOCRProgress(`Scanning ${getSectionName(currentSection)}: ${Math.round(m.progress * 100)}%`);
+                            }
+                        }
+                    }
+                );
+                
+                const extractedData = parseOCRText(result.data.text, currentSection);
+                
+                // Fill form with extracted data
+                fillFormWithData(extractedData);
+                
+                // Show success message
+                const matchedCount = Object.keys(extractedData).length;
+                showOCRProgress(`✓ ${getSectionName(currentSection)} scan complete! Found ${matchedCount} measurements.`, true);
+                
+                setTimeout(() => hideOCRProgress(), 3000);
+                
+            } catch (error) {
+                console.error('Error processing image:', error);
+                showOCRProgress('Error scanning image');
+                setTimeout(() => hideOCRProgress(), 3000);
+            }
+            
+            // Reset file input and section
+            event.target.value = '';
+            currentSection = null;
+        }
+        
+        function getSectionName(section) {
+            const names = {
+                'standingFront': 'Standing Front',
+                'standingRight': 'Standing Right',
+                'standingLeft': 'Standing Left',
+                'overheadSquat': 'Overhead Squat',
+                'toeTouchTest': 'Toe Touch Test'
+            };
+            return names[section] || section;
+        }
+        
+        function parseOCRText(text, section) {
+            const extractedData = {};
+            
+            // Section-specific measurement mappings
+            const sectionMappings = {
+                'standingFront': {
+                    'left shoulder slope': 'leftShoulderSlope',
+                    'right shoulder slope': 'rightShoulderSlope',
+                    'pelvic tilt': 'pelvicTilt',
+                    'coronal balance': 'coronalBalance',
+                    'left hka angle': 'leftHKA',
+                    'right hka angle': 'rightHKA'
+                },
+                'standingRight': {
+                    'lumbar lordosis angle': 'lumbarLordosisRight',
+                    'lumbar lordosis': 'lumbarLordosisRight',
+                    'anterior pelvic tilt angle': 'anteriorPelvicTiltRight',
+                    'anterior pelvic tilt': 'anteriorPelvicTiltRight',
+                    't1 pelvic angle': 't1PelvicRight',
+                    't1 pelvic': 't1PelvicRight',
+                    'sagittal vertical axis': 'sagittalVerticalRight',
+                    'sagittal vertical': 'sagittalVerticalRight',
+                    'forward head posture angle': 'forwardHeadRight',
+                    'forward head angle': 'forwardHeadRight',
+                    'forward head': 'forwardHeadRight',
+                    'rounded shoulder angle': 'roundedShoulderRight',
+                    'rounded shoulder': 'roundedShoulderRight',
+                    'thoracic kyphosis angle': 'thoracicKyphosisRight',
+                    'thoracic kyphosis': 'thoracicKyphosisRight',
+                    'kendall knee angle': 'kendallKneeRight',
+                    'kendall knee': 'kendallKneeRight'
+                },
+                'standingLeft': {
+                    'lumbar lordosis angle': 'lumbarLordosisLeft',
+                    'lumbar lordosis': 'lumbarLordosisLeft',
+                    'anterior pelvic tilt angle': 'anteriorPelvicTiltLeft',
+                    'anterior pelvic tilt': 'anteriorPelvicTiltLeft',
+                    't1 pelvic angle': 't1PelvicLeft',
+                    't1 pelvic': 't1PelvicLeft',
+                    'sagittal vertical axis': 'sagittalVerticalLeft',
+                    'sagittal vertical': 'sagittalVerticalLeft',
+                    'forward head posture angle': 'forwardHeadLeft',
+                    'forward head angle': 'forwardHeadLeft',
+                    'forward head': 'forwardHeadLeft',
+                    'rounded shoulder angle': 'forwardShoulderLeft',
+                    'rounded shoulder': 'forwardShoulderLeft',
+                    'thoracic kyphosis angle': 'thoracicKyphosisLeft',
+                    'thoracic kyphosis': 'thoracicKyphosisLeft',
+                    'kendall knee angle': 'kendallKneeLeft',
+                    'kendall knee': 'kendallKneeLeft'
+                },
+                'overheadSquat': {
+                    'pelvic stability': 'pelvicStability',
+                    'spinal neutrality': 'spineNeutrality',
+                    'spine neutrality': 'spineNeutrality',
+                    'squat depth': 'squatDepth',
+                    'shoulder stability': 'shoulderStability'
+                },
+                'toeTouchTest': {
+                    'hip hinge angle': 'hipHinge',
+                    'hip hinge': 'hipHinge',
+                    'fingertip to floor distance': 'fingerToFloor',
+                    'fingertip to floor': 'fingerToFloor',
+                    'finger to floor': 'fingerToFloor',
+                    'knee extension angle': 'kneeExtension',
+                    'knee extension': 'kneeExtension'
+                }
+            };
+            
+            const measurementMap = sectionMappings[section] || {};
+            
+            // Split text into lines
+            const lines = text.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim().toLowerCase();
+                if (line.length < 3) continue;
+                
+                // Try to find measurement name and value
+                for (const [measurementName, fieldId] of Object.entries(measurementMap)) {
+                    if (line.includes(measurementName)) {
+                        // Find the position where the measurement name ends
+                        const nameEndIndex = line.indexOf(measurementName) + measurementName.length;
+                        // Only look for values AFTER the measurement name on same line
+                        let valuePartOfLine = line.substring(nameEndIndex);
+                        
+                        // If no number found on current line, check next line
+                        if (!valuePartOfLine.match(/-?\d+\.?\d*/) && i < lines.length - 1) {
+                            const nextLine = lines[i + 1].trim().toLowerCase();
+                            // Only use next line if it starts with a number or arrow+number
+                            if (nextLine.match(/^[←→↑]?\s*-?\d+\.?\d*/)) {
+                                valuePartOfLine = nextLine;
+                            }
+                        }
+                        
+                        // Extract numeric value with optional negative sign and decimal
+                        const valueMatch = valuePartOfLine.match(/-?\d+\.?\d*/);
+                        
+                        if (valueMatch && valueMatch.length > 0) {
+                            // Take the FIRST number found after the measurement name
+                            let value = valueMatch[0];
+                            
+                            // For cm values, preserve sign
+                            if (valuePartOfLine.includes('cm')) {
+                                const cmMatch = valuePartOfLine.match(/-?\d+\.?\d*\s*c/);
+                                if (cmMatch) {
+                                    value = cmMatch[0].replace('c', '').trim();
+                                }
+                            }
+                            
+                            extractedData[fieldId] = value;
+                            
+                            // Special handling for pelvic tilt side (L/R)
+                            if (fieldId === 'pelvicTilt') {
+                                // Look for L or R in the value part of the line
+                                if (valuePartOfLine.match(/[↑→]?\s*l\b/i)) {
+                                    extractedData['pelvicTiltSide'] = 'Left';
+                                } else if (valuePartOfLine.match(/[↑→]?\s*r\b/i)) {
+                                    extractedData['pelvicTiltSide'] = 'Right';
+                                }
+                            }
+                            
+                            break; // Found match, move to next line
+                        }
+                    }
+                }
+            }
+            
+            return extractedData;
+        }
+        
+        function fillFormWithData(data) {
+            for (const [fieldId, value] of Object.entries(data)) {
+                const input = document.getElementById(fieldId);
+                if (input) {
+                    input.value = value;
+                    // Trigger change event to update any dependent fields
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        }
+        
+        function showOCRProgress(message, isSuccess = false) {
+            if (!ocrProgress) {
+                ocrProgress = document.createElement('div');
+                ocrProgress.className = 'notification-toast';
+                ocrProgress.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${isSuccess ? '#28a745' : '#007bff'};
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    font-size: 14px;
+                    font-weight: 500;
+                    max-width: 350px;
+                `;
+                document.body.appendChild(ocrProgress);
+            }
+            
+            ocrProgress.textContent = message;
+            ocrProgress.style.background = isSuccess ? '#28a745' : '#007bff';
+        }
+        
+        function hideOCRProgress() {
+            if (ocrProgress) {
+                ocrProgress.remove();
+                ocrProgress = null;
+            }
+        }
+        
+        // Auto-fill form with random test data
+        function autoFillForm() {
+            // Fill client info only if empty
+            const clientNameInput = document.getElementById('clientName');
+            const assessmentDateInput = document.getElementById('assessmentDate');
+            
+            if (!clientNameInput.value) {
+                clientNameInput.value = 'Test Client ' + Math.floor(Math.random() * 1000);
+            }
+            if (!assessmentDateInput.value) {
+                assessmentDateInput.value = new Date().toISOString().split('T')[0];
+            }
+            
+            // Helper function to generate random value within range
+            function randomValue(min, max, decimals = 1) {
+                const value = Math.random() * (max - min) + min;
+                return value.toFixed(decimals);
+            }
+            
+            // Generate random value based on normalValues boundaries
+            function randomFromBoundaries(fieldId) {
+                const rangeData = normalValues[fieldId];
+                if (!rangeData) return '0';
+                
+                const { type, values } = rangeData;
+                
+                if (type === 'red-red') {
+                    // [min_abnormal, normal_low, normal_high, max_abnormal]
+                    const [minAbn, normLow, normHigh, maxAbn] = values;
+                    return randomValue(minAbn, maxAbn);
+                } else if (type === 'blue-red') {
+                    // [normal_start, normal_end, max_abnormal]
+                    const [normStart, normEnd, maxAbn] = values;
+                    return randomValue(normStart, maxAbn);
+                } else if (type === 'red-blue') {
+                    // [min_abnormal, normal_start, normal_end]
+                    const [minAbn, normStart, normEnd] = values;
+                    return randomValue(minAbn, normEnd);
+                }
+                return '0';
+            }
+            
+            // Fill STANDING FRONT measurements
+            document.getElementById('leftShoulderSlope').value = randomFromBoundaries('leftShoulderSlope');
+            document.getElementById('rightShoulderSlope').value = randomFromBoundaries('rightShoulderSlope');
+            document.getElementById('pelvicTilt').value = randomFromBoundaries('pelvicTilt');
+            document.getElementById('pelvicTiltSide').value = Math.random() > 0.5 ? 'Left' : 'Right';
+            document.getElementById('leftHKA').value = randomFromBoundaries('leftHKA');
+            document.getElementById('rightHKA').value = randomFromBoundaries('rightHKA');
+            
+            // Fill STANDING RIGHT measurements
+            document.getElementById('forwardHeadRight').value = randomFromBoundaries('forwardHeadRight');
+            document.getElementById('roundedShoulderRight').value = randomFromBoundaries('roundedShoulderRight');
+            document.getElementById('thoracicKyphosisRight').value = randomFromBoundaries('thoracicKyphosisRight');
+            document.getElementById('lumbarLordosisRight').value = randomFromBoundaries('lumbarLordosisRight');
+            document.getElementById('kendallKneeRight').value = randomFromBoundaries('kendallKneeRight');
+            
+            // Fill STANDING LEFT measurements
+            document.getElementById('forwardHeadLeft').value = randomFromBoundaries('forwardHeadLeft');
+            document.getElementById('forwardShoulderLeft').value = randomFromBoundaries('forwardShoulderLeft');
+            document.getElementById('thoracicKyphosisLeft').value = randomFromBoundaries('thoracicKyphosisLeft');
+            document.getElementById('lumbarLordosisLeft').value = randomFromBoundaries('lumbarLordosisLeft');
+            document.getElementById('kendallKneeLeft').value = randomFromBoundaries('kendallKneeLeft');
+            
+            // Fill OVERHEAD SQUAT measurements
+            document.getElementById('pelvicStability').value = randomFromBoundaries('pelvicStability');
+            document.getElementById('spineNeutrality').value = randomFromBoundaries('spineNeutrality');
+            document.getElementById('squatDepth').value = randomFromBoundaries('squatDepth');
+            document.getElementById('shoulderStability').value = randomFromBoundaries('shoulderStability');
+            
+            // Fill TOE TOUCH TEST measurements
+            document.getElementById('hipHinge').value = randomFromBoundaries('hipHinge');
+            document.getElementById('fingerToFloor').value = randomFromBoundaries('fingerToFloor');
+            document.getElementById('kneeExtension').value = randomFromBoundaries('kneeExtension');
+        }
+        
+        // Measurement ranges with proper boundaries
+        const normalValues = {
+            // RED-TO-RED: [min_abnormal, normal_low, normal_high, max_abnormal]
+            'leftShoulderSlope': { type: 'red-red', values: [-5, 12, 18, 30] },
+            'rightShoulderSlope': { type: 'red-red', values: [-5, 12, 18, 30] },
+            'pelvicTilt': { type: 'red-red', values: [-10, -2, 2, 10] },
+            'coronalBalance': { type: 'red-red', values: [-30, -5, 5, 30] },
+            'leftHKA': { type: 'red-red', values: [-10, -3, 3, 10] },
+            'rightHKA': { type: 'red-red', values: [-10, -3, 3, 10] },
+            'sagittalVerticalRight': { type: 'red-red', values: [-30, 0, 5, 30] },
+            'sagittalVerticalLeft': { type: 'red-red', values: [-30, 0, 5, 30] },
+            'thoracicKyphosisRight': { type: 'red-red', values: [20, 35, 45, 60] },
+            'thoracicKyphosisLeft': { type: 'red-red', values: [20, 35, 45, 60] },
+            'lumbarLordosisRight': { type: 'red-red', values: [30, 45, 55, 70] },
+            'lumbarLordosisLeft': { type: 'red-red', values: [30, 45, 55, 70] },
+            'anteriorPelvicTiltRight': { type: 'red-red', values: [-5, 5, 8, 20] },
+            'anteriorPelvicTiltLeft': { type: 'red-red', values: [-5, 5, 8, 20] },
+            'spineNeutrality': { type: 'red-red', values: [0, 60, 90, 150] },
+            'pelvicStability': { type: 'red-red', values: [-20, 0, 10, 20] },
+            'kendallKneeRight': { type: 'red-red', values: [-30, -5, 5, 30] },
+            'kendallKneeLeft': { type: 'red-red', values: [-30, -5, 5, 30] },
+            
+            // BLUE-TO-RED: [normal_start, normal_end, max_abnormal]
+            'forwardHeadRight': { type: 'blue-red', values: [0, 30, 70] },
+            'forwardHeadLeft': { type: 'blue-red', values: [0, 30, 70] },
+            'roundedShoulderRight': { type: 'blue-red', values: [0, 42, 70] },
+            'forwardShoulderLeft': { type: 'blue-red', values: [0, 42, 70] },
+            't1PelvicRight': { type: 'blue-red', values: [0, 20, 50] },
+            't1PelvicLeft': { type: 'blue-red', values: [0, 20, 50] },
+            
+            // RED-TO-BLUE: [min_abnormal, normal_start, normal_end]
+            'shoulderStability': { type: 'red-blue', values: [120, 170, 180] },
+            'squatDepth': { type: 'red-blue', values: [0, 60, 150] },
+            
+            // Simple ranges (for backwards compatibility)
+            'hipHinge': { type: 'blue-red', values: [0, 70, 150] },
+            'fingerToFloor': { type: 'red-red', values: [-30, -5, 5, 30] },
+            'kneeExtension': { type: 'red-blue', values: [120, 170, 180] }
+        };
+        
+        // Exercise mapping - links measurements to specific exercises
+        const exerciseMapping = {
+            'leftShoulderSlope': [
+                { name: 'Left upper trapezius stretch', type: 'stretch' }
+            ],
+            'rightShoulderSlope': [
+                { name: 'Right upper trapezius stretch', type: 'stretch' }
+            ],
+            'pelvicTiltLeft': [
+                { name: 'Right hip hike', type: 'exercise' },
+                { name: 'Left half kneeling side bend', type: 'stretch' }
+            ],
+            'pelvicTiltRight': [
+                { name: 'Left hip hike', type: 'exercise' },
+                { name: 'Right half kneeling side bend', type: 'stretch' }
+            ],
+            'leftHKA': [
+                { name: 'Left hip abduction', type: 'exercise' },
+                { name: 'Left glute kickback', type: 'exercise' }
+            ],
+            'rightHKA': [
+                { name: 'Right hip abduction', type: 'exercise' },
+                { name: 'Right glute kickback', type: 'exercise' }
+            ],
+            'forwardHeadRight': [
+                { name: 'Chin tucks', type: 'exercise' }
+            ],
+            'roundedShoulderRight': [
+                { name: 'Reverse flys', type: 'exercise' },
+                { name: 'Left Pec Doorway stretch', type: 'stretch' }
+            ],
+            'forwardHeadLeft': [
+                { name: 'Chin tucks', type: 'exercise' }
+            ],
+            'forwardShoulderLeft': [
+                { name: 'Reverse flys', type: 'exercise' },
+                { name: 'Pec stretch', type: 'stretch' }
+            ],
+            'kendallKneeRightPositive': [
+                { name: 'Leg extension', type: 'exercise' },
+                { name: 'Hamstring stretch', type: 'stretch' }
+            ],
+            'kendallKneeRightNegative': [
+                { name: 'Hamstring curl', type: 'exercise' },
+                { name: 'Quad stretch', type: 'stretch' }
+            ],
+            'kendallKneeLeftPositive': [
+                { name: 'Leg extension', type: 'exercise' },
+                { name: 'Hamstring stretch', type: 'stretch' }
+            ],
+            'kendallKneeLeftNegative': [
+                { name: 'Hamstring curl', type: 'exercise' },
+                { name: 'Quad stretch', type: 'stretch' }
+            ],
+            'pelvicStability': [
+                { name: 'Y raises', type: 'exercise' }
+            ],
+            'spineNeutrality': [
+                { name: 'Y raises', type: 'exercise' }
+            ],
+            'squatDepth': [
+                { name: 'Knee to wall', type: 'exercise' },
+                { name: 'Leg press', type: 'exercise' },
+                { name: 'Calf stretch', type: 'stretch' },
+                { name: 'Shin stretch', type: 'stretch' }
+            ],
+            'shoulderStability': [
+                { name: 'Y raises', type: 'exercise' }
+            ],
+            'hipHinge': [
+                { name: 'Forward fold stretch', type: 'stretch' },
+                { name: 'Hinge', type: 'exercise' }
+            ],
+            'fingerToFloor': [
+                { name: 'Forward fold stretch', type: 'stretch' },
+                { name: 'Jefferson curls', type: 'exercise' }
+            ],
+            'kneeExtension': [
+                { name: 'Forward fold stretch', type: 'stretch' }
+            ]
+        };
+        
+        // Calculate color category based on value vs range boundaries
+        function calculateColorCategory(value, rangeData) {
+            if (value === null || value === undefined || value === '') return null;
+            
+            const val = parseFloat(value);
+            const { type, values } = rangeData;
+            
+            if (type === 'red-red') {
+                // [min_abnormal, normal_low, normal_high, max_abnormal]
+                const [minAbn, normLow, normHigh, maxAbn] = values;
+                
+                // Calculate ±10% tolerance zones (extends into both abnormal AND normal)
+                const lowerAbnRange = normLow - minAbn;
+                const upperAbnRange = maxAbn - normHigh;
+                const tolerance10Lower = lowerAbnRange * 0.1;
+                const tolerance10Upper = upperAbnRange * 0.1;
+                
+                const middleLowStart = normLow - tolerance10Lower;
+                const middleLowEnd = normLow + tolerance10Lower;
+                const middleHighStart = normHigh - tolerance10Upper;
+                const middleHighEnd = normHigh + tolerance10Upper;
+                
+                // Lower middle zone: (normLow - 10%) to (normLow + 10%)
+                if (val >= middleLowStart && val <= middleLowEnd) {
+                    return { category: 'middle', value: val, normalStart: normLow, normalEnd: normHigh };
+                }
+                // Upper middle zone: (normHigh - 10%) to (normHigh + 10%)
+                else if (val >= middleHighStart && val <= middleHighEnd) {
+                    return { category: 'middle', value: val, normalStart: normLow, normalEnd: normHigh };
+                }
+                // Normal zone: between the two middle zones
+                else if (val > middleLowEnd && val < middleHighStart) {
+                    return { category: 'normal', value: val, normalStart: normLow, normalEnd: normHigh };
+                }
+                // Abnormal: outside all zones
+                else {
+                    return { category: 'abnormal', value: val, normalStart: normLow, normalEnd: normHigh };
+                }
+            } else if (type === 'blue-red') {
+                // [normal_start, normal_end, max_abnormal]
+                const [normStart, normEnd, maxAbn] = values;
+                const abnRange = maxAbn - normEnd;
+                const tolerance10 = abnRange * 0.1;
+                
+                const middleStart = normEnd - tolerance10;
+                const middleEnd = normEnd + tolerance10;
+                
+                // Middle zone: (normEnd - 10%) to (normEnd + 10%)
+                if (val >= middleStart && val <= middleEnd) {
+                    return { category: 'middle', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+                // Normal zone: below middle zone
+                else if (val >= normStart && val < middleStart) {
+                    return { category: 'normal', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+                // Abnormal zone: above middle zone
+                else {
+                    return { category: 'abnormal', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+            } else if (type === 'red-blue') {
+                // [min_abnormal, normal_start, normal_end]
+                const [minAbn, normStart, normEnd] = values;
+                const abnRange = normStart - minAbn;
+                const tolerance10 = abnRange * 0.1;
+                
+                const middleStart = normStart - tolerance10;
+                const middleEnd = normStart + tolerance10;
+                
+                // Middle zone: (normStart - 10%) to (normStart + 10%)
+                if (val >= middleStart && val <= middleEnd) {
+                    return { category: 'middle', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+                // Normal zone: above middle zone
+                else if (val > middleEnd && val <= normEnd) {
+                    return { category: 'normal', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+                // Abnormal zone: below middle zone
+                else {
+                    return { category: 'abnormal', value: val, normalStart: normStart, normalEnd: normEnd };
+                }
+            }
+            
+            return { category: 'normal', value: val, normalStart: 0, normalEnd: 0 };
+        }
+        
+        // Calculate sets and reps based on color category
+        function calculateSetsReps(colorCategory, isStretch = false, exerciseName = '') {
+            // Special cases: elbow plank and side plank always use 1 min
+            if (exerciseName === 'Elbow plank' || exerciseName === 'Side plank') {
+                switch (colorCategory) {
+                    case 'normal':
+                        return { sets: 2, reps: '1 min' };
+                    case 'middle':
+                        return { sets: 3, reps: '1 min' };
+                    case 'abnormal':
+                        return { sets: 4, reps: '1 min' };
+                    default:
+                        return { sets: 2, reps: '1 min' };
+                }
+            }
+            
+            // Stretches use duration-based reps
+            if (isStretch) {
+                switch (colorCategory) {
+                    case 'normal':
+                        return { sets: 2, reps: '30s' };
+                    case 'middle':
+                        return { sets: 3, reps: '30s' };
+                    case 'abnormal':
+                        return { sets: 4, reps: '30s' };
+                    default:
+                        return { sets: 2, reps: '30s' };
+                }
+            }
+            
+            // Exercises use rep counts
+            switch (colorCategory) {
+                case 'normal':
+                    return { sets: 2, reps: 10 };
+                case 'middle':
+                    return { sets: 3, reps: 10 };
+                case 'abnormal':
+                    return { sets: 4, reps: 10 };
+                default:
+                    return { sets: 2, reps: 10 };
+            }
+        }
+        
+        // Store color selections
+        const colorSelections = {};
+        
+        // Color selection function (now automatic - kept for compatibility)
+        function selectColor(fieldId, colorType, button) {
+            // Store the selection
+            colorSelections[fieldId] = colorType;
+            
+            // Update button states
+            const colorPicker = button.parentElement;
+            const buttons = colorPicker.querySelectorAll('.color-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+        }
+        
+        // Generate dynamic exercise tables based on filled measurements
+        function generateExerciseTables() {
+            // Clear all exercise tables
+            document.getElementById('shoulderExercises').innerHTML = '';
+            document.getElementById('coreExercises').innerHTML = '';
+            document.getElementById('kneeExercises').innerHTML = '';
+            document.getElementById('stretchingExercises').innerHTML = '';
+            
+            const exercisesAdded = {
+                shoulder: new Set(),
+                core: new Set(),
+                knee: new Set(),
+                stretching: new Set()
+            };
+            
+            // Process each measurement that has a value
+            Object.keys(normalValues).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (!input || !input.value) return;
+                
+                const value = parseFloat(input.value);
+                const colorCategory = colorSelections[fieldId] || 'normal';
+                
+                // Handle special cases
+                let exerciseKey = fieldId;
+                
+                // Pelvic Tilt with Left/Right
+                if (fieldId === 'pelvicTilt') {
+                    const pelvicTiltSide = document.getElementById('pelvicTiltSide').value;
+                    if (pelvicTiltSide === 'L' || pelvicTiltSide === 'Left') {
+                        exerciseKey = 'pelvicTiltLeft';
+                    } else if (pelvicTiltSide === 'R' || pelvicTiltSide === 'Right') {
+                        exerciseKey = 'pelvicTiltRight';
+                    } else {
+                        return; // Skip if no side selected
+                    }
+                }
+                
+                // Kendall Knee with positive/negative
+                if (fieldId === 'kendallKneeRight') {
+                    exerciseKey = value >= 0 ? 'kendallKneeRightPositive' : 'kendallKneeRightNegative';
+                }
+                if (fieldId === 'kendallKneeLeft') {
+                    exerciseKey = value >= 0 ? 'kendallKneeLeftPositive' : 'kendallKneeLeftNegative';
+                }
+                
+                // Get exercises for this measurement
+                const exercises = exerciseMapping[exerciseKey];
+                if (!exercises) return;
+                
+                // Add each exercise to appropriate table
+                exercises.forEach(exercise => {
+                    const { name, type } = exercise;
+                    const { sets, reps, duration } = calculateSetsReps(colorCategory, type === 'stretch');
+                    
+                    // Determine which table to add to
+                    let tableId, categorySet;
+                    if (type === 'stretch') {
+                        tableId = 'stretchingExercises';
+                        categorySet = exercisesAdded.stretching;
+                    } else if (name.toLowerCase().includes('knee') || name.toLowerCase().includes('leg extension') || 
+                               name.toLowerCase().includes('leg press') || name.toLowerCase().includes('hamstring curl')) {
+                        tableId = 'kneeExercises';
+                        categorySet = exercisesAdded.knee;
+                    } else if (name.toLowerCase().includes('pelvic') || name.toLowerCase().includes('hip') || 
+                               name.toLowerCase().includes('hinge') || name.toLowerCase().includes('y raise') ||
+                               name.toLowerCase().includes('abduction') || name.toLowerCase().includes('glute') ||
+                               name.toLowerCase().includes('jefferson')) {
+                        tableId = 'coreExercises';
+                        categorySet = exercisesAdded.core;
+                    } else {
+                        tableId = 'shoulderExercises';
+                        categorySet = exercisesAdded.shoulder;
+                    }
+                    
+                    // Skip if already added
+                    if (categorySet.has(name)) return;
+                    categorySet.add(name);
+                    
+                    // Determine laterality
+                    let leftSets = '', rightSets = '', leftReps = '', rightReps = '';
+                    
+                    if (name.toLowerCase().includes('left')) {
+                        leftSets = sets;
+                        leftReps = type === 'stretch' ? duration : reps;
+                    } else if (name.toLowerCase().includes('right')) {
+                        rightSets = sets;
+                        rightReps = type === 'stretch' ? duration : reps;
+                    } else {
+                        // Both sides
+                        leftSets = rightSets = sets;
+                        leftReps = rightReps = type === 'stretch' ? duration : reps;
+                    }
+                    
+                    // Create table row
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="exercise-name">${name}</td>
+                        <td>${leftSets}</td>
+                        <td>${rightSets}</td>
+                        <td>${leftReps}</td>
+                        <td>${rightReps}</td>
+                    `;
+                    
+                    document.getElementById(tableId).appendChild(row);
+                });
+            });
+        }
+        
+        // Auto-calculate colors for all measurements based on normal values
+        function autoCalculateColors() {
+            // Clear existing color selections
+            Object.keys(colorSelections).forEach(key => delete colorSelections[key]);
+            
+            // Calculate color for each field that has a value
+            Object.keys(normalValues).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input && input.value) {
+                    const value = parseFloat(input.value);
+                    const rangeData = normalValues[fieldId];
+                    const result = calculateColorCategory(value, rangeData);
+                    
+                    if (result) {
+                        colorSelections[fieldId] = result;
+                    }
+                }
+            });
+        }
+        
+        // Generate dynamic exercise tables based on measurements
+        function generateDynamicExercises() {
+            // Clear all exercise tables
+            document.getElementById('upperBodyExercises').innerHTML = '';
+            document.getElementById('lowerBodyExercises').innerHTML = '';
+            document.getElementById('stretchingExercises').innerHTML = '';
+
+            const exercisesToAdd = { upperBody: [], lowerBody: [], stretching: [] };
+
+            // Helper to push exercise/stretch entries
+            const addEx = (cat, isStretch, table, key, optType) => {
+                const sr = calculateSetsReps(cat, isStretch, optType);
+                table.push({ name: t(key), sets: sr.sets, reps: sr.reps });
+            };
+
+            // ── SHOULDER SLOPE LEFT ──
+            if (document.getElementById('leftShoulderSlope').value) {
+                const cc = colorSelections['leftShoulderSlope'].category || colorSelections['leftShoulderSlope'];
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontLeft');
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideLeft');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_LeftUpperTrapStretch');
+            }
+
+            // ── SHOULDER SLOPE RIGHT ──
+            if (document.getElementById('rightShoulderSlope').value) {
+                const cc = colorSelections['rightShoulderSlope'].category || colorSelections['rightShoulderSlope'];
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontRight');
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideRight');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_RightUpperTrapStretch');
+            }
+
+            // ── PELVIC TILT (L → Right hip hike / R → Left hip hike, no stretch) ──
+            const pelvicTiltValue = document.getElementById('pelvicTilt').value;
+            const pelvicTiltSide  = document.getElementById('pelvicTiltSide').value;
+            if (pelvicTiltValue && pelvicTiltSide) {
+                const cc = colorSelections['pelvicTilt'].category || colorSelections['pelvicTilt'];
+                if (pelvicTiltSide === 'Left'  || pelvicTiltSide === 'L')
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_RightHipHike');
+                else if (pelvicTiltSide === 'Right' || pelvicTiltSide === 'R')
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftHipHike');
+            }
+
+            // ── LEFT HKA ANGLE ──
+            if (document.getElementById('leftHKA').value) {
+                const cc = colorSelections['leftHKA'].category || colorSelections['leftHKA'];
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableLeft');
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftGluteKickbacks');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_AdductorStretch');
+            }
+
+            // ── RIGHT HKA ANGLE ──
+            if (document.getElementById('rightHKA').value) {
+                const cc = colorSelections['rightHKA'].category || colorSelections['rightHKA'];
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableRight');
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_RightGluteKickbacks');
+            }
+
+            // ── FORWARD HEAD RIGHT ──
+            if (document.getElementById('forwardHeadRight').value) {
+                const cc = colorSelections['forwardHeadRight'].category || colorSelections['forwardHeadRight'];
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_ChinTucks');
+            }
+
+            // ── ROUNDED SHOULDER RIGHT ──
+            if (document.getElementById('roundedShoulderRight').value) {
+                const cc = colorSelections['roundedShoulderRight'].category || colorSelections['roundedShoulderRight'];
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_ReverseFlys');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_FacePull');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_ExternalRotation');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_ChestStretch');
+            }
+
+            // ── THORACIC KYPHOSIS RIGHT ──
+            if (document.getElementById('thoracicKyphosisRight').value) {
+                const cc = colorSelections['thoracicKyphosisRight'].category || colorSelections['thoracicKyphosisRight'];
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_BackExtensions');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_RowingBack');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_CobraStretch');
+            }
+
+            // ── LUMBAR LORDOSIS RIGHT ──
+            if (document.getElementById('lumbarLordosisRight').value) {
+                const cc = colorSelections['lumbarLordosisRight'].category || colorSelections['lumbarLordosisRight'];
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+            }
+
+            // ── FORWARD HEAD LEFT ──
+            if (document.getElementById('forwardHeadLeft').value) {
+                const cc = colorSelections['forwardHeadLeft'].category || colorSelections['forwardHeadLeft'];
+                addEx(cc, false, exercisesToAdd.upperBody, 'ex_ChinTucks');
+            }
+
+            // ── ROUNDED SHOULDER LEFT ──
+            if (document.getElementById('forwardShoulderLeft').value) {
+                const cc = colorSelections['forwardShoulderLeft'].category || colorSelections['forwardShoulderLeft'];
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_ReverseFlys');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_FacePull');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_ExternalRotation');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_ChestStretch');
+            }
+
+            // ── THORACIC KYPHOSIS LEFT ──
+            if (document.getElementById('thoracicKyphosisLeft').value) {
+                const cc = colorSelections['thoracicKyphosisLeft'].category || colorSelections['thoracicKyphosisLeft'];
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_BackExtensions');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_RowingBack');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_CobraStretch');
+            }
+
+            // ── LUMBAR LORDOSIS LEFT ──
+            if (document.getElementById('lumbarLordosisLeft').value) {
+                const cc = colorSelections['lumbarLordosisLeft'].category || colorSelections['lumbarLordosisLeft'];
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+            }
+
+            // ── KENDALL KNEE RIGHT (Standing Right = Left leg) ──
+            const kendallRightValue = document.getElementById('kendallKneeRight').value;
+            if (kendallRightValue) {
+                const cc  = colorSelections['kendallKneeRight'].category || colorSelections['kendallKneeRight'];
+                const esr = calculateSetsReps(cc, false);
+                if (cc === 'abnormal') {
+                    if (parseFloat(kendallRightValue) > 0) {
+                        exercisesToAdd.lowerBody.push({ name: t('ex_LeftLegExtensions'),  sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ name: t('ex_SingleLegPressLeft'), sets: esr.sets, reps: esr.reps });
+                    } else {
+                        exercisesToAdd.lowerBody.push({ name: t('ex_LeftHamstringCurls'), sets: esr.sets, reps: esr.reps });
+                    }
+                }
+            }
+
+            // ── KENDALL KNEE LEFT (Standing Left = Right leg) ──
+            const kendallLeftValue = document.getElementById('kendallKneeLeft').value;
+            if (kendallLeftValue) {
+                const cc  = colorSelections['kendallKneeLeft'].category || colorSelections['kendallKneeLeft'];
+                const esr = calculateSetsReps(cc, false);
+                if (cc === 'abnormal') {
+                    if (parseFloat(kendallLeftValue) > 0) {
+                        exercisesToAdd.lowerBody.push({ name: t('ex_RightLegExtensions'),  sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ name: t('ex_SingleLegPressRight'), sets: esr.sets, reps: esr.reps });
+                    } else {
+                        exercisesToAdd.lowerBody.push({ name: t('ex_RightHamstringCurls'), sets: esr.sets, reps: esr.reps });
+                    }
+                }
+            }
+
+            // ── SHOULDER STABILITY ──
+            if (document.getElementById('shoulderStability').value) {
+                const cc = colorSelections['shoulderStability'].category || colorSelections['shoulderStability'];
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_BarMilitaryPress');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_YRaises');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_BentOverShoulderStretch');
+            }
+
+            // ── PELVIC STABILITY ──
+            if (document.getElementById('pelvicStability').value) {
+                const cc = colorSelections['pelvicStability'].category || colorSelections['pelvicStability'];
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipThrust');
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAdductions');
+                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductions');
+            }
+
+            // ── SQUAT DEPTH ──
+            if (document.getElementById('squatDepth').value) {
+                const cc = colorSelections['squatDepth'].category || colorSelections['squatDepth'];
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_FullRomLegPress');
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_BackSquatsFullRom');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_GarlandPose');
+            }
+
+            // ── FINGER TO FLOOR ──
+            if (document.getElementById('fingerToFloor').value) {
+                const cc = colorSelections['fingerToFloor'].category || colorSelections['fingerToFloor'];
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_RomanianDeadlift');
+                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_StiffLegDeadlift');
+                addEx(cc, true,  exercisesToAdd.stretching, 'ex_HamstringStretching');
+            }
+
+            // ── KNEE EXTENSION ──
+            if (document.getElementById('kneeExtension').value) {
+                const cc = colorSelections['kneeExtension'].category || colorSelections['kneeExtension'];
+            }
+
+            // Remove duplicates and populate tables
+            const uniqueExercises = {
+                upperBody: removeDuplicateExercises(exercisesToAdd.upperBody),
+                lowerBody: removeDuplicateExercises(exercisesToAdd.lowerBody),
+                stretching: removeDuplicateExercises(exercisesToAdd.stretching)
+            };
+
+            populateExerciseTable('upperBodyExercises', uniqueExercises.upperBody);
+            populateExerciseTable('lowerBodyExercises', uniqueExercises.lowerBody);
+            populateExerciseTable('stretchingExercises', uniqueExercises.stretching);
+        }
+        
+        // Remove duplicate exercises
+        function removeDuplicateExercises(exercises) {
+            const merged = {};
+            exercises.forEach(ex => {
+                if (!merged[ex.name]) {
+                    merged[ex.name] = { ...ex };
+                }
+            });
+            return Object.values(merged);
+        }
+        
+        // Populate a specific exercise table
+        function populateExerciseTable(tableId, exercises) {
+            const tbody = document.getElementById(tableId);
+            tbody.innerHTML = '';
+            
+            if (exercises.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;" data-i18n="noExercises">${t('noExercises')}</td></tr>`;
+                return;
+            }
+            
+            const _exKeyMap = buildKeyMap('ex_');
+            exercises.forEach(ex => {
+                const exKey = _exKeyMap[ex.name] || '';
+                const row = document.createElement('tr');
+                const enName = exKey ? translations.en[exKey] || ex.name : ex.name;
+                const arName = exKey ? translations.ar[exKey] || '' : '';
+                const displayName = (currentMode === 'bilingual' && arName)
+                    ? `${enName} / ${arName}`
+                    : ex.name;
+                row.innerHTML = `
+                    <td class="exercise-name"${exKey ? ` data-ex-key="${exKey}"` : ''}>${displayName}</td>
+                    <td data-num="${ex.sets}">${numFmt(ex.sets)}</td>
+                    <td data-num="${ex.reps}">${translateReps(ex.reps, currentLang)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Auto-calculate colors for all measurements based on normal values
+        function autoCalculateColors() {
+            // Clear existing color selections
+            Object.keys(colorSelections).forEach(key => delete colorSelections[key]);
+            
+            // Calculate color for each field that has a value
+            Object.keys(normalValues).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input && input.value) {
+                    const value = parseFloat(input.value);
+                    const rangeData = normalValues[fieldId];
+                    const result = calculateColorCategory(value, rangeData);
+                    
+                    if (result) {
+                        colorSelections[fieldId] = result;
+                    }
+                }
+            });
+        }
+        
+        // Handle Enter key to move to next input
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent scroll from changing number input values
+            document.addEventListener('wheel', function(e) {
+                if (document.activeElement && document.activeElement.type === 'number') {
+                    document.activeElement.blur();
+                }
+            }, { passive: false });
+
+            // Initialize autocomplete
+            initializeAutocomplete();
+            
+            // Initialize comparison indicators
+            setupComparisonIndicators();
+            
+            // Setup Enter key navigation
+            const form = document.getElementById('assessmentForm');
+            const inputs = form.querySelectorAll('input[type="number"], input[type="text"], input[type="date"], select');
+            
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        
+                        // Find next input that is not hidden or disabled
+                        let nextIndex = index + 1;
+                        while (nextIndex < inputs.length) {
+                            const nextInput = inputs[nextIndex];
+                            if (nextInput.offsetParent !== null && !nextInput.disabled) {
+                                nextInput.focus();
+                                break;
+                            }
+                            nextIndex++;
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Form submission handler
+        document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Auto-calculate all colors based on values
+            autoCalculateColors();
+            
+            // Get client info
+            const clientName = document.getElementById('clientName').value;
+            const assessmentDate = document.getElementById('assessmentDate').value;
+            
+            // Collect all measurements
+            const measurements = {};
+            Object.keys(normalValues).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input && input.value) {
+                    measurements[fieldId] = input.value;
+                }
+            });
+            
+            // Add pelvic tilt side
+            const pelvicTiltSide = document.getElementById('pelvicTiltSide').value;
+            if (pelvicTiltSide) {
+                measurements['pelvicTiltSide'] = pelvicTiltSide;
+            }
+            
+            // Save to database
+            await saveAssessment(clientName, assessmentDate, measurements);
+            
+            // Format date
+            const date = new Date(assessmentDate + 'T12:00:00');
+            const formattedDate = date.toLocaleDateString(
+                currentLang === 'ar' ? 'ar-SA' : 'en-US',
+                { year: 'numeric', month: 'long', day: 'numeric' }
+            );
+            
+            // Update client info in display page
+            document.getElementById('displayName').textContent = `${t('clientPrefix')} ${clientName}`;
+            const displayDateEl2 = document.getElementById('displayDate');
+            displayDateEl2.textContent = formattedDate;
+            displayDateEl2.setAttribute('data-date-raw', assessmentDate);
+            
+            // Update all measurements
+            const pelvicTiltValue = document.getElementById('pelvicTilt').value;
+            if (pelvicTiltValue && pelvicTiltSide) {
+                updateMeasurement('pelvicTilt', t('ml_PelvicTilt'), '°', '', pelvicTiltSide + ' ');
+            } else if (pelvicTiltValue && !pelvicTiltSide) {
+                updateMeasurement('pelvicTilt', t('ml_PelvicTilt'), '°', '', '');
+            } else {
+                // Hide pelvic tilt if no value
+                const remarkItems = document.querySelectorAll('.remark-item');
+                remarkItems.forEach(item => {
+                    const labelElement = item.querySelector('.remark-label');
+                    if (labelElement && (labelElement.textContent === 'Pelvic Tilt' || labelElement.textContent === 'إمالة الحوض')) {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+            updateMeasurement('leftHKA', t('ml_LeftHKA'), '°');
+            updateMeasurement('rightHKA', t('ml_RightHKA'), '°');
+            updateMeasurement('leftShoulderSlope', t('ml_LeftShoulderSlope'), '°');
+            updateMeasurement('rightShoulderSlope', t('ml_RightShoulderSlope'), '°');
+            
+            updateMeasurement('forwardHeadRight', t('ml_FHARight'), '°');
+            updateMeasurement('roundedShoulderRight', t('ml_RSRight'), '°');
+            updateMeasurement('thoracicKyphosisRight', t('ml_TKRight'), '°');
+            updateMeasurement('lumbarLordosisRight', t('ml_LumbarLordosisRight'), '°');
+            updateMeasurement('kendallKneeRight', t('ml_KKRight'), '°');
+            
+            updateMeasurement('forwardHeadLeft', t('ml_FHALeft'), '°');
+            updateMeasurement('forwardShoulderLeft', t('ml_RSLeft'), '°');
+            updateMeasurement('thoracicKyphosisLeft', t('ml_TKLeft'), '°');
+            updateMeasurement('lumbarLordosisLeft', t('ml_LumbarLordosisLeft'), '°');
+            updateMeasurement('kendallKneeLeft', t('ml_KKLeft'), '°');
+            
+            updateMeasurement('pelvicStability', t('ml_PelvicStability'), '°');
+            updateMeasurement('spineNeutrality', t('ml_SpinalNeutrality'), '°');
+            updateMeasurement('squatDepth', t('ml_SquatDepth'), '°');
+            updateMeasurement('shoulderStability', t('ml_ShoulderStability'), '°');
+            updateMeasurement('hipHinge', t('ml_HipHinge'), '°');
+            updateMeasurement('fingerToFloor', t('ml_FingerToFloor'), ' cm');
+            updateMeasurement('kneeExtension', t('ml_KneeExtension'), '°');
+            
+            // Generate dynamic exercise tables based on measurements
+            generateDynamicExercises();
+            
+            // Update last-visible classes for each remarks section
+            updateLastVisibleItems();
+            
+            // Switch to display page
+            setLanguage(_autoLanguageOverride || 'bilingual');
+            _autoLanguageOverride = null;
+            document.getElementById('inputPage').classList.remove('active');
+            document.getElementById('automatedPage').classList.remove('active');
+            document.getElementById('displayPage').classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+
+            // Bodydot auto-print: once the program is rendered, open the print dialog
+            // (mirrors the standalone downloadPDF flow with its dynamic @page sizing).
+            if (window.__BODYDOT__ && window.__BODYDOT__.autoPrint) {
+                window.__BODYDOT__.autoPrint = false;
+                setTimeout(function () { downloadPDF(); }, 150);
+            }
+        });
+
+        function updateMeasurement(fieldId, label, unit, suffix = '', prefix = '') {
+            const _el = document.getElementById(fieldId);
+            if (!_el) return;
+            const value = _el.value;
+            const colorData = colorSelections[fieldId];
+            let color = 'normal';
+            let isOutOfRange = false;
+            
+            // Get comparison arrow if previous data exists
+            let comparisonArrow = '';
+            if (previousTestData && previousTestData.measurements) {
+                const currentValue = parseFloat(value);
+                const previousValue = previousTestData.measurements[fieldId];
+                
+                if (!isNaN(currentValue) && previousValue !== undefined && previousValue !== null) {
+                    const prevValue = parseFloat(previousValue);
+                    if (!isNaN(prevValue)) {
+                        const rangeData = normalValues[fieldId];
+                        if (rangeData) {
+                            const currentResult = calculateColorCategory(currentValue, rangeData);
+                            const previousResult = calculateColorCategory(prevValue, rangeData);
+                            
+                            let indicator = '';
+                            let className = '';
+                            
+                            if (currentResult.category === 'normal' && previousResult.category !== 'normal') {
+                                indicator = '↑';
+                                className = 'comparison-improved';
+                            } else if (currentResult.category === 'abnormal' && previousResult.category !== 'abnormal') {
+                                indicator = '↓';
+                                className = 'comparison-worsened';
+                            } else if (currentResult.category === previousResult.category) {
+                                const currentDist = getDistanceFromNormal(currentValue, rangeData);
+                                const previousDist = getDistanceFromNormal(prevValue, rangeData);
+                                
+                                if (currentDist < previousDist) {
+                                    indicator = '↑';
+                                    className = 'comparison-improved';
+                                } else if (currentDist > previousDist) {
+                                    indicator = '↓';
+                                    className = 'comparison-worsened';
+                                } else {
+                                    indicator = '–';
+                                    className = 'comparison-same';
+                                }
+                            } else if (currentResult.category === 'middle') {
+                                if (previousResult.category === 'abnormal') {
+                                    indicator = '↑';
+                                    className = 'comparison-improved';
+                                } else {
+                                    indicator = '↓';
+                                    className = 'comparison-worsened';
+                                }
+                            } else if (previousResult.category === 'middle') {
+                                if (currentResult.category === 'normal') {
+                                    indicator = '↑';
+                                    className = 'comparison-improved';
+                                } else {
+                                    indicator = '↓';
+                                    className = 'comparison-worsened';
+                                }
+                            }
+                            
+                            if (indicator) {
+                                comparisonArrow = ` <span class="${className}">${indicator}</span>`;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (colorData) {
+                if (typeof colorData === 'object') {
+                    // Use the category directly from zone-based calculation
+                    color = colorData.category;
+                    
+                    // Determine if out of range
+                    if (color === 'abnormal') {
+                        isOutOfRange = true;
+                    } else if (color === 'middle') {
+                        // Check if middle value is on abnormal side
+                        const val = colorData.value;
+                        const normalStart = colorData.normalStart;
+                        const normalEnd = colorData.normalEnd;
+                        
+                        // If value is outside the normal range (even in middle zone), it's out of range
+                        if (val < normalStart || val > normalEnd) {
+                            isOutOfRange = true;
+                        }
+                    }
+                } else {
+                    // Legacy format
+                    color = colorData;
+                    if (color === 'abnormal') {
+                        isOutOfRange = true;
+                    }
+                }
+            }
+            
+            // Determine which container to use
+            const containerId = isOutOfRange ? 'outOfRangeResults' : 'withinRangeResults';
+            const container = document.getElementById(containerId);
+            const otherContainerId = isOutOfRange ? 'withinRangeResults' : 'outOfRangeResults';
+            const otherContainer = document.getElementById(otherContainerId);
+            
+            if (!container) return;
+            
+            // Check if item exists in the correct container first
+            let remarkItem = container.querySelector(`[data-field="${fieldId}"]`);
+            
+            // If not in correct container, check the other container
+            if (!remarkItem && otherContainer) {
+                remarkItem = otherContainer.querySelector(`[data-field="${fieldId}"]`);
+                if (remarkItem) {
+                    // Move it to the correct container
+                    container.appendChild(remarkItem);
+                }
+            }
+            
+            if (!remarkItem) {
+                remarkItem = document.createElement('div');
+                remarkItem.className = 'remark-item';
+                remarkItem.setAttribute('data-field', fieldId);
+                
+                const labelElement = document.createElement('span');
+                labelElement.className = 'remark-label';
+                labelElement.textContent = label;
+                // Store translation key for language switching
+                const _mlKeys = Object.keys(translations.en).filter(k => k.startsWith('ml_'));
+                const _mlKey = _mlKeys.find(k => translations.en[k] === label || (translations.ar && translations.ar[k] === label)) || '';
+                if (_mlKey) labelElement.setAttribute('data-ml-key', _mlKey);
+                
+                const valueElement = document.createElement('span');
+                valueElement.className = 'remark-value';
+                
+                const normalElement = document.createElement('span');
+                normalElement.className = 'remark-normal';
+                
+                remarkItem.appendChild(labelElement);
+                remarkItem.appendChild(valueElement);
+                remarkItem.appendChild(normalElement);
+                container.appendChild(remarkItem);
+            }
+            
+            if (value) {
+                // Show the item and update its value
+                remarkItem.style.display = '';
+                const valueElement = remarkItem.querySelector('.remark-value');
+                valueElement.className = 'remark-value';
+                valueElement.setAttribute('data-raw-value', value);
+                valueElement.setAttribute('data-prefix', prefix);
+                valueElement.setAttribute('data-unit', unit);
+                valueElement.setAttribute('data-suffix', suffix);
+                const _pfx = localiseText(prefix, currentLang);
+                const _unit = localiseText(unit, currentLang);
+                const _sfx = localiseText(suffix, currentLang);
+                valueElement.innerHTML = _pfx + numFmt(value) + _unit + (_sfx ? ' ' + _sfx : '') + comparisonArrow;
+                
+                // Display normal range if available
+                const normalElement = remarkItem.querySelector('.remark-normal');
+                if (colorData && typeof colorData === 'object') {
+                    const normalInfo = normalValues[fieldId];
+                    if (normalInfo && normalInfo.values) {
+                        const rangeType = normalInfo.type;
+                        let rangeText = '';
+                        
+                        if (rangeType === 'red-red') {
+                            // values: [min_abnormal, normal_low, normal_high, max_abnormal]
+                            rangeText = `${normalInfo.values[1]}-${normalInfo.values[2]}${unit}`;
+                        } else if (rangeType === 'blue-red') {
+                            // values: [normal_start, normal_end, max_abnormal]
+                            rangeText = `${normalInfo.values[0]}-${normalInfo.values[1]}${unit}`;
+                        } else if (rangeType === 'red-blue') {
+                            // values: [min_abnormal, normal_start, normal_end]
+                            rangeText = `${normalInfo.values[1]}-${normalInfo.values[2]}${unit}`;
+                        }
+                        
+                        normalElement.setAttribute('data-raw-range', rangeText);
+                        normalElement.textContent = currentLang === 'ar' ? localiseText(toArabicNumerals(rangeText), 'ar') : rangeText;
+                    }
+                }
+            } else {
+                // Hide the item if no value
+                remarkItem.style.display = 'none';
+            }
+        }
+        
+        function updateLastVisibleItems() {
+            // Get all remarks sections
+            const remarksSections = document.querySelectorAll('.remarks');
+            
+            remarksSections.forEach(section => {
+                const items = section.querySelectorAll('.remark-item');
+                
+                // Remove last-visible class from all items first
+                items.forEach(item => item.classList.remove('last-visible'));
+                
+                // Find the last visible item and add the class
+                let lastVisible = null;
+                items.forEach(item => {
+                    if (item.style.display !== 'none') {
+                        lastVisible = item;
+                    }
+                });
+                
+                if (lastVisible) {
+                    lastVisible.classList.add('last-visible');
+                }
+            });
+        }
+        
+        // Back button functionality
+        function goBackToInput() {
+            document.getElementById('displayPage').classList.remove('active');
+            // Return to automated page if that's where we came from
+            const fromAutomated = _autoCurrentOrgId !== null && _autoAllClients.length > 0;
+            if (fromAutomated) {
+                document.getElementById('automatedPage').classList.add('active');
+            } else {
+                document.getElementById('inputPage').classList.add('active');
+            }
+            window.scrollTo(0, 0);
+            setLanguage('bilingual');
+        }
+
+        function newProfile() {
+            // Clear all input fields
+            document.querySelectorAll('#inputPage input[type="text"], #inputPage input[type="number"], #inputPage input[type="date"]').forEach(input => {
+                input.value = '';
+            });
+            // Reset all color buttons to default (clear selections)
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // Clear comparison indicators
+            document.querySelectorAll('.comparison-indicator').forEach(el => {
+                el.textContent = '';
+            });
+            // Clear previous test data
+            if (typeof previousTestData !== 'undefined') {
+                previousTestData = null;
+            }
+            // Switch back to input page
+            document.getElementById('displayPage').classList.remove('active');
+            document.getElementById('inputPage').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        // Download PDF functionality
+        function downloadPDF() {
+            // Get client name for filename
+            const clientName = document.getElementById('clientName').value;
+            const programTitle = t('programTitle');
+            const fileName = clientName ? `${clientName.trim()} - ${programTitle}` : programTitle;
+
+            // Compute content height and set dynamic @page size
+            const displayPage = document.getElementById('displayPage');
+            const contentHeightPx = displayPage.scrollHeight;
+            const isArabic = displayPage.getAttribute('dir') === 'rtl';
+            const pageWidthMm = (currentMode === 'bilingual') ? 415 : 380;
+            const pxPerMm = 96 / 25.4;
+            const isWindows = document.body.classList.contains('windows-os');
+            const heightMultiplier = isWindows
+                ? (currentMode === 'bilingual' ? 1.10 : 1.03)
+                : 1;
+            const bottomPadding = currentMode === 'bilingual' ? -18 : (isArabic ? 11 : 10);
+            const contentHeightMm = Math.ceil((contentHeightPx / pxPerMm) * heightMultiplier) + bottomPadding;
+            const dynStyle = document.createElement('style');
+            dynStyle.id = 'dynamic-page-size';
+            dynStyle.textContent = `@media print { @page { size: ${pageWidthMm}mm ${contentHeightMm}mm; margin: 0; } }`;
+            document.head.appendChild(dynStyle);
+
+            // Store original title
+            const originalTitle = document.title;
+            document.title = fileName;
+
+            // Trigger print dialog
+            window.print();
+
+            // Restore after print
+            window.addEventListener('afterprint', function cleanup() {
+                document.title = originalTitle;
+                const s = document.getElementById('dynamic-page-size');
+                if (s) s.remove();
+                window.removeEventListener('afterprint', cleanup);
+            });
+        }
+
+        // ===== Automated Page =====
+        const AUTO_ORGS = [
+            { id: 'bf9ffaec-d3ed-4742-bce9-945f619ea1bc', name: 'Body Motions – Al Sahafa' },
+            { id: '1627c00e-e275-4356-91ae-6f85127bd21c', name: 'Body Masters – Al Aarid' },
+            { id: 'ebce917d-1c31-4516-8396-64283b4cbeaa', name: 'Body Coach' }
+        ];
+        // Cache: orgId → client array
+        const _autoClientsCache = {};
+        // Cache: clientId → session object
+        const _autoSessionCache = {};
+        let _autoCurrentOrgId = null;
+        let _autoLanguageOverride = null;
+        let _autoAllClients = [];
+
+        function goToAutomated() {
+            document.getElementById('inputPage').classList.remove('active');
+            document.getElementById('automatedPage').classList.add('active');
+            window.scrollTo(0, 0);
+            // Render org cards (static, always shown)
+            const orgList = document.getElementById('autoOrgList');
+            orgList.innerHTML = AUTO_ORGS.map(org => `
+                <div onclick="loadAutoOrg('${org.id}','${org.name}')"
+                     id="autoOrgCard_${org.id}"
+                     style="flex:1;min-width:220px;background:white;border:2px solid #dee2e6;border-radius:10px;padding:20px 22px;cursor:pointer;transition:border-color .15s,box-shadow .15s;"
+                     onmouseover="this.style.borderColor='#117a65'" onmouseout="this.style.borderColor=_autoCurrentOrgId==='${org.id}'?'#117a65':'#dee2e6'">
+                    <div style="font-weight:700;font-size:15px;color:#1a2533;">${org.name}</div>
+                    <div style="font-size:12px;color:#aaa;margin-top:4px;">Click to view clients</div>
+                </div>`).join('');
+            // Hide client area until org is chosen
+            document.getElementById('autoClientArea').style.display = 'none';
+        }
+
+        function goBackFromAutomated() {
+            document.getElementById('automatedPage').classList.remove('active');
+            document.getElementById('inputPage').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        async function loadAutoOrg(orgId, orgName) {
+            _autoCurrentOrgId = orgId;
+            // Highlight selected card
+            AUTO_ORGS.forEach(o => {
+                const card = document.getElementById(`autoOrgCard_${o.id}`);
+                if (card) card.style.borderColor = o.id === orgId ? '#117a65' : '#dee2e6';
+            });
+            document.getElementById('autoOrgTitle').textContent = orgName;
+            document.getElementById('autoClientSearch').value = '';
+            const listEl = document.getElementById('autoClientList');
+            const area = document.getElementById('autoClientArea');
+            area.style.display = 'block';
+
+            // Use cache if available
+            if (_autoClientsCache[orgId]) {
+                _autoAllClients = _autoClientsCache[orgId];
+                renderAutoClients(_autoAllClients);
+                return;
+            }
+
+            listEl.innerHTML = '<div style="color:#888;padding:16px 0;font-size:14px;">Loading clients…</div>';
+            try {
+                const token = await getBASToken();
+                const resp = await fetch(`${BAS_API}/clients?organizationId=${orgId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                const clients = Array.isArray(data) ? data : (data.data || []);
+
+                // Sort alphabetically by name
+                clients.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+                _autoClientsCache[orgId] = clients;
+                _autoAllClients = clients;
+                renderAutoClients(clients);
+            } catch (err) {
+                listEl.innerHTML = `<div style="color:#c0392b;font-size:13px;padding:12px 0;">Error loading clients: ${err.message}</div>`;
+            }
+        }
+
+        function renderAutoClients(clients) {
+            const listEl = document.getElementById('autoClientList');
+            if (!clients.length) {
+                listEl.innerHTML = '<div style="color:#999;font-size:13px;padding:12px 0;">No clients found.</div>';
+                return;
+            }
+            listEl.innerHTML = clients.map((c, i) => {
+                const border = i < clients.length - 1 ? 'border-bottom:1px solid #f0f0f0;' : '';
+                return `<div id="autoRow_${c.id}" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;${border}">
+                    <div>
+                        <div style="font-size:14px;font-weight:600;color:#1B3448;">${c.name || '—'}</div>
+                    </div>
+                    <button onclick="generateAutoClient('${c.id}','${(c.name||'').replace(/'/g,"\\'")}','${_autoCurrentOrgId}')"
+                        id="autoBtn_${c.id}"
+                        style="background:#117a65;color:white;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">
+                        Generate PDF
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function filterAutoClients() {
+            const q = document.getElementById('autoClientSearch').value.toLowerCase();
+            const filtered = _autoAllClients.filter(c => (c.name || '').toLowerCase().includes(q));
+            renderAutoClients(filtered);
+        }
+
+        async function generateAutoClient(clientId, clientName, orgId) {
+            const btn = document.getElementById(`autoBtn_${clientId}`);
+            if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+            try {
+                let session;
+                if (_autoSessionCache[clientId]) {
+                    session = _autoSessionCache[clientId];
+                } else {
+                    const token = await getBASToken();
+                    const resp = await fetch(`${BAS_API}/clients/${clientId}/measurement-sessions/latest`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!resp.ok) throw new Error('No session found');
+                    session = await resp.json();
+                    _autoSessionCache[clientId] = session;
+                }
+                // Fill the form
+                fillFormFromBAS(session, clientName, null);
+                // Ensure required fields are populated
+                if (!document.getElementById('assessmentDate').value) {
+                    document.getElementById('assessmentDate').value = new Date().toISOString().split('T')[0];
+                }
+                // Body Coach center uses English-only, all others bilingual
+                const isBodyCoach = (orgId || '').trim() === 'ebce917d-1c31-4516-8396-64283b4cbeaa';
+                _autoLanguageOverride = isBodyCoach ? 'en' : 'bilingual';
+                // Switch to display page by submitting the form
+                autoCalculateColors();
+                document.getElementById('assessmentForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            } catch (err) {
+                alert(`Could not generate PDF for ${clientName}: ${err.message}`);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Generate PDF'; }
+            }
+        }
+
+        // ===== Bodydot API Service (BAS) Integration =====
+        // When running locally, route through the CORS proxy (node proxy.js).
+        // When deployed on a server that has CORS access, calls go direct.
+        const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '';
+        const WORKER_URL = 'https://bdot-proxy.andyayas27.workers.dev';
+        const BAS_API = _isLocal ? 'http://localhost:3001/v1' : `${WORKER_URL}/v1`;
+        const BAS_CREDS = 'YmRvdF94NjI2cmg1N2VzYnh0N2pqdTZidTpmOTBkYzg5N2U3NTk2MGY0OTk1OGI5YTIwZTE2ZDg4ODI1MzBkNGI0MGVmY2VkZjYzYmU5ZTFlNjc5MjdlMGVk';
+        const BAS_ORG_IDS = [
+            'bf9ffaec-d3ed-4742-bce9-945f619ea1bc',
+            '1627c00e-e275-4356-91ae-6f85127bd21c',
+            'ebce917d-1c31-4516-8396-64283b4cbeaa'
+        ];
+        let _basToken = null;
+        let _basTokenExpiry = 0;
+
+        async function getBASToken() {
+            if (_basToken && Date.now() < _basTokenExpiry - 60000) return _basToken;
+            const resp = await fetch(`${BAS_API}/oauth/token`, {
+                method: 'POST',
+                headers: { 'Authorization': `Basic ${BAS_CREDS}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'grant_type=client_credentials'
+            });
+            const data = await resp.json();
+            _basToken = data.access_token;
+            _basTokenExpiry = Date.now() + (data.expires_in * 1000);
+            return _basToken;
+        }
+
+        function fillFormFromBAS(session, clientName, birthDate) {
+            // Build flat map: "stepCode.valueCode" → numeric value
+            // Prefer 'custom' sequence; fall back to any sequence
+            const sequences = session.sequences || [];
+            const hasCustom = sequences.some(s => s.code === 'custom');
+            const values = {};
+            for (const seq of sequences) {
+                if (hasCustom && seq.code !== 'custom') continue;
+                for (const step of seq.stepResults || []) {
+                    for (const v of (step.data?.values || [])) {
+                        values[`${step.stepCode}.${v.valueCode}`] = v.value;
+                    }
+                }
+            }
+
+            const fmt = v => (v !== undefined && v !== null) ? parseFloat(v.toFixed(1)) : null;
+            const fieldMap = {
+                // Standing Front
+                leftShoulderSlope:     fmt(values['standingFront.leftShoulderSlope']),
+                rightShoulderSlope:    fmt(values['standingFront.rightShoulderSlope']),
+                leftHKA:               fmt(values['standingFront.leftHKAAngle']),
+                rightHKA:              fmt(values['standingFront.rightHKAAngle']),
+                // Standing Right
+                forwardHeadRight:      fmt(values['standingRight.forwardHeadAngle']),
+                roundedShoulderRight:  fmt(values['standingRight.forwardShoulderAngle']),
+                thoracicKyphosisRight: fmt(values['standingRight.thoracicKyphosis']),
+                lumbarLordosisRight:   fmt(values['standingRight.lumbarLordosis']),
+                kendallKneeRight:      fmt(values['standingRight.kendallSidePostureKnee']),
+                // Standing Left
+                forwardHeadLeft:       fmt(values['standingLeft.forwardHeadAngleLeft']),
+                forwardShoulderLeft:   fmt(values['standingLeft.forwardShoulderAngleLeft']),
+                thoracicKyphosisLeft:  fmt(values['standingLeft.thoracicKyphosisLeft']),
+                lumbarLordosisLeft:    fmt(values['standingLeft.lumbarLordosisLeft']),
+                kendallKneeLeft:       fmt(values['standingLeft.kendallSidePostureKneeLeft']),
+                // Overhead Squat
+                shoulderStability:     fmt(values['overheadSquatRight.overheadSquatArmAngle']),
+                squatDepth:            fmt(values['overheadSquatRight.overheadSquatKneeDepth']),
+                spineNeutrality:       fmt(values['overheadSquatRight.overheadSquatTrunkAngle']),
+                pelvicStability:       fmt(values['overheadSquatRight.overheadSquatPelvicAngle']),
+                // Toe Touch
+                kneeExtension:         fmt(values['toeTouchingRight.toeTouchKneeAngle']),
+                fingerToFloor:         values['toeTouchingRight.toeTouchDistance'] !== undefined ? fmt(values['toeTouchingRight.toeTouchDistance'] * 100) : null,
+                hipHinge:              fmt(values['toeTouchingRight.toeTouchHipAngle']),
+            };
+
+            // Pelvic tilt from frontalASISAlignment (sign → side)
+            const pelvis = values['standingFront.frontalASISAlignment'];
+            if (pelvis !== undefined && pelvis !== null) {
+                fieldMap.pelvicTilt = fmt(Math.abs(pelvis));
+                const sideEl = document.getElementById('pelvicTiltSide');
+                if (sideEl) sideEl.value = pelvis >= 0 ? 'Right' : 'Left';
+            }
+
+            // Fill numeric inputs
+            for (const [id, val] of Object.entries(fieldMap)) {
+                if (val === null) continue;
+                const el = document.getElementById(id);
+                if (el) {
+                    el.value = val;
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            // Client name
+            if (clientName) {
+                document.getElementById('clientName').value = clientName;
+            }
+
+            // Assessment date from session createdAt
+            if (session.createdAt) {
+                document.getElementById('assessmentDate').value = session.createdAt.split('T')[0];
+            }
+
+            // Trigger color auto-calculation
+            if (typeof autoCalculateColors === 'function') autoCalculateColors();
+        }
+
+        // ===== Bodydot bootstrap =====
+        // The host React app injects window.__BODYDOT__ = { session, clientName, lang, autoPrint }
+        // before this document loads. We fill the (hidden) form from the Bodydot session and
+        // run the normal submit pipeline, which renders the program and (if autoPrint) prints it.
+        document.addEventListener('DOMContentLoaded', function () {
+            var b = window.__BODYDOT__;
+            if (!b || !b.session) return;
+            try {
+                fillFormFromBAS(b.session, b.clientName || '', null);
+                var dateEl = document.getElementById('assessmentDate');
+                if (dateEl && !dateEl.value) {
+                    dateEl.value = new Date().toISOString().split('T')[0];
+                }
+                // Body Coach center → English-only; everyone else bilingual (same rule as the original).
+                _autoLanguageOverride = (b.lang === 'en') ? 'en' : 'bilingual';
+                autoCalculateColors();
+                document.getElementById('assessmentForm')
+                    .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            } catch (err) {
+                document.body.innerHTML =
+                    '<p style="font-family:sans-serif;padding:40px;color:#c0392b;">' +
+                    'Could not render program: ' + (err && err.message ? err.message : err) + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>
