@@ -45,6 +45,7 @@ PAYMENT_SHEET_TO_BRANCH: dict[str, tuple[str, str]] = {
     "Body Motions-JED-Al Basateen":     ("Body Motions", "JED - Al Basateen"),
     "Body Motions-JED-Al Faisaliyah":   ("Body Motions", "JED - Al Faisaliyah"),
     "Body Motions - JED - Al Naeem":    ("Body Motions", "JED - Al Naeem"),
+    "Body Motions - JED - Obhor":       ("Body Motions", "JED - Obhor"),
     "Body Motions-DMM-Al Faisaliyah":   ("Body Motions", "DMM - Al Faisaliyah"),
     "Body Motions -DMM- Al Jalawiah":   ("Body Motions", "DMM - Al Jalawiah"),
     "Body Motions - DMM - Al Nada":     ("Body Motions", "DMM - Al Nada"),
@@ -105,11 +106,16 @@ _REPORT_BRANCH_TO_SHEETS: dict[str, list[str]] = {}
 for _sheet, (_gym, _branch) in PAYMENT_SHEET_TO_BRANCH.items():
     _REPORT_BRANCH_TO_SHEETS.setdefault(_branch, []).append(_sheet)
 
-# Special cases in the REPORT sheet that differ from the sheet branch keys:
-_REPORT_BRANCH_TO_SHEETS["JED - Obhor"] = [
+# Special cases in the REPORT sheet that differ from the sheet branch keys.
+# "JED - Obhor" is a combined REPORT label used by both gyms:
+#   - Body Masters: the two split Obhor sheets (Al Amwaj + Al Sheraa)
+#   - Body Motions: its single "Body Motions - JED - Obhor" sheet (added above, auto-mapped here)
+# _monthly_total_for_report_branch filters by gym, so listing all sheets under one key is safe.
+# Use extend (not assignment) so the auto-mapped Body Motions sheet is preserved.
+_REPORT_BRANCH_TO_SHEETS.setdefault("JED - Obhor", []).extend([
     "Masters -JED- Obhor - Al Amwaj",
     "Masters -JED- Obhor - Al Sheraa",
-]
+])
 _REPORT_BRANCH_TO_SHEETS["JED - JDR"] = []   # no sheet in template (yet)
 
 

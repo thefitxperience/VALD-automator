@@ -16,3 +16,6 @@ dist/
 
 # macOS
 .DS_Store
+
+# Local-dev: report templates symlinked from repo root (Dockerfile copies the real files in prod)
+web/backend/*.xlsx

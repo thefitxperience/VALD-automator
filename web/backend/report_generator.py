@@ -38,7 +38,7 @@ BRANCH_ORDER = {
     "Body Motions": [
         "RUH - Al Malaz", "RUH - Al Sahafa", "RUH - Al Aarid", "RUH - Al Fayha",
         "RUH - Al Uraija", "RUH - Badr", "RUH - Al Badia",
-        "JED - Al Basateen", "JED - Al Faisaliyah", "JED - Al Naeem",
+        "JED - Al Basateen", "JED - Al Faisaliyah", "JED - Al Naeem", "JED - Obhor",
         "DMM - Al Faisaliyah", "DMM - Al Jalawiah", "DMM - Al Nada",
         "ALQ - Buraidah", "ALQ - Unaizah",
         "Al Ahsaa", "AlUla", "Tabuk",
