@@ -85,6 +85,7 @@ PAYMENT_SHEET_TO_BRANCH: dict[str, tuple[str, str]] = {
     "Masters -JED- Obhor - Al Amwaj":   ("Body Masters", "JED - Obhor - Al Amwaj"),
     "Masters -JED- Obhor - Al Sheraa":  ("Body Masters", "JED - Obhor - Al Sheraa"),
     "Body Masters - ALQ - Al Rass":     ("Body Masters", "ALQ - Al Rass"),
+    "Body Masters - ALQ - Al Rayyan":   ("Body Masters", "ALQ - Al Rayyan"),
     "Body Masters - ALQ - Buraidah":    ("Body Masters", "ALQ - Buraidah"),
     "Body Masters - ALQ - Unaizah":     ("Body Masters", "ALQ - Unaizah"),
     "Body Masters - MED - Shouran":     ("Body Masters", "MED - Shouran"),

@@ -16,7 +16,7 @@ const branchOrder = {
     'DMM - Al Athir','DMM - Al Jameyeen','DMM - Hufof','DMM - Khobar',
     'JED - Hamadania','JED - Al Rawdah','JED - Makkah',
     'JED - Obhor - Al Amwaj','JED - Obhor - Al Sheraa',
-    'ALQ - Al Rass','ALQ - Buraidah','ALQ - Unaizah',
+    'ALQ - Al Rass','ALQ - Al Rayyan','ALQ - Buraidah','ALQ - Unaizah',
     'MED - Shouran','MED - Taiba',
     'Uhud','AlUla','Al Mubaraz','Hafr El Batin','Tabuk','Najran',
     'Khamis Mushait','Hail',
