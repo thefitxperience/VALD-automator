@@ -629,7 +629,14 @@ def api_generate_growth_tracker(
         raise HTTPException(status_code=500, detail=str(e))
 
     import calendar
-    filename = f"Test Growth Tracker - {gym} - {calendar.month_name[month]} {year}.xlsx"
+    prev_y, prev_m = (year - 1, 12) if month == 1 else (year, month - 1)
+    prev_abbr = calendar.month_abbr[prev_m].upper()
+    curr_abbr = calendar.month_abbr[month].upper()
+    if prev_y == year:
+        span = f"{prev_abbr}-{curr_abbr} {year % 100:02d}"
+    else:  # comparison spans a year boundary (e.g. Dec 25 → Jan 26)
+        span = f"{prev_abbr} {prev_y % 100:02d}-{curr_abbr} {year % 100:02d}"
+    filename = f"Test Growth Tracker - {gym} - {span}.xlsx"
     return StreamingResponse(
         io.BytesIO(report_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

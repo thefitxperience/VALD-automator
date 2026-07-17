@@ -304,7 +304,11 @@ function GrowthTracker() {
       const disposition = res.headers?.['content-disposition'] || ''
       const match = disposition.match(/filename="([^"]+)"/)
       a.href = url
-      a.download = match ? match[1] : `Test Growth Tracker - ${gym} - ${MONTHS[month - 1]} ${year}.xlsx`
+      const yy = String(year % 100).padStart(2, '0')
+      const prevMo = MONTHS[(month - 2 + 12) % 12].slice(0, 3).toUpperCase()
+      const currMo = MONTHS[month - 1].slice(0, 3).toUpperCase()
+      const fallback = `Test Growth Tracker - ${gym} - ${prevMo}-${currMo} ${yy}.xlsx`
+      a.download = match ? match[1] : fallback
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {

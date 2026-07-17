@@ -276,17 +276,14 @@ def _branch_analysis_sheet(wb, gym, branches, counter, prev_date, curr_date):
                 fmt=("0%" if isinstance(g, (int, float)) and not isinstance(g, bool) else None))
     _add_growth_arrows(ws, [f"E{start}:E{r}"])
 
-    # Fill side tables
+    # Fill side tables — always border both columns down to the taller of the two months,
+    # so a shorter month's empty cells still complete the box instead of leaving it ragged.
     for i in range(max(len(zero_prev), len(zero_curr))):
-        if i < len(zero_prev):
-            _style_cell(ws.cell(3 + i, 7, zero_prev[i]), align=_LEFT)
-        if i < len(zero_curr):
-            _style_cell(ws.cell(3 + i, 8, zero_curr[i]), align=_LEFT)
-    for i in range(3):
-        if i < len(top_prev):
-            _style_cell(ws.cell(3 + i, 10, top_prev[i]), align=_LEFT)
-        if i < len(top_curr):
-            _style_cell(ws.cell(3 + i, 11, top_curr[i]), align=_LEFT)
+        _style_cell(ws.cell(3 + i, 7, zero_prev[i] if i < len(zero_prev) else None), align=_LEFT)
+        _style_cell(ws.cell(3 + i, 8, zero_curr[i] if i < len(zero_curr) else None), align=_LEFT)
+    for i in range(max(len(top_prev), len(top_curr))):
+        _style_cell(ws.cell(3 + i, 10, top_prev[i] if i < len(top_prev) else None), align=_LEFT)
+        _style_cell(ws.cell(3 + i, 11, top_curr[i] if i < len(top_curr) else None), align=_LEFT)
 
     _set_widths(ws, {1: 22, 2: 11, 3: 11, 4: 11, 5: 12, 6: 3, 7: 20, 8: 20, 9: 3, 10: 20, 11: 20})
     return ws
@@ -350,16 +347,16 @@ def generate_growth_tracker(
             ws.merge_cells(start_row=1, start_column=4, end_row=1, end_column=5)
             for col, dt in ((1, prev_date), (2, curr_date), (4, prev_date), (5, curr_date)):
                 _style_cell(ws.cell(2, col, dt), fill=_SUBHEAD_FILL, font=_BOLD, fmt=_MONTH_FMT)
-            for i in range(3):
-                if i < len(mtop_prev): _style_cell(ws.cell(3 + i, 1, mtop_prev[i]), align=_LEFT)
-                if i < len(mtop_curr): _style_cell(ws.cell(3 + i, 2, mtop_curr[i]), align=_LEFT)
-            for i in range(max(len(mzero_prev), len(mzero_curr)) or 0):
-                if i < len(mzero_prev): _style_cell(ws.cell(3 + i, 4, mzero_prev[i]), align=_LEFT)
-                if i < len(mzero_curr): _style_cell(ws.cell(3 + i, 5, mzero_curr[i]), align=_LEFT)
+            # Border both columns down to the taller month so each side table stays rectangular.
+            for i in range(max(len(mtop_prev), len(mtop_curr))):
+                _style_cell(ws.cell(3 + i, 1, mtop_prev[i] if i < len(mtop_prev) else None), align=_LEFT)
+                _style_cell(ws.cell(3 + i, 2, mtop_curr[i] if i < len(mtop_curr) else None), align=_LEFT)
+            for i in range(max(len(mzero_prev), len(mzero_curr))):
+                _style_cell(ws.cell(3 + i, 4, mzero_prev[i] if i < len(mzero_prev) else None), align=_LEFT)
+                _style_cell(ws.cell(3 + i, 5, mzero_curr[i] if i < len(mzero_curr) else None), align=_LEFT)
 
-            # Side tables start at row 3; top-3 is <=3 rows, but the 0-tests list can be longer.
-            # Start the branch tables one blank row after whichever side table is tallest.
-            last_side_row = 2 + max(3, len(mzero_prev), len(mzero_curr))
+            # Side tables start at row 3; start the branch tables one blank row after the tallest one.
+            last_side_row = 2 + max(len(mtop_prev), len(mtop_curr), len(mzero_prev), len(mzero_curr))
             r = last_side_row + 2
             granges = []
             for b in mbranches:
