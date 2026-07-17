@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BODYDOT_ORGS, listClients, getLatestSession } from '../api/bodydot'
+import { BODYDOT_ORGS, listClients, listSessions, getSession } from '../api/bodydot'
 import programTemplate from '../bodydot/program.html?raw'
 
 // Absolute base for the program's assets (logo + backgrounds live in public/bodydot/).
@@ -36,6 +36,16 @@ function formatDate(iso) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// Format an ISO session timestamp as e.g. "22 Apr 2026 · 10:40" — used to tell apart
+// multiple sessions taken on the same day.
+function formatDateTime(iso) {
+  const d = new Date(iso)
+  if (isNaN(d)) return iso
+  const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return `${date} · ${time}`
+}
+
 // Build the standalone program document for a session and open it in a new tab.
 // Mirrors QuickGenerate: Blob → object URL → window.open → print (here the program
 // prints itself via its own auto-print bootstrap).
@@ -65,13 +75,21 @@ function openProgram(session, clientName, bilingual) {
   setTimeout(() => URL.revokeObjectURL(url), 60000)
 }
 
-function ClientRow({ client, bilingual, dateInfo }) {
+function ClientRow({ client, bilingual, sessionInfo }) {
   const [busy, setBusy] = useState(false)
+  // Which session to generate; defaults to the latest (index 0). Only matters when >1.
+  const [selectedId, setSelectedId] = useState(null)
+
+  // sessionInfo: undefined = still loading, null = error, array = session summaries (newest first)
+  const sessions = Array.isArray(sessionInfo) ? sessionInfo : []
+  const hasMultiple = sessions.length > 1
+  const chosenId = selectedId || (sessions[0] && sessions[0].id)
 
   const handleGenerate = async () => {
+    if (!chosenId) return
     setBusy(true)
     try {
-      const session = await getLatestSession(client.id)
+      const session = await getSession(client.id, chosenId)
       openProgram(session, client.name || '', bilingual)
     } catch (e) {
       alert(`Could not generate program for ${client.name || 'client'}: ${e.message}`)
@@ -80,25 +98,50 @@ function ClientRow({ client, bilingual, dateInfo }) {
     }
   }
 
-  // dateInfo: undefined = still loading, null = no session, string = formatted date
   let dateLabel
-  if (dateInfo === undefined) dateLabel = <span className="text-gray-600">Loading test date…</span>
-  else if (dateInfo === null) dateLabel = <span className="text-gray-600">No test data</span>
-  else dateLabel = <span className="text-gray-400">Test date: {dateInfo}</span>
+  if (sessionInfo === undefined) dateLabel = <span className="text-gray-600">Loading test date…</span>
+  else if (!sessions.length) dateLabel = <span className="text-gray-600">No test data</span>
+  else
+    dateLabel = (
+      <span className="text-gray-400">
+        Test date: {formatDate(sessions[0].createdAt)}
+        {hasMultiple && (
+          <span className="text-brand-400"> · {sessions.length} tests</span>
+        )}
+      </span>
+    )
 
   return (
     <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-gray-800 last:border-b-0">
-      <div>
+      <div className="min-w-0">
         <p className="font-medium text-white">{client.name || '—'}</p>
         <p className="text-xs mt-0.5">{dateLabel}</p>
       </div>
-      <button
-        onClick={handleGenerate}
-        disabled={busy}
-        className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
-      >
-        {busy ? 'Loading…' : 'Generate Program'}
-      </button>
+      <div className="flex items-center gap-2 shrink-0">
+        {/* When a client has several sessions (e.g. multiple tests on the same day),
+            let the user pick which one to generate. Options show date + time. */}
+        {hasMultiple && (
+          <select
+            value={chosenId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            disabled={busy}
+            className="text-xs px-2 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:border-brand-500 max-w-[190px]"
+          >
+            {sessions.map((s, i) => (
+              <option key={s.id} value={s.id}>
+                {formatDateTime(s.createdAt)}{i === 0 ? ' (latest)' : ''}
+              </option>
+            ))}
+          </select>
+        )}
+        <button
+          onClick={handleGenerate}
+          disabled={busy || !chosenId}
+          className="text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
+        >
+          {busy ? 'Loading…' : 'Generate Program'}
+        </button>
+      </div>
     </div>
   )
 }
@@ -110,7 +153,7 @@ export default function Bodydot() {
   const [error, setError] = useState(null)
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
-  const [dates, setDates] = useState({}) // clientId → formatted date | null
+  const [sessions, setSessions] = useState({}) // clientId → session summaries[] | null (error)
 
   // Bumped whenever the visible set changes, so stale date-prefetches bail out.
   const prefetchTokenRef = useRef(0)
@@ -123,7 +166,7 @@ export default function Bodydot() {
     setPage(0)
     setError(null)
     setClients([])
-    setDates({})
+    setSessions({})
     setLoading(true)
     try {
       setClients(await listClients(org.id))
@@ -142,12 +185,12 @@ export default function Bodydot() {
   const safePage = Math.min(page, totalPages - 1)
   const visible = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE)
 
-  // Fetch test dates only for the clients currently visible on this page.
+  // Fetch the session list (dates + count) only for the clients currently visible.
   const visibleIds = visible.map((c) => c.id).join(',')
   useEffect(() => {
     if (!visible.length) return
     const token = ++prefetchTokenRef.current
-    const todo = visible.filter((c) => dates[c.id] === undefined)
+    const todo = visible.filter((c) => sessions[c.id] === undefined)
     if (!todo.length) return
 
     let i = 0
@@ -157,13 +200,12 @@ export default function Bodydot() {
         const client = todo[i++]
         let value = null
         try {
-          const session = await getLatestSession(client.id)
-          value = formatDate(session.createdAt) || null
+          value = await listSessions(client.id)
         } catch {
           value = null
         }
         if (token !== prefetchTokenRef.current) return
-        setDates((prev) => ({ ...prev, [client.id]: value }))
+        setSessions((prev) => ({ ...prev, [client.id]: value }))
       }
     }
     Promise.all(
@@ -235,7 +277,7 @@ export default function Bodydot() {
                     key={c.id}
                     client={c}
                     bilingual={activeOrg?.bilingual}
-                    dateInfo={dates[c.id]}
+                    sessionInfo={sessions[c.id]}
                   />
                 ))}
               </div>

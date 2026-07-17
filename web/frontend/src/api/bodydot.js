@@ -55,19 +55,40 @@ export async function listClients(orgId) {
   return clients
 }
 
-// Cache of clientId → latest session, so the background date-prefetch and the
-// "Generate" click share a single fetch per client.
+// Cache of clientId → session summary list, so the background prefetch (for the
+// row's test date + count) and the "Generate" click share a single list fetch.
+const _listCache = new Map()
+
+// List a client's measurement sessions (summaries: id + createdAt, no stepResults),
+// newest first. A client can have several sessions on the same day.
+export async function listSessions(clientId) {
+  if (_listCache.has(clientId)) return _listCache.get(clientId)
+  const token = await getToken()
+  const resp = await fetch(`${BAS_API}/clients/${clientId}/measurement-sessions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+  const data = await resp.json()
+  const list = Array.isArray(data) ? data : data.data || []
+  // Newest first (the API already returns this order, but don't rely on it).
+  list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  _listCache.set(clientId, list)
+  return list
+}
+
+// Cache of sessionId → full session, so re-generating the same test doesn't refetch.
 const _sessionCache = new Map()
 
-// Fetch a client's latest measurement session (the raw object the program renderer expects).
-export async function getLatestSession(clientId) {
-  if (_sessionCache.has(clientId)) return _sessionCache.get(clientId)
+// Fetch one full measurement session by id (the raw object the program renderer expects).
+// The list endpoint only returns summaries, so the actual stepResults must be fetched here.
+export async function getSession(clientId, sessionId) {
+  if (_sessionCache.has(sessionId)) return _sessionCache.get(sessionId)
   const token = await getToken()
-  const resp = await fetch(`${BAS_API}/clients/${clientId}/measurement-sessions/latest`, {
+  const resp = await fetch(`${BAS_API}/clients/${clientId}/measurement-sessions/${sessionId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!resp.ok) throw new Error('No session found')
   const session = await resp.json()
-  _sessionCache.set(clientId, session)
+  _sessionCache.set(sessionId, session)
   return session
 }
