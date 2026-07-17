@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { generateReport, generatePaymentReport } from '../api/client'
+import { generateReport, generatePaymentReport, generateGrowthTracker } from '../api/client'
 
 const GYMS = [
   { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
@@ -272,6 +272,120 @@ export default function Reports() {
           <PaymentReport />
         </div>
       </div>
+
+      {/* ── Growth Tracker (full width) ── */}
+      <div className="border-t border-gray-700 pt-6">
+        <GrowthTracker />
+      </div>
+    </div>
+  )
+}
+
+function GrowthTracker() {
+  const now = new Date()
+  const [gym, setGym] = useState('Body Motions')
+  const [month, setMonth] = useState(now.getMonth() + 1)
+  const [year, setYear] = useState(now.getFullYear())
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const prevLabel = `${MONTHS[(month - 2 + 12) % 12]} ${month === 1 ? year - 1 : year}`
+
+  const handleGenerate = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await generateGrowthTracker(gym, month, year)
+      const blob = new Blob([res.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const disposition = res.headers?.['content-disposition'] || ''
+      const match = disposition.match(/filename="([^"]+)"/)
+      a.href = url
+      a.download = match ? match[1] : `Test Growth Tracker - ${gym} - ${MONTHS[month - 1]} ${year}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Failed to generate growth tracker')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="max-w-2xl space-y-5">
+      <div>
+        <h1 className="text-2xl font-bold text-white">Test Growth Tracker</h1>
+      </div>
+
+      {/* Gym */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">Gym</label>
+        <div className="flex gap-3">
+          {GYMS.map((g) => (
+            <button
+              key={g.name}
+              onClick={() => setGym(g.name)}
+              className={`rounded-xl overflow-hidden transition-all border-2 bg-gray-100
+                ${gym === g.name
+                  ? 'border-brand-500 shadow-lg shadow-brand-500/30 scale-105'
+                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-500'
+                }`}
+            >
+              <img src={g.logo} alt={g.name} className="h-14 w-auto object-contain px-3 py-1.5" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Month + Year */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Month</label>
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {MONTHS.map((m, i) => (
+              <option key={i + 1} value={i + 1}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Year</label>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-lg bg-red-900/40 border border-red-700 text-red-300 px-4 py-3 text-sm">
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handleGenerate}
+        disabled={loading}
+        className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
+      >
+        {loading ? 'Generating…' : 'Generate & Download Growth Tracker'}
+      </button>
+
+      <p className="text-xs text-gray-500 text-center">
+        Compares <strong className="text-gray-400">{MONTHS[month - 1]} {year}</strong> vs{' '}
+        <strong className="text-gray-400">{prevLabel}</strong> test counts per branch and trainer.
+      </p>
     </div>
   )
 }

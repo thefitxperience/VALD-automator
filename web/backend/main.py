@@ -21,6 +21,7 @@ from supabase import create_client, Client
 from check_processor import process_check_file, parse_all_programs
 from report_generator import generate_report
 from payment_report_generator import generate_payment_report
+from growth_tracker_generator import generate_growth_tracker
 
 from program_builder import generate_program_pdf, generate_program_html
 
@@ -575,6 +576,60 @@ def api_generate_report(
         month_name = calendar.month_name[month]
         filename = f"{month_name} {year} - {gym}.xlsx"
 
+    return StreamingResponse(
+        io.BytesIO(report_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/report/growth")
+def api_generate_growth_tracker(
+    gym: str = Form(...),
+    year: int = Form(...),
+    month: int = Form(...),
+):
+    """Test Growth Tracker: selected month vs previous month, by dispatch_date."""
+    page_size = 1000
+    all_programs = []
+    offset = 0
+    while True:
+        res = (
+            supabase.table("programs")
+            .select("branch,trainer_name,dispatch_date,approved,ignored")
+            .eq("gym", gym)
+            .eq("approved", True)
+            .neq("ignored", True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        all_programs.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
+
+    trainer_rows = _trainers_for(gym)
+    trainer_order_by_branch: dict = {}
+    for r in trainer_rows:
+        trainer_order_by_branch.setdefault(r["branch"], []).append(r["name"])
+
+    try:
+        report_bytes = generate_growth_tracker(
+            gym=gym,
+            programs=all_programs,
+            year=year,
+            month=month,
+            trainer_order_by_branch=trainer_order_by_branch,
+            report_date=date.today(),
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    import calendar
+    filename = f"Test Growth Tracker - {gym} - {calendar.month_name[month]} {year}.xlsx"
     return StreamingResponse(
         io.BytesIO(report_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
