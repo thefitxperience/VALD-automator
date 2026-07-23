@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { generateReport, generatePaymentReport, generateGrowthTracker } from '../api/client'
+import { generateReport, generatePaymentReport, generateGrowthTracker, generateBodydotReport } from '../api/client'
 
 const GYMS = [
   { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
   { name: 'Body Masters', logo: '/VALD-automator/Masters_logo.png' },
+]
+const SOURCES = [
+  { key: 'vald', name: 'VALD', logo: '/VALD-automator/VALD.png' },
+  { key: 'bodydot', name: 'Bodydot', logo: '/VALD-automator/Bodydot.png' },
 ]
 const MONTHS = [
   'January','February','March','April','May','June',
@@ -19,6 +23,7 @@ function weeksInMonth(year, month) {
 
 export default function Reports() {
   const now = new Date()
+  const [source, setSource] = useState('vald')
   const [gym, setGym] = useState('Body Motions')
   const [periodType, setPeriodType] = useState('monthly')
   const [year, setYear] = useState(now.getFullYear())
@@ -65,7 +70,9 @@ export default function Reports() {
         start_day: periodType === 'custom' && startDay ? startDay : null,
         end_day: periodType === 'custom' && endDay ? endDay : null,
       }
-      const res = await generateReport(params)
+      const res = source === 'bodydot'
+        ? await generateBodydotReport(params)
+        : await generateReport(params)
 
       // Trigger download
       const blob = new Blob([res.data], {
@@ -75,6 +82,7 @@ export default function Reports() {
       const a = document.createElement('a')
       const disposition = res.headers?.['content-disposition'] || ''
       const match = disposition.match(/filename="([^"]+)"/)
+      const prefix = source === 'bodydot' ? 'Bodydot ' : ''
       const label =
         periodType === 'custom'
           ? `${MONTHS[month - 1]} ${year} (Day ${startDay || 1}–${endDay || daysInMonth})`
@@ -82,11 +90,18 @@ export default function Reports() {
           ? `${MONTHS[month - 1]} ${year}`
           : `Week ${weekNumber} - ${MONTHS[month - 1]} ${year}`
       a.href = url
-      a.download = match ? match[1] : `${label} - ${gym}.xlsx`
+      a.download = match ? match[1] : `${prefix}${label} - ${gym}.xlsx`
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Failed to generate report')
+      // Blob error bodies need reading back to text.
+      let detail = e.message
+      if (e.response?.data instanceof Blob) {
+        try { detail = JSON.parse(await e.response.data.text()).detail || detail } catch { /* ignore */ }
+      } else {
+        detail = e.response?.data?.detail || detail
+      }
+      setError(detail || 'Failed to generate report')
     } finally {
       setLoading(false)
     }
@@ -103,6 +118,26 @@ export default function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
         {/* ── Left: Monthly / Weekly / Custom report ── */}
         <div className="space-y-6">
+
+      {/* Source (VALD / Bodydot) */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">Service</label>
+        <div className="flex gap-3">
+          {SOURCES.map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setSource(s.key)}
+              className={`rounded-xl overflow-hidden transition-all border-2 bg-gray-100
+                ${source === s.key
+                  ? 'border-brand-500 shadow-lg shadow-brand-500/30 scale-105'
+                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-500'
+                }`}
+            >
+              <img src={s.logo} alt={s.name} className="h-14 w-28 object-contain px-0.5 py-px" />
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Gym */}
       <div>
@@ -254,7 +289,9 @@ export default function Reports() {
       )}
 
       <p className="text-xs text-gray-500 text-center">
-        Report pulls all <strong className="text-gray-400">approved</strong> programs
+        {source === 'bodydot'
+          ? <>Report pulls all <strong className="text-gray-400">approved</strong> Bodydot tests</>
+          : <>Report pulls all <strong className="text-gray-400">approved</strong> programs</>}
         {periodType === 'weekly'
           ? ` dispatched in week ${weekNumber} of ${MONTHS[month - 1]} ${year}`
           : periodType === 'custom'

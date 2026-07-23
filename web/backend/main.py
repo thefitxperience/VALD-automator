@@ -22,6 +22,8 @@ from check_processor import process_check_file, parse_all_programs
 from report_generator import generate_report
 from payment_report_generator import generate_payment_report
 from growth_tracker_generator import generate_growth_tracker
+from bodydot_report_generator import generate_bodydot_report
+import bodydot_api
 
 from program_builder import generate_program_pdf, generate_program_html
 
@@ -98,6 +100,39 @@ class IgnorePayload(BaseModel):
     test_date: str
     movements: int
     external_id: Optional[str] = None
+
+
+class BodydotApprovePayload(BaseModel):
+    gym: str                       # 'Body Motions' | 'Body Masters' | 'Body Coach'
+    org_id: str
+    client_id: str
+    client_name: str
+    session_id: str
+    test_date: str                 # YYYY-MM-DD (session UTC date)
+    valid: Optional[bool] = None
+    trainer_name: Optional[str] = None   # None = missing; free-text allowed
+    dispatch_date: Optional[str] = None
+    sent: bool = False
+
+
+class BodydotPatchPayload(BaseModel):
+    # Any subset; sent explicitly (booleans can't use "truthy" filtering).
+    trainer_name: Optional[str] = None
+    dispatch_date: Optional[str] = None
+    sent: Optional[bool] = None
+    approved: Optional[bool] = None
+    ignored: Optional[bool] = None
+    trainer_name_set: bool = False   # allow clearing trainer to NULL
+
+
+class BodydotIgnorePayload(BaseModel):
+    gym: str
+    org_id: str
+    client_id: str
+    client_name: str
+    session_id: str
+    test_date: str
+    valid: Optional[bool] = None
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -637,6 +672,292 @@ def api_generate_growth_tracker(
     else:  # comparison spans a year boundary (e.g. Dec 25 → Jan 26)
         span = f"{prev_abbr} {prev_y % 100:02d}-{curr_abbr} {year % 100:02d}"
     filename = f"Test Growth Tracker - {gym} - {span}.xlsx"
+    return StreamingResponse(
+        io.BytesIO(report_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ── Bodydot tests (trainer assignment + approval/sent state) ────────────────────
+
+@app.get("/api/bodydot/tests")
+def api_bodydot_tests(gym: str = Query(...)):
+    """All stored Bodydot test rows for a gym, keyed by session_id on the client
+    so the Bodydot page can overlay approval/trainer/sent status onto the live list."""
+    res = (
+        supabase.table("bodydot_tests")
+        .select("*")
+        .eq("gym", gym)
+        .order("test_date", desc=True)
+        .execute()
+    )
+    return res.data or []
+
+
+# Cache of the expensive API sweep, per (gym, days). DB status is merged fresh on
+# every request, so approvals reflect instantly — only the ~1-min sweep is cached.
+_recent_sweep_cache: dict = {}
+
+@app.get("/api/bodydot/recent")
+def api_bodydot_recent(
+    gym: str = Query(...),
+    days: int = Query(10),
+    refresh: bool = Query(False),
+):
+    """Sweep the last `days` days of Bodydot tests (live, deduped, with validity) and
+    merge in the stored approval/trainer status. Cached — pass refresh=true to re-sweep."""
+    if gym not in bodydot_api.ORG_TO_GYM.values():
+        raise HTTPException(status_code=400, detail=f"Unknown gym '{gym}'")
+    org_id = bodydot_api.GYM_TO_ORG[gym]
+
+    key = (gym, days)
+    cached = _recent_sweep_cache.get(key)
+    if refresh or cached is None:
+        try:
+            summary = bodydot_api.recent_summary(org_id, days=days)
+        except Exception as e:
+            traceback.print_exc()
+            raise HTTPException(status_code=502, detail=f"Bodydot API sweep failed: {e}")
+        cached = {"ts": datetime.utcnow().isoformat(), "summary": summary}
+        _recent_sweep_cache[key] = cached
+
+    # Merge fresh DB status onto a shallow copy of the cached sweep.
+    try:
+        rows = supabase.table("bodydot_tests").select("*").eq("gym", gym).execute().data or []
+    except Exception:
+        rows = []  # table not created yet — treat everything as unapproved
+    stored = {r["session_id"]: r for r in rows}
+    tests = [
+        {**t, "stored": stored.get(t["session_id"])}
+        for t in cached["summary"]["tests"]
+    ]
+    tests.sort(key=lambda t: t.get("created_at") or "", reverse=True)
+    s = cached["summary"]
+    return {"total": s["total"], "valid": s["valid"], "invalid": s["invalid"],
+            "tests": tests, "swept_at": cached["ts"]}
+
+
+@app.post("/api/bodydot/auto-record-invalid")
+def api_bodydot_auto_record_invalid(
+    gym: str = Form(...),
+    year: int = Form(...),
+    month: int = Form(...),
+):
+    """Sweep a month and bulk-record every INVALID test as approved (valid=false),
+    so the DB-based report counts them without you clicking each one. Slow (one API
+    sweep) — run once per month. Never touches tests you've already approved/ignored."""
+    if gym not in bodydot_api.ORG_TO_GYM.values():
+        raise HTTPException(status_code=400, detail=f"Unknown gym '{gym}'")
+    org_id = bodydot_api.GYM_TO_ORG[gym]
+    try:
+        summary = bodydot_api.month_test_summary(org_id, year, month)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=502, detail=f"Bodydot API sweep failed: {e}")
+
+    invalids = [t for t in summary["tests"] if not t["valid"]]
+    existing = {
+        r["session_id"]: r
+        for r in (supabase.table("bodydot_tests").select("session_id,approved,ignored")
+                  .eq("gym", gym).execute().data or [])
+    }
+    records = []
+    for t in invalids:
+        ex = existing.get(t["session_id"])
+        if ex and (ex.get("approved") or ex.get("ignored")):
+            continue  # already handled — don't overwrite
+        clean_name, real_id = _split_client(t["client_name"])
+        records.append({
+            "gym": gym, "org_id": org_id,
+            "client_id": t["client_id"], "client_name": clean_name, "real_client_id": real_id,
+            "session_id": t["session_id"], "test_date": t["test_date"],
+            "valid": False, "approved": True,
+            "approved_at": datetime.utcnow().isoformat(), "ignored": False,
+        })
+    if records:
+        supabase.table("bodydot_tests").upsert(records, on_conflict="session_id").execute()
+    return {"invalid_found": len(invalids), "recorded": len(records)}
+
+
+@app.post("/api/bodydot/tests/ignore")
+def api_bodydot_ignore(payload: BodydotIgnorePayload):
+    clean_name, real_id = _split_client(payload.client_name)
+    record = {
+        "gym": payload.gym, "org_id": payload.org_id,
+        "client_id": payload.client_id, "client_name": clean_name, "real_client_id": real_id,
+        "session_id": payload.session_id, "test_date": payload.test_date,
+        "valid": payload.valid, "ignored": True, "approved": False,
+    }
+    res = supabase.table("bodydot_tests").upsert(record, on_conflict="session_id").execute()
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=500, detail="Failed to ignore Bodydot test")
+
+
+import re as _re
+
+def _split_client(name: str, real_id: str | None = None):
+    """Split a Bodydot client name into (clean_name, real_client_id). Trainers often
+    type the gym's id into the name ('Sabrina 12345'); we store the id in its own
+    column and keep the name clean. A provided real_id wins over one parsed from the name."""
+    real_id = (real_id or "").strip()
+    if not real_id:
+        nums = _re.findall(r"\d{4,}", name or "")
+        real_id = max(nums, key=len) if nums else ""
+    clean = _re.sub(r"\s*\d{4,}\s*", " ", name or "").strip() or (name or "")
+    return clean, (real_id or None)
+
+
+@app.post("/api/bodydot/tests/approve")
+def api_bodydot_approve(payload: BodydotApprovePayload):
+    clean_name, real_id = _split_client(payload.client_name)
+    record = {
+        "gym": payload.gym,
+        "org_id": payload.org_id,
+        "client_id": payload.client_id,
+        "client_name": clean_name,
+        "real_client_id": real_id,
+        "session_id": payload.session_id,
+        "test_date": payload.test_date,
+        "valid": payload.valid,
+        "trainer_name": payload.trainer_name,   # None = missing/unassigned
+        "dispatch_date": payload.dispatch_date,
+        "sent": payload.sent,
+        "approved": True,
+        "approved_at": datetime.utcnow().isoformat(),
+        "ignored": False,
+    }
+    res = (
+        supabase.table("bodydot_tests")
+        .upsert(record, on_conflict="session_id")
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=500, detail="Failed to approve Bodydot test")
+
+
+@app.post("/api/bodydot/tests/{session_id}/unapprove")
+def api_bodydot_unapprove(session_id: str):
+    res = (
+        supabase.table("bodydot_tests")
+        .update({"approved": False, "approved_at": None})
+        .eq("session_id", session_id)
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=404, detail="Bodydot test not found")
+
+
+@app.patch("/api/bodydot/tests/{session_id}")
+def api_bodydot_patch(session_id: str, payload: BodydotPatchPayload):
+    updates: dict = {}
+    # trainer_name can be set to a real name, or explicitly cleared to NULL
+    if payload.trainer_name_set:
+        updates["trainer_name"] = payload.trainer_name
+    if payload.dispatch_date is not None:
+        updates["dispatch_date"] = payload.dispatch_date
+    if payload.sent is not None:
+        updates["sent"] = payload.sent
+    if payload.approved is not None:
+        updates["approved"] = payload.approved
+        updates["approved_at"] = datetime.utcnow().isoformat() if payload.approved else None
+    if payload.ignored is not None:
+        updates["ignored"] = payload.ignored
+    if not updates:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    res = (
+        supabase.table("bodydot_tests")
+        .update(updates)
+        .eq("session_id", session_id)
+        .execute()
+    )
+    if res.data:
+        return res.data[0]
+    raise HTTPException(status_code=404, detail="Bodydot test not found")
+
+
+@app.post("/api/report/bodydot")
+def api_generate_bodydot_report(
+    gym: str = Form(...),
+    year: int = Form(...),
+    month: int = Form(...),
+    period_type: str = Form("monthly"),   # monthly | weekly
+    week_number: Optional[int] = Form(None),
+    start_day: Optional[int] = Form(None),
+    end_day: Optional[int] = Form(None),
+):
+    """Bodydot report — read entirely from the DB (no live sweep, which is slow).
+    Supports monthly / weekly / custom-day-range periods, mirroring the VALD report.
+    Validity totals come from approved rows by test date within the period; the
+    per-trainer breakdown + data sheet come from approved VALID rows by dispatch date.
+    Approve both valid and invalid tests on the Bodydot page so this stays complete."""
+    if gym not in bodydot_api.REPORT_GYMS:
+        raise HTTPException(status_code=400, detail=f"No Bodydot report for gym '{gym}'")
+
+    import calendar
+    last_day = calendar.monthrange(year, month)[1]
+    if period_type == "weekly":
+        if not week_number:
+            raise HTTPException(status_code=400, detail="week_number required for weekly report")
+        s = (week_number - 1) * 7 + 1
+        period_start = date(year, month, s)
+        period_end = date(year, month, min(s + 6, last_day))
+    else:  # monthly (frontend also sends monthly for custom, with start/end days)
+        period_start = date(year, month, max(1, start_day or 1))
+        period_end = date(year, month, min(last_day, end_day or last_day))
+    is_partial = period_type == "weekly" or bool(start_day or end_day)
+
+    approved = (
+        supabase.table("bodydot_tests")
+        .select("*")
+        .eq("gym", gym)
+        .eq("approved", True)
+        .eq("ignored", False)
+        .execute()
+        .data or []
+    )
+
+    # TEST VALIDITY — tests conducted within the period (by test_date), valid vs invalid.
+    def _in_window(d):
+        if not isinstance(d, str):
+            return False
+        try:
+            td = date.fromisoformat(d[:10])
+        except ValueError:
+            return False
+        return period_start <= td <= period_end
+    in_window = [r for r in approved if _in_window(r.get("test_date"))]
+    valid_ct = sum(1 for r in in_window if r.get("valid"))
+    validity = {"total": len(in_window), "valid": valid_ct, "invalid": len(in_window) - valid_ct}
+
+    # Data sheet / per-trainer — only VALID tests (invalid ones have no program).
+    valid_rows = [r for r in approved if r.get("valid")]
+
+    branch = bodydot_api.GYM_TO_BRANCH.get(gym)
+    roster = [r["name"] for r in _trainers_for(gym, branch)] if branch else []
+
+    try:
+        report_bytes = generate_bodydot_report(
+            gym=gym, period_start=period_start, period_end=period_end,
+            validity=validity, approved_tests=valid_rows,
+            trainer_roster=roster,
+            report_date=(period_end if is_partial else date.today()),
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    month_name = calendar.month_name[month]
+    month_abbr = calendar.month_abbr[month]
+    if period_type == "weekly":
+        filename = f"Bodydot {month_abbr} {year} - Week {week_number} - {gym}.xlsx"
+    elif start_day or end_day:
+        filename = f"Bodydot {month_name} {year} (Day {period_start.day}-{period_end.day}) - {gym}.xlsx"
+    else:
+        filename = f"Bodydot {month_name} {year} - {gym}.xlsx"
     return StreamingResponse(
         io.BytesIO(report_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

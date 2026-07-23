@@ -84,3 +84,37 @@ export const generateGrowthTracker = (gym, month, year) => {
   fd.append('year', year)
   return api.post('/api/report/growth', fd, { responseType: 'blob', timeout: 120000 })
 }
+
+// ── Bodydot test approval / status ──
+export const getBodydotTests = (gym) =>
+  api.get('/api/bodydot/tests', { params: { gym } })
+
+// Sweep the last N days of tests (cached) merged with stored status — drives New/Completed.
+export const getBodydotRecent = (gym, days = 10, refresh = false) =>
+  api.get('/api/bodydot/recent', { params: { gym, days, refresh }, timeout: 300000 })
+
+export const approveBodydotTest = (payload) =>
+  api.post('/api/bodydot/tests/approve', payload)
+
+export const ignoreBodydotTest = (payload) =>
+  api.post('/api/bodydot/tests/ignore', payload)
+
+export const unapproveBodydotTest = (sessionId) =>
+  api.post(`/api/bodydot/tests/${sessionId}/unapprove`)
+
+export const patchBodydotTest = (sessionId, payload) =>
+  api.patch(`/api/bodydot/tests/${sessionId}`, payload)
+
+export const autoRecordInvalid = (gym, month, year) => {
+  const fd = new FormData()
+  fd.append('gym', gym)
+  fd.append('month', month)
+  fd.append('year', year)
+  return api.post('/api/bodydot/auto-record-invalid', fd, { timeout: 300000 })
+}
+
+export const generateBodydotReport = (params) => {
+  const fd = new FormData()
+  Object.entries(params).forEach(([k, v]) => v != null && fd.append(k, v))
+  return api.post('/api/report/bodydot', fd, { responseType: 'blob', timeout: 300000 })
+}

@@ -4192,8 +4192,12 @@
             for (const seq of sequences) {
                 if (hasCustom && seq.code !== 'custom') continue;
                 for (const step of seq.stepResults || []) {
+                    // basicPostureAssessment uses "…Simple" step codes (standingFrontSimple,
+                    // standingRightSimple, …). Normalize to the base codes the field map expects
+                    // so basic-only tests fill in instead of coming back empty.
+                    const stepCode = (step.stepCode || '').replace(/Simple$/, '');
                     for (const v of (step.data?.values || [])) {
-                        values[`${step.stepCode}.${v.valueCode}`] = v.value;
+                        values[`${stepCode}.${v.valueCode}`] = v.value;
                     }
                 }
             }

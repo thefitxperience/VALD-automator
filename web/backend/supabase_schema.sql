@@ -77,3 +77,46 @@ CREATE POLICY "service_role_all" ON trainers
 
 -- Drop old trainer_overrides table if still present:
 -- DROP TABLE IF EXISTS trainer_overrides;
+
+
+-- ── Bodydot tests ─────────────────────────────────────────────────────────
+-- Stores the trainer assignment + approval/sent state for Bodydot measurement
+-- sessions. The tests themselves live in the Bodydot API (which has no trainer
+-- and no approval state) — this table is where those workflow fields live.
+--
+-- Only tests you act on are stored (one row per Bodydot session). Report
+-- Valid/Invalid totals are pulled live from the Bodydot API at report time;
+-- the per-trainer breakdown + data sheet come from the APPROVED rows here.
+CREATE TABLE IF NOT EXISTS bodydot_tests (
+    id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    gym           TEXT NOT NULL CHECK (gym IN ('Body Motions', 'Body Masters', 'Body Coach')),
+    org_id        TEXT NOT NULL,               -- Bodydot organizationId
+    client_id     TEXT NOT NULL,               -- Bodydot member id
+    client_name   TEXT NOT NULL,
+    session_id    TEXT NOT NULL,               -- Bodydot measurement session id (natural key)
+    test_date     DATE NOT NULL,               -- session createdAt UTC calendar date
+    valid         BOOLEAN,                     -- MAJORITY rule at approve time (analyzed > not-analyzed)
+    real_client_id TEXT,                        -- the gym's own client id (not Bodydot's) shown in the report
+    trainer_name  TEXT,                        -- NULL = missing/none; free-text allowed (may not be in trainers table)
+    approved      BOOLEAN DEFAULT FALSE,
+    approved_at   TIMESTAMPTZ,
+    sent          BOOLEAN DEFAULT FALSE,       -- program generated / sent to client
+    dispatch_date DATE,
+    ignored       BOOLEAN DEFAULT FALSE,
+    created_at    TIMESTAMPTZ DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE (session_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bodydot_gym_date
+    ON bodydot_tests (gym, approved, test_date);
+
+CREATE OR REPLACE TRIGGER bodydot_tests_updated_at
+    BEFORE UPDATE ON bodydot_tests
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+ALTER TABLE bodydot_tests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_all" ON bodydot_tests
+    USING (true)
+    WITH CHECK (true);
