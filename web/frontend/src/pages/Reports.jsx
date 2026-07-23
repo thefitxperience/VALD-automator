@@ -112,7 +112,7 @@ export default function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8">
         <h1 className="text-2xl font-bold text-white">Reports</h1>
         <div />
-        <h1 className="text-2xl font-bold text-white hidden lg:block">Payment Report</h1>
+        <h1 className="text-2xl font-bold text-white hidden lg:block">VALD Payment Report</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
@@ -304,15 +304,13 @@ export default function Reports() {
         {/* ── Divider ── */}
         <div className="hidden lg:block bg-gray-700 self-stretch" />
 
-        {/* ── Right: Payment report ── */}
+        {/* ── Right: Payment report + Growth Tracker stacked ── */}
         <div className="space-y-6">
           <PaymentReport />
+          <div className="border-t border-gray-700 pt-6">
+            <GrowthTracker />
+          </div>
         </div>
-      </div>
-
-      {/* ── Growth Tracker (full width) ── */}
-      <div className="border-t border-gray-700 pt-6">
-        <GrowthTracker />
       </div>
     </div>
   )
@@ -358,7 +356,7 @@ function GrowthTracker() {
   return (
     <div className="max-w-2xl space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white">Test Growth Tracker</h1>
+        <h1 className="text-2xl font-bold text-white">VALD Test Growth Tracker</h1>
       </div>
 
       {/* Gym */}
@@ -463,7 +461,7 @@ function PaymentReport() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white lg:hidden">Payment Report</h1>
+      <h1 className="text-2xl font-bold text-white lg:hidden">VALD Payment Report</h1>
 
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
