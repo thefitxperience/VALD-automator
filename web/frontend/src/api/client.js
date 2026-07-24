@@ -113,6 +113,9 @@ export const autoRecordInvalid = (gym, month, year) => {
   return api.post('/api/bodydot/auto-record-invalid', fd, { timeout: 300000 })
 }
 
+export const getReportCounts = (year, month) =>
+  api.get('/api/report/counts', { params: { year, month } })
+
 export const generateBodydotReport = (params) => {
   const fd = new FormData()
   Object.entries(params).forEach(([k, v]) => v != null && fd.append(k, v))

@@ -965,6 +965,39 @@ def api_generate_bodydot_report(
     )
 
 
+@app.get("/api/report/counts")
+def api_report_counts(year: int, month: int):
+    """Quick at-a-glance count of the tests that would appear in each monthly report,
+    by service (VALD / Bodydot) and gym — programs/tests approved, not ignored, and
+    dispatched within the given month (the same filter the reports use for their rows)."""
+    import calendar
+    first = date(year, month, 1).isoformat()
+    last = date(year, month, calendar.monthrange(year, month)[1]).isoformat()
+    gyms = list(bodydot_api.REPORT_GYMS)  # ("Body Motions", "Body Masters")
+
+    def count_vald(gym):
+        r = (
+            supabase.table("programs").select("id", count="exact")
+            .eq("gym", gym).eq("approved", True).neq("ignored", True)
+            .gte("dispatch_date", first).lte("dispatch_date", last)
+            .execute()
+        )
+        return r.count or 0
+
+    def count_bodydot(gym):
+        r = (
+            supabase.table("bodydot_tests").select("session_id", count="exact")
+            .eq("gym", gym).eq("approved", True).eq("ignored", False).eq("valid", True)
+            .gte("dispatch_date", first).lte("dispatch_date", last)
+            .execute()
+        )
+        return r.count or 0
+
+    vald = {g: count_vald(g) for g in gyms}
+    bodydot = {g: count_bodydot(g) for g in gyms}
+    return {"year": year, "month": month, "gyms": gyms, "vald": vald, "bodydot": bodydot}
+
+
 @app.post("/api/report/payment")
 def api_generate_payment_report(
     month: int = Form(...),
