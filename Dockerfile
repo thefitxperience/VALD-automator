@@ -19,6 +19,8 @@ COPY web/backend/ .
 COPY ["Month YEAR - Body Masters.xlsx", "."]
 COPY ["Month YEAR - Body Motions.xlsx", "."]
 COPY ["Payment - Month YEAR.xlsx", "."]
+COPY ["Bodydot Month YEAR - Body Masters.xlsx", "."]
+COPY ["Bodydot Month YEAR - Body Motions.xlsx", "."]
 COPY ["Body Masters/", "Body Masters/"]
 COPY ["Body Motions/", "Body Motions/"]
 
