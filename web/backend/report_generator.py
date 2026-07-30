@@ -40,7 +40,7 @@ BRANCH_ORDER = {
         "RUH - Al Uraija", "RUH - Badr", "RUH - Al Badia",
         "JED - Al Basateen", "JED - Al Faisaliyah", "JED - Al Naeem", "JED - Obhor",
         "DMM - Al Faisaliyah", "DMM - Al Jalawiah", "DMM - Al Nada",
-        "ALQ - Buraidah", "ALQ - Unaizah",
+        "ALQ - Al Rayyan", "ALQ - Buraidah", "ALQ - Unaizah",
         "Al Ahsaa", "AlUla", "Tabuk",
     ],
 }
