@@ -49,6 +49,7 @@ PAYMENT_SHEET_TO_BRANCH: dict[str, tuple[str, str]] = {
     "Body Motions-DMM-Al Faisaliyah":   ("Body Motions", "DMM - Al Faisaliyah"),
     "Body Motions -DMM- Al Jalawiah":   ("Body Motions", "DMM - Al Jalawiah"),
     "Body Motions - DMM - Al Nada":     ("Body Motions", "DMM - Al Nada"),
+    "Body Motions - ALQ - Al Rayyan":   ("Body Motions", "ALQ - Al Rayyan"),
     "Body Motions - ALQ - Buraidah":    ("Body Motions", "ALQ - Buraidah"),
     "Body Motions - ALQ - Unaizah":     ("Body Motions", "ALQ - Unaizah"),
     "Body Motions - Al Ahsaa":          ("Body Motions", "Al Ahsaa"),
