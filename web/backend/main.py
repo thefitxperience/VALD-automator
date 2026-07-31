@@ -969,33 +969,44 @@ def api_generate_bodydot_report(
 def api_report_counts(year: int, month: int):
     """Quick at-a-glance count of the tests that would appear in each monthly report,
     by service (VALD / Bodydot) and gym — programs/tests approved, not ignored, and
-    dispatched within the given month (the same filter the reports use for their rows)."""
+    dispatched within the given month (the same filter the reports use for their rows).
+    Also returns the previous month's counts so the UI can show month-over-month change."""
     import calendar
-    first = date(year, month, 1).isoformat()
-    last = date(year, month, calendar.monthrange(year, month)[1]).isoformat()
     gyms = list(bodydot_api.REPORT_GYMS)  # ("Body Motions", "Body Masters")
 
-    def count_vald(gym):
-        r = (
-            supabase.table("programs").select("id", count="exact")
-            .eq("gym", gym).eq("approved", True).neq("ignored", True)
-            .gte("dispatch_date", first).lte("dispatch_date", last)
-            .execute()
-        )
-        return r.count or 0
+    def counts_for(y, m):
+        first = date(y, m, 1).isoformat()
+        last = date(y, m, calendar.monthrange(y, m)[1]).isoformat()
 
-    def count_bodydot(gym):
-        r = (
-            supabase.table("bodydot_tests").select("session_id", count="exact")
-            .eq("gym", gym).eq("approved", True).eq("ignored", False).eq("valid", True)
-            .gte("dispatch_date", first).lte("dispatch_date", last)
-            .execute()
-        )
-        return r.count or 0
+        def count_vald(gym):
+            r = (
+                supabase.table("programs").select("id", count="exact")
+                .eq("gym", gym).eq("approved", True).neq("ignored", True)
+                .gte("dispatch_date", first).lte("dispatch_date", last)
+                .execute()
+            )
+            return r.count or 0
 
-    vald = {g: count_vald(g) for g in gyms}
-    bodydot = {g: count_bodydot(g) for g in gyms}
-    return {"year": year, "month": month, "gyms": gyms, "vald": vald, "bodydot": bodydot}
+        def count_bodydot(gym):
+            r = (
+                supabase.table("bodydot_tests").select("session_id", count="exact")
+                .eq("gym", gym).eq("approved", True).eq("ignored", False).eq("valid", True)
+                .gte("dispatch_date", first).lte("dispatch_date", last)
+                .execute()
+            )
+            return r.count or 0
+
+        return {g: count_vald(g) for g in gyms}, {g: count_bodydot(g) for g in gyms}
+
+    vald, bodydot = counts_for(year, month)
+    prev_y, prev_m = (year - 1, 12) if month == 1 else (year, month - 1)
+    prev_vald, prev_bodydot = counts_for(prev_y, prev_m)
+
+    return {
+        "year": year, "month": month, "gyms": gyms,
+        "vald": vald, "bodydot": bodydot,
+        "prev": {"year": prev_y, "month": prev_m, "vald": prev_vald, "bodydot": prev_bodydot},
+    }
 
 
 @app.post("/api/report/payment")
