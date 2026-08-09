@@ -50,7 +50,8 @@ export default function QuickReport() {
 
   const gyms = data?.gyms || ['Body Motions', 'Body Masters']
   const prev = data?.prev || {}
-  const prevLabel = data?.prev ? `${MONTHS[data.prev.month - 1]} ${data.prev.year}` : 'last month'
+  const periodLabel = data?.period_label || `${MONTHS[month - 1]} ${year}`
+  const prevLabel = data?.prev?.period_label || 'last month'
 
   // Totals over a source object shaped like { vald: {gym: n}, bodydot: {gym: n} }.
   const rowTotal = (svc, from) => gyms.reduce((s, g) => s + (from?.[svc]?.[g] || 0), 0)
@@ -67,8 +68,9 @@ export default function QuickReport() {
       <div>
         <h1 className="text-2xl font-bold text-white">Quick Report</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Tests dispatched in {MONTHS[month - 1]} {year} that would appear in each report,
-          <span className="text-gray-400"> compared to {prevLabel}</span>.
+          Tests dispatched — <span className="text-gray-300 font-medium">{periodLabel}</span> vs{' '}
+          <span className="text-gray-300 font-medium">{prevLabel}</span>
+          {data?.partial && <span className="text-gray-500"> (same period, month-to-date)</span>}.
         </p>
       </div>
 
@@ -178,8 +180,9 @@ export default function QuickReport() {
         </table>
       </div>
 
-      <p className="text-xs text-gray-600">
-        ▲ up / ▼ down vs {prevLabel}. Counts are approved, non-ignored records dispatched in the month.
+      <p className="text-[11px] text-gray-600">
+        ▲ up / ▼ down vs {prevLabel}.
+        {data?.partial && ' This month is still in progress, so it’s compared to the same day range of last month.'}
       </p>
     </div>
   )

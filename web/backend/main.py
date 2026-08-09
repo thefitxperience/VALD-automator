@@ -970,13 +970,19 @@ def api_report_counts(year: int, month: int):
     """Quick at-a-glance count of the tests that would appear in each monthly report,
     by service (VALD / Bodydot) and gym — programs/tests approved, not ignored, and
     dispatched within the given month (the same filter the reports use for their rows).
-    Also returns the previous month's counts so the UI can show month-over-month change."""
+
+    Comparison is like-for-like to avoid a partial month looking like a big drop:
+      • If the requested month is the current (in-progress) month, the counts are
+        month-to-date and the comparison is the SAME day range of the previous month
+        (e.g. Jul 1–10 vs Jun 1–10).
+      • Otherwise (a completed month) it's full month vs full previous month.
+    """
     import calendar
     gyms = list(bodydot_api.REPORT_GYMS)  # ("Body Motions", "Body Masters")
 
-    def counts_for(y, m):
-        first = date(y, m, 1).isoformat()
-        last = date(y, m, calendar.monthrange(y, m)[1]).isoformat()
+    def counts_for(y, m, day_lo, day_hi):
+        first = date(y, m, day_lo).isoformat()
+        last = date(y, m, day_hi).isoformat()
 
         def count_vald(gym):
             r = (
@@ -998,14 +1004,36 @@ def api_report_counts(year: int, month: int):
 
         return {g: count_vald(g) for g in gyms}, {g: count_bodydot(g) for g in gyms}
 
-    vald, bodydot = counts_for(year, month)
+    def label(y, m, lo, hi):
+        full = calendar.monthrange(y, m)[1]
+        if lo == 1 and hi == full:
+            return f"{calendar.month_name[m]} {y}"
+        return f"{calendar.month_abbr[m]} {lo}–{hi}"
+
+    today = date.today()
+    days_in_month = calendar.monthrange(year, month)[1]
+    partial = (year == today.year and month == today.month)
+    end_day = min(today.day, days_in_month) if partial else days_in_month
+
+    # Current period (month-to-date if in progress, else the full month).
+    vald, bodydot = counts_for(year, month, 1, end_day)
+
+    # Previous month, same day range → like-for-like comparison.
     prev_y, prev_m = (year - 1, 12) if month == 1 else (year, month - 1)
-    prev_vald, prev_bodydot = counts_for(prev_y, prev_m)
+    prev_full = calendar.monthrange(prev_y, prev_m)[1]
+    prev_hi = min(end_day, prev_full)
+    prev_vald, prev_bodydot = counts_for(prev_y, prev_m, 1, prev_hi)
 
     return {
         "year": year, "month": month, "gyms": gyms,
+        "partial": partial, "as_of_day": end_day, "days_in_month": days_in_month,
+        "period_label": label(year, month, 1, end_day),
         "vald": vald, "bodydot": bodydot,
-        "prev": {"year": prev_y, "month": prev_m, "vald": prev_vald, "bodydot": prev_bodydot},
+        "prev": {
+            "year": prev_y, "month": prev_m,
+            "period_label": label(prev_y, prev_m, 1, prev_hi),
+            "vald": prev_vald, "bodydot": prev_bodydot,
+        },
     }
 
 
