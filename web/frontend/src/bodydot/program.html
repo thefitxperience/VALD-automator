@@ -832,6 +832,19 @@
             padding: 8.75px 8.75px;
         }
 
+        /* Row heights of the two left-column tables are equalised in JS (see
+           equalizeLeftColumnRowHeights). Once sized, stop the flex layout from stretching
+           them again — otherwise whichever section has `flex: 1` re-absorbs the free space
+           and its rows grow while the other stays compact. */
+        .section-left-column.rows-equalized > .section,
+        .section-left-column.rows-equalized .exercises-block,
+        .section-left-column.rows-equalized .exercises-block table {
+            flex: 0 0 auto;
+        }
+        .section-left-column.rows-equalized > .section {
+            height: auto;
+        }
+
         .remarks {
             background: white;
             padding: 8px 10px;
@@ -1890,7 +1903,12 @@
                 ex_GarlandPose: 'Garland pose (hip opening)',
                 ex_HipAbductionCableLeft: 'Left hip abduction cable',
                 ex_HipAbductionCableRight: 'Right hip abduction cable',
+                ex_HipAdductionCableLeft: 'Left hip adduction cable',
+                ex_HipAdductionCableRight: 'Right hip adduction cable',
                 ex_AdductorStretch: 'Stretching adductor',
+                ex_AbductorStretch: 'Stretching abductor',
+                ex_LeftShrugs: 'Left shrugs',
+                ex_RightShrugs: 'Right shrugs',
                 ex_SingleLegSquatsLeft: 'Single leg squats left',
                 ex_SingleLegPressLeft: 'Single leg press left',
                 ex_SingleLegSquatsRight: 'Single leg squats right',
@@ -2034,7 +2052,7 @@
                 ex_CobraStretch: 'تمدد الظهر كوبرا',
                 ex_Crunches: 'تقريب البطن',
                 ex_CamelStretch: 'تمدد وضعية الجمل',
-                ex_LowerBackExtensions: 'تمديد أسفل الظهر',
+                ex_LowerBackExtensions: 'تقوية أسفل الظهر',
                 ex_CatStretch: 'تمدد وضعية القطة',
                 ex_SwissBallExtCrunch: 'تمديد إلى تقريب بالكرة السويسرية',
                 ex_CatCamelStretch: 'تمدد القطة والجمل',
@@ -2079,7 +2097,12 @@
                 ex_GarlandPose: 'سكوات ثابت عميق',
                 ex_HipAbductionCableLeft: 'أرجل رفرفة خارجي كيبل يسار',
                 ex_HipAbductionCableRight: 'أرجل رفرفة خارجي كيبل يمين',
+                ex_HipAdductionCableLeft: 'أرجل رفرفة داخلي كيبل يسار',
+                ex_HipAdductionCableRight: 'أرجل رفرفة داخلي كيبل يمين',
                 ex_AdductorStretch: 'تمديد الفخذ الداخلي',
+                ex_AbductorStretch: 'تمديد الفخذ الخارجي',
+                ex_LeftShrugs: 'رفع الكتف الأيسر للأعلى',
+                ex_RightShrugs: 'رفع الكتف الأيمن للأعلى',
                 ex_SingleLegSquatsLeft: 'سكوات رجل واحدة يسار',
                 ex_SingleLegPressLeft: 'ليج برس رجل واحدة يسار',
                 ex_SingleLegSquatsRight: 'سكوات رجل واحدة يمين',
@@ -2241,6 +2264,11 @@
                 const raw = el.getAttribute('data-raw-range');
                 el.textContent = lang === 'ar' ? localiseText(toArabicNumerals(raw), lang) : raw;
             });
+
+            // Switching language re-wraps the exercise names, so re-match the row heights.
+            if (displayPage && displayPage.classList.contains('active')) {
+                equalizeLeftColumnRowHeights();
+            }
         }
 
         function toggleLanguage() {
@@ -3326,6 +3354,31 @@
         }
         
         // Generate dynamic exercise tables based on measurements
+        // Where a measurement sits relative to its NORMAL BAND:
+        //   'negative' = below the band (lower interval)
+        //   'positive' = above the band (upper interval)
+        //   'normal'   = inside the band → no corrective exercise needed
+        // These are intervals, not the raw arithmetic sign — e.g. left shoulder slope is
+        // normal at 12–18°, negative over −5–12 and positive over 18–30, so 8° is
+        // "negative" (reduced slope) even though the number itself is positive.
+        function deviationSide(fieldId, rawValue) {
+            const v = parseFloat(rawValue);
+            const rd = normalValues[fieldId];
+            if (isNaN(v) || !rd) return 'normal';
+            let normLow, normHigh;
+            if (rd.type === 'blue-red') {
+                // [normal_start, normal_end, max_abnormal]
+                normLow = rd.values[0]; normHigh = rd.values[1];
+            } else {
+                // red-red [min_abn, normal_low, normal_high, max_abn]
+                // red-blue [min_abn, normal_start, normal_end]
+                normLow = rd.values[1]; normHigh = rd.values[2];
+            }
+            if (v < normLow) return 'negative';
+            if (v > normHigh) return 'positive';
+            return 'normal';
+        }
+
         function generateDynamicExercises() {
             // Clear all exercise tables
             document.getElementById('upperBodyExercises').innerHTML = '';
@@ -3340,20 +3393,32 @@
                 table.push({ name: t(key), sets: sr.sets, reps: sr.reps });
             };
 
-            // ── SHOULDER SLOPE LEFT ──
-            if (document.getElementById('leftShoulderSlope').value) {
+            // ── SHOULDER SLOPE LEFT (negative → pushdowns + trap stretch, positive → shrugs) ──
+            const leftSlopeValue = document.getElementById('leftShoulderSlope').value;
+            const leftSlopeSide = deviationSide('leftShoulderSlope', leftSlopeValue);
+            if (leftSlopeValue && leftSlopeSide !== 'normal') {
                 const cc = colorSelections['leftShoulderSlope'].category || colorSelections['leftShoulderSlope'];
-                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontLeft');
-                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideLeft');
-                addEx(cc, true,  exercisesToAdd.stretching, 'ex_LeftUpperTrapStretch');
+                if (leftSlopeSide === 'negative') {
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontLeft');
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideLeft');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_LeftUpperTrapStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_LeftShrugs');
+                }
             }
 
-            // ── SHOULDER SLOPE RIGHT ──
-            if (document.getElementById('rightShoulderSlope').value) {
+            // ── SHOULDER SLOPE RIGHT (negative → pushdowns + trap stretch, positive → shrugs) ──
+            const rightSlopeValue = document.getElementById('rightShoulderSlope').value;
+            const rightSlopeSide = deviationSide('rightShoulderSlope', rightSlopeValue);
+            if (rightSlopeValue && rightSlopeSide !== 'normal') {
                 const cc = colorSelections['rightShoulderSlope'].category || colorSelections['rightShoulderSlope'];
-                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontRight');
-                addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideRight');
-                addEx(cc, true,  exercisesToAdd.stretching, 'ex_RightUpperTrapStretch');
+                if (rightSlopeSide === 'negative') {
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownFrontRight');
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_SingleArmPushdownSideRight');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_RightUpperTrapStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.upperBody, 'ex_RightShrugs');
+                }
             }
 
             // ── PELVIC TILT (L → Right hip hike / R → Left hip hike, no stretch) ──
@@ -3367,19 +3432,36 @@
                     addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftHipHike');
             }
 
-            // ── LEFT HKA ANGLE ──
-            if (document.getElementById('leftHKA').value) {
+            // ── LEFT HKA ANGLE (positive = valgus, negative = varus) ──
+            const leftHKAValue = document.getElementById('leftHKA').value;
+            const leftHKASide = deviationSide('leftHKA', leftHKAValue);
+            if (leftHKAValue && leftHKASide !== 'normal') {
                 const cc = colorSelections['leftHKA'].category || colorSelections['leftHKA'];
-                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableLeft');
-                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftGluteKickbacks');
-                addEx(cc, true,  exercisesToAdd.stretching, 'ex_AdductorStretch');
+                if (leftHKASide === 'positive') {
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftGluteKickbacks');
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAdductionCableLeft');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_AbductorStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableLeft');
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_LeftGluteKickbacks');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_AdductorStretch');
+                }
             }
 
-            // ── RIGHT HKA ANGLE ──
-            if (document.getElementById('rightHKA').value) {
+            // ── RIGHT HKA ANGLE (positive = valgus, negative = varus) ──
+            const rightHKAValue = document.getElementById('rightHKA').value;
+            const rightHKASide = deviationSide('rightHKA', rightHKAValue);
+            if (rightHKAValue && rightHKASide !== 'normal') {
                 const cc = colorSelections['rightHKA'].category || colorSelections['rightHKA'];
-                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableRight');
-                addEx(cc, false, exercisesToAdd.lowerBody, 'ex_RightGluteKickbacks');
+                if (rightHKASide === 'positive') {
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_RightGluteKickbacks');
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAdductionCableRight');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_AbductorStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_HipAbductionCableRight');
+                    addEx(cc, false, exercisesToAdd.lowerBody, 'ex_RightGluteKickbacks');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_AdductorStretch');
+                }
             }
 
             // ── FORWARD HEAD RIGHT ──
@@ -3400,16 +3482,22 @@
             // ── THORACIC KYPHOSIS RIGHT ──
             if (document.getElementById('thoracicKyphosisRight').value) {
                 const cc = colorSelections['thoracicKyphosisRight'].category || colorSelections['thoracicKyphosisRight'];
-                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_BackExtensions');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_BackExtensions');
                 addEx(cc, false, exercisesToAdd.upperBody,  'ex_RowingBack');
                 addEx(cc, true,  exercisesToAdd.stretching, 'ex_CobraStretch');
             }
 
-            // ── LUMBAR LORDOSIS RIGHT ──
-            if (document.getElementById('lumbarLordosisRight').value) {
+            // ── LUMBAR LORDOSIS RIGHT (positive → crunches, negative → lower back extension) ──
+            const lumbarRightValue = document.getElementById('lumbarLordosisRight').value;
+            const lumbarRightSide = deviationSide('lumbarLordosisRight', lumbarRightValue);
+            if (lumbarRightValue && lumbarRightSide !== 'normal') {
                 const cc = colorSelections['lumbarLordosisRight'].category || colorSelections['lumbarLordosisRight'];
-                addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
-                addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+                if (lumbarRightSide === 'positive') {
+                    addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.upperBody,  'ex_LowerBackExtensions');
+                }
             }
 
             // ── FORWARD HEAD LEFT ──
@@ -3430,16 +3518,22 @@
             // ── THORACIC KYPHOSIS LEFT ──
             if (document.getElementById('thoracicKyphosisLeft').value) {
                 const cc = colorSelections['thoracicKyphosisLeft'].category || colorSelections['thoracicKyphosisLeft'];
-                addEx(cc, false, exercisesToAdd.lowerBody,  'ex_BackExtensions');
+                addEx(cc, false, exercisesToAdd.upperBody,  'ex_BackExtensions');
                 addEx(cc, false, exercisesToAdd.upperBody,  'ex_RowingBack');
                 addEx(cc, true,  exercisesToAdd.stretching, 'ex_CobraStretch');
             }
 
-            // ── LUMBAR LORDOSIS LEFT ──
-            if (document.getElementById('lumbarLordosisLeft').value) {
+            // ── LUMBAR LORDOSIS LEFT (positive → crunches, negative → lower back extension) ──
+            const lumbarLeftValue = document.getElementById('lumbarLordosisLeft').value;
+            const lumbarLeftSide = deviationSide('lumbarLordosisLeft', lumbarLeftValue);
+            if (lumbarLeftValue && lumbarLeftSide !== 'normal') {
                 const cc = colorSelections['lumbarLordosisLeft'].category || colorSelections['lumbarLordosisLeft'];
-                addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
-                addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+                if (lumbarLeftSide === 'positive') {
+                    addEx(cc, false, exercisesToAdd.upperBody,  'ex_Crunches');
+                    addEx(cc, true,  exercisesToAdd.stretching, 'ex_HipFlexorStretch');
+                } else {
+                    addEx(cc, false, exercisesToAdd.upperBody,  'ex_LowerBackExtensions');
+                }
             }
 
             // ── KENDALL KNEE RIGHT (Standing Right = Left leg) ──
@@ -3521,6 +3615,40 @@
             populateExerciseTable('stretchingExercises', uniqueExercises.stretching);
         }
         
+        // "Upper body & neck" and "Stretching" share the left column but rarely hold the
+        // same number of exercises, so the section with `flex: 1` used to absorb all the
+        // free space (tall rows) while the other stayed compact. Give every row in BOTH
+        // tables one shared height: split the column's free space across the TOTAL row
+        // count, so the two tables line up row-for-row and the height still flexes with
+        // how many exercises there are. Never goes below the tallest natural row, so a
+        // wrapped exercise name can't get clipped.
+        function equalizeLeftColumnRowHeights() {
+            const col = document.querySelector('.section-left-column');
+            if (!col) return;
+            const bodies = ['upperBodyExercises', 'stretchingExercises']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+            if (bodies.length < 2) return;
+            const rows = bodies.reduce((all, tb) => all.concat(Array.from(tb.rows)), []);
+            if (!rows.length) return;
+            const sections = Array.from(col.children).filter(el => el.classList.contains('section'));
+            if (!sections.length) return;
+
+            // Neutralise the flex stretching and any previous sizing, then measure natural sizes.
+            col.classList.add('rows-equalized');
+            rows.forEach(r => { r.style.height = ''; });
+
+            const tallestRow = rows.reduce((m, r) => Math.max(m, r.getBoundingClientRect().height), 0);
+            const sectionsHeight = sections.reduce((s, el) => s + el.getBoundingClientRect().height, 0);
+            const rowsHeight = bodies.reduce((s, tb) => s + tb.getBoundingClientRect().height, 0);
+            const chrome = sectionsHeight - rowsHeight;   // titles + table headers + padding
+            const gap = (parseFloat(getComputedStyle(col).rowGap) || 0) * (sections.length - 1);
+
+            const free = col.clientHeight - chrome - gap;
+            const h = Math.max(tallestRow, free / rows.length);
+            rows.forEach(r => { r.style.height = h + 'px'; });
+        }
+
         // Remove duplicate exercises
         function removeDuplicateExercises(exercises) {
             const merged = {};
@@ -3714,7 +3842,11 @@
             document.getElementById('inputPage').classList.remove('active');
             document.getElementById('automatedPage').classList.remove('active');
             document.getElementById('displayPage').classList.add('active');
-            
+
+            // Match row heights across the two left-column tables (needs the page visible
+            // so the column has a measurable height).
+            equalizeLeftColumnRowHeights();
+
             // Scroll to top
             window.scrollTo(0, 0);
 
@@ -3980,6 +4112,9 @@
             const clientName = document.getElementById('clientName').value;
             const programTitle = t('programTitle');
             const fileName = clientName ? `${clientName.trim()} - ${programTitle}` : programTitle;
+
+            // Re-match row heights before measuring, so the page size reflects final layout.
+            equalizeLeftColumnRowHeights();
 
             // Compute content height and set dynamic @page size
             const displayPage = document.getElementById('displayPage');
