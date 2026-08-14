@@ -13,9 +13,10 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Navbar */}
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-2 flex items-center">
-        {/* Logo — fixed height preserves the original navbar height */}
-        <div className="flex items-center justify-center mr-12 h-[90px] w-[85px]">
-          <img src={`${import.meta.env.BASE_URL}FIT_LOGO.png`} alt="Fit Logo" className="h-[49px] w-auto object-contain translate-x-[6px]" />
+        {/* Logo — fixed height preserves the original navbar height. The box hugs the image
+            (no fixed width) and mr-6 matches the nav's px-6, so the gap either side is even. */}
+        <div className="flex items-center justify-center mr-6 h-[90px]">
+          <img src={`${import.meta.env.BASE_URL}UDRA-white-logo.png`} alt="UDRA Logo" className="h-[43px] w-auto object-contain" />
         </div>
         {/* Left links */}
         <div className="flex gap-1">
