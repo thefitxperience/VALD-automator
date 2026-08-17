@@ -285,6 +285,10 @@ async def api_check(
             .select("client_name,test_type,test_date,movements,asymmetry_values,branch,trainer_name,dispatch_date")
             .eq("gym", gym)
             .eq("approved", True)
+            # A stable sort is REQUIRED with .range() — without it Postgres may return rows
+            # in a different order per page, so pages overlap and other rows are never
+            # fetched at all (this silently made already-sent tests look NEW).
+            .order("id")
             .range(offset, offset + page_size - 1)
             .execute()
         )
@@ -303,6 +307,7 @@ async def api_check(
             .select("client_name,test_type,test_date,movements")
             .eq("gym", gym)
             .eq("ignored", True)
+            .order("id")   # stable sort — see note above
             .range(offset, offset + page_size - 1)
             .execute()
         )
@@ -570,6 +575,7 @@ def api_generate_report(
             .eq("gym", gym)
             .eq("approved", True)
             .neq("ignored", True)
+            .order("id")   # stable sort — required for correct .range() pagination
             .range(offset, offset + page_size - 1)
             .execute()
         )
@@ -635,6 +641,7 @@ def api_generate_growth_tracker(
             .eq("gym", gym)
             .eq("approved", True)
             .neq("ignored", True)
+            .order("id")   # stable sort — required for correct .range() pagination
             .range(offset, offset + page_size - 1)
             .execute()
         )
@@ -1053,6 +1060,7 @@ def api_generate_payment_report(
             .select("gym,branch,client_id,client_name,test_type,trainer_name,test_date,dispatch_date")
             .eq("approved", True)
             .neq("ignored", True)
+            .order("id")   # stable sort — required for correct .range() pagination
             .range(offset, offset + page_size - 1)
             .execute()
         )
