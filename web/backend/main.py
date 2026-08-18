@@ -378,7 +378,7 @@ def api_approve(payload: ApprovePayload):
     # Upsert by (gym, client_name, test_type, test_date)
     res = (
         supabase.table("programs")
-        .upsert(record, on_conflict="gym,client_name,test_type,test_date")
+        .upsert(record, on_conflict="gym,branch,client_name,test_type,test_date")
         .execute()
     )
     if res.data:
@@ -414,7 +414,7 @@ def api_ignore(payload: IgnorePayload):
     }
     res = (
         supabase.table("programs")
-        .upsert(record, on_conflict="gym,client_name,test_type,test_date")
+        .upsert(record, on_conflict="gym,branch,client_name,test_type,test_date")
         .execute()
     )
     if res.data:

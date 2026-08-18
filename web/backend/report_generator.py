@@ -496,6 +496,17 @@ def generate_report(
             trainer = p.get("trainer_name", "") or ""
             monthly_by_trainer[trainer] = monthly_by_trainer.get(trainer, 0) + 1
 
+    # A branch that has been CLOSED (no trainers left on the roster) and has no activity
+    # in this period or month is hidden from the report, so shut branches don't linger as
+    # empty rows. Branches that still have a roster, or any data, are always shown — which
+    # keeps historical reports for a since-closed branch intact.
+    _roster_by_branch = trainer_order_by_branch or {}
+
+    def _closed_and_empty(branch: str) -> bool:
+        return (not _roster_by_branch.get(branch)
+                and not by_branch.get(branch)
+                and not monthly_by_branch.get(branch))
+
     # Load template
     wb = load_workbook(template_path, data_only=False)
 
@@ -537,10 +548,21 @@ def generate_report(
                     count = monthly_by_branch.get(branch, 0)
                     cell = ws.cell(row=7 + idx, column=3)
                     cell.value = count
+
+            if sheet_name == "REPORT 2":
+                # Hide closed branches that contributed nothing this period.
+                for r in range(7, ws.max_row + 1):
+                    label = ws.cell(row=r, column=1).value
+                    if label and _closed_and_empty(str(label).strip()):
+                        ws.row_dimensions[r].hidden = True
             continue
 
         # Branch sheet — update report date
         ws["B3"] = rpt_date
+
+        if _closed_and_empty(sheet_name):
+            ws.sheet_state = "hidden"   # closed branch, nothing this period
+            continue
 
         branch_programs = by_branch.get(sheet_name, [])
         if not branch_programs:

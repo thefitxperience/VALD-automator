@@ -316,6 +316,13 @@ def generate_growth_tracker(
         if b not in branches and b != _NO_BRANCH:
             branches.append(b)
 
+    # Drop CLOSED branches: no trainers left on the roster and no tests in either month.
+    # A branch that still has a roster, or any activity in the compared months, is kept —
+    # so a since-closed branch still shows correctly in reports covering when it was open.
+    branches = [b for b in branches
+                if roster_by_branch.get(b) or any(counter.branch_totals(b))]
+    _visible = set(branches)
+
     wb = Workbook()
     wb.remove(wb.active)  # drop default sheet
 
@@ -333,6 +340,7 @@ def generate_growth_tracker(
         # Body Masters: one sheet per manager, grouped by branch
         assigned = {b for _, bs in MANAGER_BRANCHES for b in bs}
         for manager, mbranches in MANAGER_BRANCHES:
+            mbranches = [b for b in mbranches if b in _visible]
             ws = wb.create_sheet(_safe_title(manager))
             # manager header: top-3 / 0-tests for this manager's branches
             mtop_prev = [b for b, _ in sorted(branches_with_totals(mbranches, counter, 0), key=lambda x: -x[1])[:3]]
