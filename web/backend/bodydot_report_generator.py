@@ -2,16 +2,11 @@
 Bodydot monthly report generator.
 
 Fills the "Bodydot Month YEAR - <gym>.xlsx" templates, which mirror the VALD
-monthly report (REPORT / REPORT 2 / per-branch data sheet, dispatch-date driven)
-plus a TEST VALIDITY summary sheet.
+monthly report (REPORT / REPORT 2 / per-branch data sheet, dispatch-date driven).
 
-Two data sources, matching the agreed design:
-  • TEST VALIDITY (Total / Valid / Invalid) — LIVE from the Bodydot API for the
-    month, by test date (invalid tests never get approved, so they can't come
-    from our DB).
-  • REPORT / REPORT 2 / data sheet — from APPROVED rows in `bodydot_tests`,
-    dispatch-date driven, exactly like the VALD report. Per-trainer counts are
-    Excel COUNTIF formulas over the data sheet's TRAINER NAME column.
+REPORT / REPORT 2 / data sheet are built from APPROVED rows in `bodydot_tests`,
+dispatch-date driven, exactly like the VALD report. Per-trainer counts are Excel
+COUNTIF formulas over the data sheet's TRAINER NAME column.
 
 Bodydot has one branch per gym, so there is a single data sheet:
     Body Masters → "RUH - Al Aarid"   Body Motions → "RUH - Al Sahafa"
@@ -34,7 +29,7 @@ TEMPLATE_MAP = {
     "Body Motions": os.path.join(BASE_DIR, "Bodydot Month YEAR - Body Motions.xlsx"),
 }
 
-_SUMMARY_SHEETS = ("TEST VALIDITY", "REPORT", "REPORT 2")
+_SUMMARY_SHEETS = ("REPORT", "REPORT 2")
 
 
 def _as_date(v):
@@ -148,7 +143,6 @@ def generate_bodydot_report(
     gym: str,
     period_start: date,
     period_end: date,
-    validity: dict,            # {"total": int, "valid": int, "invalid": int}
     approved_tests: list[dict],  # bodydot_tests rows (approved)
     trainer_roster: list[str] | None = None,
     report_date: date | None = None,
@@ -167,15 +161,6 @@ def generate_bodydot_report(
     # REPORT sheet lists only regular roster trainers — custom/ad-hoc names entered at
     # approval time are excluded (their tests still count in the data sheet + club totals).
     trainers = sorted(set(trainer_roster or []), key=str.lower)
-
-    # ── TEST VALIDITY (live totals) ──
-    total = int(validity.get("total", 0))
-    valid = int(validity.get("valid", 0))
-    invalid = int(validity.get("invalid", 0))
-    ws = wb["TEST VALIDITY"]
-    ws["B7"], ws["C7"] = total, 1 if total else 0
-    ws["B8"], ws["C8"] = valid, (valid / total if total else 0)
-    ws["B9"], ws["C9"] = invalid, (invalid / total if total else 0)
 
     # ── REPORT (per trainer) ──
     # The month / year columns are counted from ALL approved tests, not from the data
