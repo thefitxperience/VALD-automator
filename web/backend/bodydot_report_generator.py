@@ -16,6 +16,7 @@ Two data sources, matching the agreed design:
 Bodydot has one branch per gym, so there is a single data sheet:
     Body Masters → "RUH - Al Aarid"   Body Motions → "RUH - Al Sahafa"
 """
+import calendar
 import io
 import os
 import re
@@ -112,8 +113,8 @@ def _rebuild_report_sheet(ws, branch, trainers, mtd_by_trainer=None):
             ws.cell(r, 1).value = branch
         ws.cell(r, 2).value = trainer
         if mtd_by_trainer is not None:
-            # MONTH TO DATE must cover the whole month, not just the rows on the data
-            # sheet (a weekly/custom report only lists its own range there).
+            # Must cover the whole calendar month, not just the rows on the data sheet
+            # (a weekly/custom report only lists its own range there).
             ws.cell(r, 3).value = mtd_by_trainer.get(trainer, 0)
         else:
             ws.cell(r, 3).value = (
@@ -177,13 +178,17 @@ def generate_bodydot_report(
     ws["B9"], ws["C9"] = invalid, (invalid / total if total else 0)
 
     # ── REPORT (per trainer) ──
-    # Month-to-date / year-to-date are counted from ALL approved tests, not from the
-    # data sheet — that sheet only lists the reporting period, so on a weekly or custom
-    # range the built-in formulas would report the range total as the month/year total.
+    # The month / year columns are counted from ALL approved tests, not from the data
+    # sheet — that sheet only lists the reporting period, so on a weekly or custom range
+    # the built-in formulas would report the range total as the month/year total.
+    # These are FULL totals: the whole calendar month and the whole calendar year that
+    # the period falls in, not just up to the period end.
     month_start = period_end.replace(day=1)
+    month_end = period_end.replace(day=calendar.monthrange(period_end.year, period_end.month)[1])
     year_start = period_end.replace(month=1, day=1)
-    mtd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), month_start, period_end)]
-    ytd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), year_start, period_end)]
+    year_end = period_end.replace(month=12, day=31)
+    mtd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), month_start, month_end)]
+    ytd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), year_start, year_end)]
     mtd_by_trainer: dict[str, int] = {}
     for t in mtd_rows:
         name = (t.get("trainer_name") or "").strip()
@@ -200,8 +205,8 @@ def generate_bodydot_report(
     ws2["B3"] = rpt_date
     for r in range(7, ws2.max_row + 1):
         if str(ws2.cell(r, 1).value or "").strip() == data_sheet_name:
-            ws2.cell(r, 3).value = len(mtd_rows)   # MONTH TO DATE
-            ws2.cell(r, 4).value = len(ytd_rows)   # YEAR TO DATE (template had it mirroring MTD)
+            ws2.cell(r, 3).value = len(mtd_rows)   # full calendar month
+            ws2.cell(r, 4).value = len(ytd_rows)   # full calendar year (template had it mirroring MTD)
             break
 
     # ── Data sheet ──
