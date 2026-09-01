@@ -71,7 +71,7 @@ def _client_display_name(row) -> str:
     return cleaned or name
 
 
-def _rebuild_report_sheet(ws, branch, trainers):
+def _rebuild_report_sheet(ws, branch, trainers, mtd_by_trainer=None):
     """Rewrite the REPORT sheet's trainer rows (single branch) with COUNTIF /
     COUNTIFS formulas, copying styling from template rows 7 (branch) and 8 (cont)."""
     max_col = ws.max_column
@@ -111,9 +111,14 @@ def _rebuild_report_sheet(ws, branch, trainers):
         if i == 0:
             ws.cell(r, 1).value = branch
         ws.cell(r, 2).value = trainer
-        ws.cell(r, 3).value = (
-            f'=IFERROR(\n   COUNTIF(INDIRECT("\'" & LOOKUP("zzz",$A$7:A{r}) & "\'!C:C"), B{r}),\n   0\n)'
-        )
+        if mtd_by_trainer is not None:
+            # MONTH TO DATE must cover the whole month, not just the rows on the data
+            # sheet (a weekly/custom report only lists its own range there).
+            ws.cell(r, 3).value = mtd_by_trainer.get(trainer, 0)
+        else:
+            ws.cell(r, 3).value = (
+                f'=IFERROR(\n   COUNTIF(INDIRECT("\'" & LOOKUP("zzz",$A$7:A{r}) & "\'!C:C"), B{r}),\n   0\n)'
+            )
         d_formula = (
             f'=IFERROR(\n  COUNTIFS(\n'
             f'    INDIRECT("\'" & LOOKUP(2,1/($A$7:A{r}<>""),$A$7:A{r}) & "\'!C:C"), $B{r},\n'
@@ -172,13 +177,32 @@ def generate_bodydot_report(
     ws["B9"], ws["C9"] = invalid, (invalid / total if total else 0)
 
     # ── REPORT (per trainer) ──
+    # Month-to-date / year-to-date are counted from ALL approved tests, not from the
+    # data sheet — that sheet only lists the reporting period, so on a weekly or custom
+    # range the built-in formulas would report the range total as the month/year total.
+    month_start = period_end.replace(day=1)
+    year_start = period_end.replace(month=1, day=1)
+    mtd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), month_start, period_end)]
+    ytd_rows = [t for t in approved_tests if _in_window(t.get("dispatch_date"), year_start, period_end)]
+    mtd_by_trainer: dict[str, int] = {}
+    for t in mtd_rows:
+        name = (t.get("trainer_name") or "").strip()
+        if name:
+            mtd_by_trainer[name] = mtd_by_trainer.get(name, 0) + 1
+
     ws = wb["REPORT"]
     ws["B3"] = rpt_date
     if trainers:
-        _rebuild_report_sheet(ws, data_sheet_name, trainers)
+        _rebuild_report_sheet(ws, data_sheet_name, trainers, mtd_by_trainer)
 
-    # ── REPORT 2 (club totals) — formulas already reference the data sheet ──
-    wb["REPORT 2"]["B3"] = rpt_date
+    # ── REPORT 2 (club totals) ──
+    ws2 = wb["REPORT 2"]
+    ws2["B3"] = rpt_date
+    for r in range(7, ws2.max_row + 1):
+        if str(ws2.cell(r, 1).value or "").strip() == data_sheet_name:
+            ws2.cell(r, 3).value = len(mtd_rows)   # MONTH TO DATE
+            ws2.cell(r, 4).value = len(ytd_rows)   # YEAR TO DATE (template had it mirroring MTD)
+            break
 
     # ── Data sheet ──
     ws = wb[data_sheet_name]
