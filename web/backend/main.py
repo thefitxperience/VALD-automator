@@ -898,8 +898,9 @@ def api_generate_bodydot_report(
 ):
     """Bodydot report — read entirely from the DB (no live sweep, which is slow).
     Supports monthly / weekly / custom-day-range periods, mirroring the VALD report.
-    The per-trainer breakdown + data sheet come from approved VALID rows by dispatch
-    date; the month/year columns cover the whole calendar month and year."""
+    Validity totals come from approved rows by test date within the period; the
+    per-trainer breakdown + data sheet come from approved VALID rows by dispatch date.
+    Approve both valid and invalid tests on the Bodydot page so this stays complete."""
     if gym not in bodydot_api.REPORT_GYMS:
         raise HTTPException(status_code=400, detail=f"No Bodydot report for gym '{gym}'")
 
@@ -926,6 +927,19 @@ def api_generate_bodydot_report(
         .data or []
     )
 
+    # TEST VALIDITY — tests conducted within the period (by test_date), valid vs invalid.
+    def _in_window(d):
+        if not isinstance(d, str):
+            return False
+        try:
+            td = date.fromisoformat(d[:10])
+        except ValueError:
+            return False
+        return period_start <= td <= period_end
+    in_window = [r for r in approved if _in_window(r.get("test_date"))]
+    valid_ct = sum(1 for r in in_window if r.get("valid"))
+    validity = {"total": len(in_window), "valid": valid_ct, "invalid": len(in_window) - valid_ct}
+
     # Data sheet / per-trainer — only VALID tests (invalid ones have no program).
     valid_rows = [r for r in approved if r.get("valid")]
 
@@ -935,7 +949,7 @@ def api_generate_bodydot_report(
     try:
         report_bytes = generate_bodydot_report(
             gym=gym, period_start=period_start, period_end=period_end,
-            approved_tests=valid_rows,
+            validity=validity, approved_tests=valid_rows,
             trainer_roster=roster,
             report_date=(period_end if is_partial else date.today()),
         )
