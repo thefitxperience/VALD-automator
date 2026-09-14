@@ -6,7 +6,10 @@
     <title>Posture Correction Form</title>
     <link rel="icon" type="image/png" href="./icon.ico">
     <link rel="shortcut icon" type="image/png" href="./icon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- UDRA brand faces for the posture sheet: Sora for Latin text, IBM Plex Sans
+         Arabic for Arabic, JetBrains Mono for every numeral. -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- tesseract.js (OCR) and supabase-js CDNs removed: this build only renders Bodydot-sourced programs. -->
     <script>
         // Redirect to mobile version if on mobile device
@@ -21,117 +24,6 @@
             box-sizing: border-box;
         }
 
-        #displayPage[dir="rtl"] {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-        }
-        /* ── Arabic compact overrides ─────────────────────────────── */
-
-        /* Tighten line-height for Cairo font across the whole display page */
-        #displayPage[dir="rtl"] .container,
-        #displayPage[dir="rtl"] .container * {
-            line-height: 1.37;
-        }
-
-        /* Reduce table cell padding so rows aren't taller */
-        #displayPage[dir="rtl"] td {
-            padding: 5.5px 8px;
-        }
-        #displayPage[dir="rtl"] th {
-            padding: 6.5px 8px;
-        }
-        #displayPage[dir="rtl"] .section-left-column td,
-        #displayPage[dir="rtl"] .section-content-lower-body td {
-            padding: 5px 8px;
-        }
-        #displayPage[dir="rtl"] .section-left-column th,
-        #displayPage[dir="rtl"] .section-content-lower-body th {
-            padding: 5px 8px;
-        }
-        #displayPage[dir="rtl"] table:has(#upperBodyExercises) th,
-        #displayPage[dir="rtl"] table:has(#upperBodyExercises) td {
-            padding: 8.5px 8.5px;
-        }
-
-        /* Exercise name alignment and font in RTL */
-        #displayPage[dir="rtl"] .exercise-name {
-            text-align: right !important;
-            font-size: 11px;
-        }
-        /* Name header right-aligned in RTL (overrides inline style) */
-        #displayPage[dir="rtl"] thead th:first-child {
-            text-align: right !important;
-        }
-        #displayPage[dir="rtl"] .section-left-column .exercise-name,
-        #displayPage[dir="rtl"] .section-content-lower-body .exercise-name {
-            font-size: 11.5px;
-        }
-        #displayPage[dir="rtl"] th {
-            text-align: right;
-        }
-        /* Keep sets/reps/duration headers and cells centered in RTL */
-        #displayPage[dir="rtl"] thead th:not(:first-child),
-        #displayPage[dir="rtl"] tbody td:not(.exercise-name) {
-            text-align: center;
-        }
-
-        /* Tighten remark rows */
-        #displayPage[dir="rtl"] .remark-item {
-            direction: rtl;
-            padding: 3.5px 9px;
-            gap: 8px;
-        }
-        #displayPage[dir="rtl"] .remark-label {
-            font-size: 11.5px;
-            line-height: 1.2;
-        }
-
-        /* Section & block title sizes */
-        #displayPage[dir="rtl"] .section-title {
-            font-size: 16px;
-        }
-        #displayPage[dir="rtl"] .block-title {
-            font-size: 13.5px;
-            margin-bottom: 4px;
-            padding-bottom: 3px;
-        }
-        #displayPage[dir="rtl"] .section-left-column .block-title {
-            font-size: 14.5px;
-        }
-
-        /* exercises-block inner padding */
-        #displayPage[dir="rtl"] .exercises-block {
-            padding: 7px 8px;
-        }
-        #displayPage[dir="rtl"] .section-left-column .exercises-block {
-            padding: 8px 8px;
-        }
-        #displayPage[dir="rtl"] .remarks {
-            padding: 7px 8px;
-            gap: 4px;
-        }
-
-        /* Column headers value/normal alignment */
-        #displayPage[dir="rtl"] .remark-header .remark-value,
-        #displayPage[dir="rtl"] .remark-item:not(.remark-header) .remark-value {
-            padding-left: 0;
-            padding-right: 50px;
-        }
-        #displayPage[dir="rtl"] .remark-header .remark-normal,
-        #displayPage[dir="rtl"] .remark-item:not(.remark-header) .remark-normal {
-            padding-left: 0;
-            padding-right: 50px;
-        }
-        #displayPage[dir="rtl"] .comparison-indicator {
-            margin-left: 0;
-            margin-right: 4px;
-        }
-        #displayPage[dir="rtl"] .header-buttons {
-            flex-direction: row-reverse;
-        }
-        #displayPage[dir="rtl"] .date {
-            flex-direction: row-reverse;
-        }
         .lang-toggle {
             display: flex;
             align-items: center;
@@ -588,435 +480,27 @@
             height: 100%;
         }
         
-        .section-left-column {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-self: stretch;
-        }
-
-        .section-content-lower-body {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 0 5px;
-            height: 100%;
-        }
-        
-        .section-assessment-only {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 0 5px;
-            height: 100%;
-        }
-        
-        .section-assessment-only > div {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .section-assessment-only > div:last-child {
-            flex: 1;
-        }
-
-        .section-assessment-only > div .remarks {
-            flex: 1;
-        }
-
-        #withinRangeResults,
-        #outOfRangeResults {
-            gap: 0;
-        }
-
-        #withinRangeResults .remark-item,
-        #outOfRangeResults .remark-item {
-            padding: 8px 9px;
-        }
-
-        #withinRangeResults .remark-item:not(.remark-header),
-        #outOfRangeResults .remark-item:not(.remark-header) {
-            flex: 1;
-        }
-
-        .section-title {
-            color: #1B3448;
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            padding: 0 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .section-content {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex: 1;
-            padding: 0 5px;
-        }
-
-        .exercises-block {
-            background: white;
-            padding: 7px 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .exercises-block table {
-            flex: 1;
-        }
-        
-        .section-content-lower-body .exercises-block {
-            padding: 9px 10px;
-        }
-        
-        .section-content-lower-body .exercises-block table {
-            flex: 1;
-        }
-
-        .block-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #5B9FA4;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 2px solid #5B9FA4;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .section-content-lower-body .block-title {
-            font-size: 15px;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-        }
-
-        .sets-reps-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        /* Upper Body & Neck positioning */
-        .upperbody-sets-label {
-            margin-right: 40px; /* Adjust this to move Upper Body Sets left/right */
-        }
-
-        .upperbody-reps-label {
-            margin-right: 45px; /* Adjust this to move Upper Body Reps left/right */
-        }
-
-        /* Lower Body & Spine positioning */
-        .lowerbody-sets-label {
-            margin-right: 18px; /* Adjust this to move Lower Body Sets left/right */
-        }
-
-        .lowerbody-reps-label {
-            margin-right: 23px; /* Adjust this to move Lower Body Reps left/right */
-        }
-
-        /* Stretching positioning */
-        .stretching-sets-label {
-            margin-right: 4px; /* Adjust this to move Stretching Sets left/right */
-        }
-
-        .stretching-reps-label {
-            margin-right: 19px; /* Adjust this to move Stretching Reps left/right */
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        thead {
-            background: #3d5a6d;
-            color: white;
-        }
-
-        th {
-            padding: 7px 10px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 12px;
-        }
-        
-        th:first-child {
-            text-align: left;
-        }
-
-        td {
-            padding: 6px 10px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        td:first-child {
-            text-align: left;
-        }
-        
-        .section-content-lower-body td {
-            padding: 8px 10px;
-        }
-        
-        .section-content-lower-body th {
-            padding: 8px 10px;
-        }
-
-        /* Stretching table row height — adjust padding here */
-        #stretchingExercises td,
-        table:has(#stretchingExercises) th {
-            padding: 8px 10px;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #f0f8f9;
-        }
-
-        tbody tr:hover {
-            background: #e0f2f4 !important;
-        }
-
-        .exercise-name {
-            text-align: left !important;
-            font-size: 11px;
-            color: #1B3448;
-        }
-
-        /* Center the numeric columns (sets/reps/duration) */
-        thead th:not(:first-child),
-        tbody td:not(.exercise-name) {
-            text-align: center;
-        }
-        
-        .section-content-lower-body .exercise-name {
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .section-left-column .section:nth-child(2) {
-            flex: 1;
-        }
-        
-        .section-left-column .exercises-block {
-            padding: 9.5px 10px;
-        }
-        
-        .section-left-column td {
-            padding: 8px 10px;
-        }
-        
-        .section-left-column th {
-            padding: 8px 10px;
-        }
-        
-        .section-left-column .block-title {
-            font-size: 15px;
-            margin-bottom: 8px;
-            padding-bottom: 6.5px;
-        }
-        
-        .section-left-column .exercise-name {
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        table:has(#upperBodyExercises) th,
-        table:has(#upperBodyExercises) td {
-            padding: 8.75px 8.75px;
-        }
-
-        /* Row heights of the two left-column tables are equalised in JS (see
-           equalizeLeftColumnRowHeights). Once sized, stop the flex layout from stretching
-           them again — otherwise whichever section has `flex: 1` re-absorbs the free space
-           and its rows grow while the other stays compact. */
-        .section-left-column.rows-equalized > .section,
-        .section-left-column.rows-equalized .exercises-block,
-        .section-left-column.rows-equalized .exercises-block table {
-            flex: 0 0 auto;
-        }
-        .section-left-column.rows-equalized > .section {
-            height: auto;
-        }
-
-        .remarks {
-            background: white;
-            padding: 8px 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .remark-item {
-            display: grid;
-            grid-template-columns: 1fr 100px 110px;
-            gap: 12px;
-            align-items: center;
-            padding: 4px 9px;
-            font-size: 12px;
-            border-bottom: 1px dashed #e0e0e0;
-            border-radius: 3px;
-            transition: background 0.2s;
-        }
-        
-        .remark-item:hover {
-            background: #f8f9fa;
-        }
-
-        .remark-item:last-child {
-            border-bottom: none;
-        }
-        
-        .remark-item.last-visible {
-            border-bottom: none;
-        }
-
-        .remark-label {
-            font-weight: 500;
-            color: #1B3448;
-        }
-
-        .remark-value {
-            color: #1B3448;
-            font-weight: 600;
-            font-size: 11px;
-            padding-left: 40px;
-        }
-        
-        .remark-item:not(.remark-header) .remark-value {
-            padding-left: 45px;
-            white-space: nowrap;
-            text-align: center;
-        }
-        
-        .remark-normal {
-            color: #6c757d;
-            font-size: 11px;
-            font-weight: 400;
-            padding-left: 40px;
-        }
-        
-        .remark-item:not(.remark-header) .remark-normal {
-            padding-left: 28px;
-            text-align: center;
-        }
-        
-        .remark-header {
-            font-weight: 600;
-            color: #1B3448;
-            background: transparent !important;
-            border-bottom: none !important;
-            padding: 6px 9px !important;
-        }
-        
-        .remark-header .remark-value,
-        .remark-header .remark-normal {
-            font-size: 11px;
-            font-weight: 600;
-            color: #1B3448;
-        }
-
-        .abnormal {
-            color: #d9534f !important;
-        }
-
-        .middle {
-            color: #f0ad4e !important;
-        }
-
-        .normal {
-            color: #5cb85c !important;
-        }
-
-        .sets-reps-header {
-            background: #5B9FA4 !important;
-        }
-
-        @media screen and (max-width: 1200px) {
-            .content {
-                grid-template-columns: 1fr;
-                overflow-y: auto;
-            }
-            .container {
-                height: auto;
-            }
-        }
-
         @media print {
-            @page {
-                size: 410mm 296mm;
-                margin: 0;
-            }
+            /* No `size` here on purpose: udraSyncPageSize() injects the one @page
+               rule, measured from the sheet. A second rule with a stale size makes
+               the print preview offer the wrong paper. */
+            @page { margin: 0; }
 
             body {
                 margin: 0;
                 padding: 0;
-                background: white;
-                background-image: url('background.png');
-                background-repeat: no-repeat;
-                background-position: right center;
-                background-size: 1050px auto;
+                background: #EFECE6;   /* the sheet's linen, so any rounding sliver is invisible */
+                background-image: none;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
 
-            .notification-toast {
-                display: none !important;
-            }
-
-            #inputPage {
-                display: none !important;
-            }
-
-            #displayPage {
-                display: block !important;
-            }
-
-            .page {
-                display: none !important;
-            }
-
-            .page.active {
-                display: block !important;
-            }
-
-            .container {
-                margin: 15px auto 0;
-                padding: 10px 25px 30px;
-                box-shadow: none;
-                display: flex;
-                flex-direction: column;
-                max-width: 100%;
-                min-height: unset;
-            }
-
-            .content {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr 1.2fr !important;
-                gap: 10px !important;
-            }
-
-            .header-buttons {
-                display: none !important;
-            }
-
-            .exercises-block,
-            .remarks {
-                box-shadow: none !important;
-                border: 1px solid #dee2e6 !important;
-            }
-
-            .section {
-                box-shadow: none !important;
-            }
+            #displayPage.display-page { min-height: 0; }
+            .notification-toast { display: none !important; }
+            #inputPage { display: none !important; }
+            #displayPage { display: block !important; }
+            .page { display: none !important; }
+            .page.active { display: block !important; }
         }
 
         .measurement-field.pelvic-tilt-row {
@@ -1220,6 +704,518 @@
                 transform: translateY(80px);
                 opacity: 0;
             }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           UDRA POSTURE SHEET
+           A landscape page 1056px (11in @ 96dpi) wide. Every gap is the approved
+           constant and never varies per client; the page's HEIGHT is what flexes,
+           sizing itself to the content plus the field's own padding. 816px (8.5in)
+           is the design's height, not a constraint.
+           ══════════════════════════════════════════════════════════════════ */
+
+        /* The sheet sits on the design's sand desk, not the old branded artwork the
+           body still carries for the input page. Screen only — scoped to @media
+           screen so it cannot leak into print, where 100vh would add a full page
+           box underneath the sheet.
+
+           The desk has to be painted on the BODY as well, not just the page
+           container: the body art is `background-attachment: fixed` so it covers
+           the whole canvas, and the sheet's 40px margin collapses out of the
+           container, leaving a strip at the bottom where the old artwork showed
+           through. */
+        @media screen {
+            #displayPage.display-page {
+                min-height: 100vh;
+                background: #DAD6CE;
+            }
+            body:has(#displayPage.active) {
+                background: #DAD6CE;
+                background-image: none;
+            }
+        }
+
+        /* Screen-only controls, in the sheet's own language: square corners, Sora,
+           navy, and the same tracked caps the rail and programme headers use. */
+        .udra-toolbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 28px 20px 0;
+            font-family: 'Sora', 'Segoe UI', sans-serif;
+        }
+        @media print { .udra-toolbar { display: none !important; } }
+
+        /* Segmented language switch. */
+        .udra-toolbar .lang-toggle {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            padding: 0;
+            background: transparent;
+            border: 1px solid #122649;
+            border-radius: 0;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            overflow: hidden;
+        }
+        .udra-toolbar .lang-option {
+            display: flex;
+            align-items: center;
+            height: 34px;
+            padding: 0 15px;
+            border-radius: 0;
+            border-right: 1px solid rgba(18, 38, 73, .22);
+            background: transparent;
+            color: #122649;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            cursor: pointer;
+            transition: background .12s ease, color .12s ease;
+        }
+        .udra-toolbar .lang-option:last-child { border-right: 0; }
+        .udra-toolbar .lang-option:hover { background: rgba(18, 38, 73, .09); }
+        .udra-toolbar .lang-option.active,
+        .udra-toolbar .lang-option.active:hover {
+            background: #122649;
+            color: #FFFFFF;
+        }
+
+        /* Primary action — a navy block that picks up the sheet's blue on hover. */
+        .udra-toolbar .udra-btn {
+            height: 34px;
+            padding: 0 22px;
+            border: 0;
+            border-radius: 0;
+            background: #122649;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background .12s ease;
+        }
+        .udra-toolbar .udra-btn:hover { background: #005EFF; }
+        .udra-toolbar .udra-btn:active { background: #0B1B36; }
+
+        .udra-sheet {
+            /* Brand tokens */
+            --u-navy: #122649;
+            --u-blue: #005EFF;
+            --u-cyan: #64E0FF;
+            --u-lime: #CDFF20;
+            --u-red: #FF403C;
+            --u-red-ink: #C7231F;   /* red TEXT only — darker, for 4.5:1 contrast */
+            --u-linen: #EFECE6;
+            --u-white: #FFFFFF;
+            --u-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+            --u-arabic: 'IBM Plex Sans Arabic';
+
+            /* Spacing, all constant. Every gap on the sheet is the approved value
+               and stays there for every client; the PAGE flexes instead. */
+            --u-flag-cols: 3;
+            --u-field-gap: 13px;
+            --u-marker-pad: 9px;
+            --u-marker-gap: 6px;
+            --u-ex-pad: 5.5px;
+            --u-wr-pad-y: 10px;
+            --u-wr-pad-x: 14px;
+            --u-clear-pad: 14px;
+            --u-wr-gap: 8px;
+            --u-wr-row-gap: 4px;
+            --u-top-inset: 18px;   /* rule → first marker's name; never varies */
+
+            width: 1056px;
+            /* No fixed height: the sheet is as tall as its taller column (field or
+               rail) needs, so the space under the last exercise row is always the
+               field's own 28px bottom padding — same as every other client's. */
+            flex-shrink: 0;
+            display: flex;
+            overflow: hidden;
+            margin: 40px auto;
+            background: var(--u-linen);
+            box-shadow: 0 24px 60px rgba(18, 38, 73, .18);
+            font-family: 'Sora', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+            color: var(--u-navy);
+            /* Border radius is 0 everywhere by design except the bar dots. */
+        }
+
+        /* Arabic runs in IBM Plex Sans Arabic; Sora has no Arabic coverage. */
+        .udra-ar { font-family: var(--u-arabic), 'Segoe UI', sans-serif; }
+        /* The face tops out at 700, and synthesised bold smears Arabic letterforms —
+           cap the one label that asks for 800. */
+        .udra-stat-label.udra-ar { font-weight: 700; }
+        /* A long Arabic gloss takes its own line under the English. */
+        .udra-ar-line {
+            display: block;
+            font-family: var(--u-arabic), 'Segoe UI', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0;
+            white-space: normal;
+        }
+        /* A short one (a section title) rides on the same line instead — stacking
+           these costs ~23px a head, which is the whole within-range panel. */
+        .udra-ar-gloss {
+            font-family: var(--u-arabic), 'Segoe UI', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+        .udra-ar-gloss::before { content: '\00b7'; padding: 0 7px; opacity: .45; }
+
+        /* Numerals stay Latin in JetBrains Mono even in the Arabic view — the mono
+           face carries no Arabic-Indic digits, and a mixed fallback would break the
+           tabular alignment the bars and ranges depend on. Each numeric string is
+           also an isolated LTR run, or the bidi algorithm reorders "08 SEP 2026"
+           and "0 to 30°" into nonsense inside an RTL sheet. */
+        .udra-num {
+            font-family: var(--u-mono);
+            font-variant-numeric: tabular-nums;
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+
+        /* ── Region 1 — identity rail ──────────────────────────────── */
+        .udra-rail {
+            width: 272px;
+            flex-shrink: 0;
+            background: var(--u-navy);
+            padding: 30px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            overflow: hidden;
+        }
+        /* Both logos sit in a flex COLUMN: without an explicit width AND height
+           plus align-self, `align-items: stretch` distorts them. */
+        .udra-wordmark { width: 81px; height: 26px; }
+        .udra-logomark { width: 26px; height: 26px; }
+        .udra-wordmark, .udra-logomark {
+            display: block;
+            align-self: flex-start;
+            object-fit: contain;
+        }
+
+        .udra-ident { display: flex; flex-direction: column; gap: 7px; }
+        /* Tracking is tuned to fit the rail's 216px content width on one line. */
+        .udra-eyebrow {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .09em;
+            color: var(--u-cyan);
+            white-space: nowrap;
+        }
+        .udra-eyebrow .udra-ar-line { font-size: 9.5px; opacity: .9; padding-top: 3px; }
+        .udra-client {
+            font-size: 29px;
+            font-weight: 700;
+            letter-spacing: -.025em;
+            color: var(--u-white);
+            line-height: 1.08;
+        }
+        .udra-date {
+            font-size: 10px;
+            color: var(--u-cyan);
+            padding-top: 2px;
+        }
+        .udra-divider { height: 1px; background: rgba(255, 255, 255, .2); flex-shrink: 0; }
+
+        .udra-stats { display: flex; flex-direction: column; gap: 18px; }
+        .udra-stat { display: flex; align-items: center; gap: 14px; }
+        /* Sora, not the mono face: these are display numerals, not tabular data,
+           and JetBrains Mono has no 800 weight to hit the spec with — tagging them
+           as numerals got them faux-bolded. Kept as an isolated LTR run so a
+           standalone count can't be reordered in the Arabic view. */
+        .udra-stat-num {
+            font-size: 58px;
+            font-weight: 800;
+            line-height: .82;
+            letter-spacing: -.04em;
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+        .udra-stat-num.is-out { color: var(--u-red); }
+        .udra-stat-num.is-in { color: var(--u-lime); }
+        .udra-stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .14em;
+            color: var(--u-white);
+            line-height: 1.5;
+        }
+        .udra-stat-label.udra-ar { letter-spacing: 0; }
+        /* The Arabic phrase under the two-line English label. */
+        .udra-stat-label .udra-ar-line {
+            font-size: 10.5px;
+            line-height: 1.4;
+            opacity: .82;
+            padding-top: 4px;
+        }
+
+        .udra-totals { display: flex; flex-direction: column; gap: 5px; }
+        .udra-total {
+            font-size: 10px;
+            color: var(--u-white);
+            opacity: .85;
+        }
+        .udra-total .udra-ar-line {
+            font-size: 10.5px;
+            line-height: 1.5;
+            opacity: .85;
+        }
+        /* Each total is two lines in EN/AR, so the pair needs air between them. */
+        .udra-sheet .udra-totals:has(.udra-ar-line) { gap: 10px; }
+        .udra-foot {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .udra-foot-name {
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: .18em;
+            color: var(--u-white);
+            opacity: .78;
+        }
+
+        /* ── Region 2 — findings field ─────────────────────────────── */
+        .udra-field {
+            flex: 1;
+            min-width: 0;
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--u-field-gap);
+        }
+        /* Children must not absorb overflow by shrinking, or the fit check
+           can never see that the page is too full. */
+        .udra-field > * { flex-shrink: 0; }
+
+        .udra-section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1.5px solid var(--u-navy);
+            padding-bottom: 7px;
+        }
+        .udra-section-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -.015em;
+        }
+        .udra-section-title .udra-ar-gloss { font-size: 12px; opacity: .72; }
+        .udra-section-caption {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            opacity: .72;
+            text-align: right;
+            flex-shrink: 0;
+            direction: ltr;        /* always Latin — keep "26 EXERCISES" in order */
+            unicode-bidi: isolate;
+        }
+
+        /* 2.2 Flagged marker grid — descending severity. */
+        .udra-flagged {
+            display: grid;
+            grid-template-columns: repeat(var(--u-flag-cols), minmax(0, 1fr));
+            gap: 0 22px;
+        }
+        /* The findings always start in the same place: whatever the fit pass does
+           to the field gap and the cell padding is cancelled out here, so the rule
+           under "Priority findings" sits a fixed --u-top-inset above the first
+           marker's name and every adjustment lands further down the sheet. */
+        .udra-flagged {
+            margin-top: calc(var(--u-top-inset) - var(--u-field-gap) - var(--u-marker-pad));
+        }
+        /* The all-clear note is a panel, not a bare row — the inset is measured to
+           its edge, so its own padding stays out of the sum. */
+        .udra-all-clear {
+            margin-top: calc(var(--u-top-inset) - var(--u-field-gap));
+        }
+        .udra-marker {
+            padding: var(--u-marker-pad) 0;
+            border-bottom: 1px solid rgba(18, 38, 73, .13);
+            display: flex;
+            flex-direction: column;
+            gap: var(--u-marker-gap);
+        }
+        .udra-marker-top,
+        .udra-marker-foot {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .udra-marker-name { font-size: 11px; font-weight: 600; line-height: 1.25; }
+        .udra-marker-name .udra-ar-line { font-size: 9px; opacity: .68; }
+        .udra-marker-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--u-red-ink);
+            flex-shrink: 0;
+        }
+
+        /* The bar geometry is computed per marker — see udraDerive(). Forced LTR
+           so the band/dot offsets stay physical in the Arabic view. */
+        .udra-bar {
+            position: relative;
+            height: 5px;
+            background: rgba(18, 38, 73, .1);
+            direction: ltr;
+        }
+        .udra-band {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: var(--u-blue);
+        }
+        .udra-dot {
+            position: absolute;
+            top: -3px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--u-red);
+            border: 2px solid var(--u-linen);
+            margin-left: -5.5px;
+        }
+
+        /* Nothing flagged: the findings section still needs to say so rather than
+           leave its heading standing over an empty grid. */
+        .udra-all-clear {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--u-white);
+            padding: var(--u-clear-pad);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .udra-all-clear-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--u-lime);
+            flex-shrink: 0;
+        }
+
+        .udra-marker-range { font-size: 9.5px; opacity: .7; }
+        .udra-marker-delta {
+            font-size: 9.5px;
+            font-weight: 500;
+            color: var(--u-red-ink);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        /* Trend vs the client's previous test, when one was loaded. */
+        .udra-trend { font-weight: 500; padding-inline-start: 4px; }
+        .udra-trend.is-better { color: #1E7F4B; }
+        .udra-trend.is-worse { color: var(--u-red-ink); }
+        .udra-trend.is-same { color: var(--u-navy); opacity: .55; }
+
+        /* 2.3 Within-range panel — the sheet's height buffer; the fit pass
+           tightens and finally hides this before touching anything else. */
+        .udra-within {
+            background: var(--u-white);
+            padding: var(--u-wr-pad-y) var(--u-wr-pad-x);
+            display: flex;
+            flex-direction: column;
+            gap: var(--u-wr-gap);
+        }
+        .udra-within-head { display: flex; align-items: center; gap: 8px; }
+        .udra-within-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--u-blue);
+            flex-shrink: 0;
+        }
+        .udra-within-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+        .udra-within-title.udra-ar { letter-spacing: 0; }
+        .udra-within-list {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr auto;
+            gap: var(--u-wr-row-gap) 16px;
+        }
+        .udra-within-name { font-size: 10.5px; opacity: .8; line-height: 1.3; }
+        .udra-within-name .udra-ar-line { font-size: 9px; opacity: .8; }
+        .udra-within-value { font-size: 10px; font-weight: 500; text-align: right; }
+
+        /* 2.4 Programme band. It sits one --u-field-gap under whatever precedes it
+           — never pushed to the bottom edge — so the space above "The Program" is
+           the same on every sheet and the page height absorbs the difference. */
+        .udra-programme {
+            display: flex;
+            flex-direction: column;
+            gap: var(--u-field-gap);
+        }
+        .udra-columns { display: flex; gap: 14px; align-items: flex-start; }
+        .udra-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .udra-column-head {
+            background: var(--u-navy);
+            padding: 8px 13px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .udra-column-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            color: var(--u-white);
+            min-width: 0;
+        }
+        .udra-column-title .udra-ar-line { font-size: 9px; opacity: .8; }
+        .udra-column-unit { font-size: 9px; color: var(--u-cyan); flex-shrink: 0; }
+        .udra-column-body { background: var(--u-white); padding: 3px 13px 5px; }
+        .udra-exercise {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: var(--u-ex-pad) 0;
+            border-bottom: 1px solid rgba(18, 38, 73, .08);
+        }
+        .udra-exercise-name { font-size: 10.5px; line-height: 1.25; }
+        .udra-exercise-name .udra-ar-line { font-size: 9px; opacity: .7; }
+        .udra-exercise-dose {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--u-blue);
+            flex-shrink: 0;
+        }
+        .udra-empty { font-size: 10px; opacity: .5; padding: 8px 0; }
+
+        /* Arabic view: mirror the two regions, keep the bars physical. */
+        .udra-sheet[dir="rtl"] .udra-section-caption { text-align: left; }
+        .udra-sheet[dir="rtl"] .udra-within-value { text-align: left; }
+        .udra-sheet[dir="rtl"] .udra-date,
+        .udra-sheet[dir="rtl"] .udra-total { text-align: right; }
+
+        /* ── Print: the sheet is the page ──────────────────────────── */
+        @media print {
+            .udra-sheet {
+                margin: 0;
+                box-shadow: none;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            #displayPage.display-page {
+                background: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+            }
+            /* Nothing may add height around the sheet, or the page box overflows. */
+            html, body, #displayPage { height: auto !important; }
         }
     </style>
 </head>
@@ -1476,258 +1472,19 @@
     </div>
 
     <!-- DISPLAY PAGE -->
+    <!-- DISPLAY PAGE — the UDRA posture sheet. One fixed landscape page,
+         rendered from scratch by renderUdraSheet() as a pure function of the
+         measurements + generated programme. -->
     <div id="displayPage" class="page display-page">
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <img src="FIT_LOGO.png" alt="Logo" class="logo">
-                <div class="client-info">
-                    <h1 data-i18n="programTitle">Posture Correction Program</h1>
-                    <p id="displayName"></p>
-                </div>
+        <div class="udra-toolbar">
+            <div class="lang-toggle">
+                <span class="lang-option active" id="langBILINGUAL" onclick="setLanguage('bilingual')">EN/AR</span>
+                <span class="lang-option" id="langEN" onclick="setLanguage('en')">EN</span>
+                <span class="lang-option" id="langAR" onclick="setLanguage('ar')">AR</span>
             </div>
-            <div class="header-buttons">
-                <div class="lang-toggle">
-                    <span class="lang-option active" id="langBILINGUAL" onclick="setLanguage('bilingual')">EN/AR</span>
-                    <span class="lang-option" id="langEN" onclick="setLanguage('en')">EN</span>
-                    <span class="lang-option" id="langAR" onclick="setLanguage('ar')">AR</span>
-                </div>
-                <button onclick="downloadPDF()" class="btn-primary">Download PDF</button>
-            </div>
-            <div class="date">
-                <label data-i18n="dateLabel">Date:</label>
-                <div class="date-value" id="displayDate"></div>
-            </div>
+            <button onclick="downloadPDF()" class="udra-btn">Download PDF</button>
         </div>
-
-        <div class="content">
-            <!-- LEFT COLUMN: UPPER BODY + STRETCHING -->
-            <div class="section-left-column">
-                <!-- UPPER BODY AND NECK SECTION -->
-                <div class="section">
-                    <div class="section-title" data-i18n="upperBodyNeck">Upper body & neck</div>
-                    <div class="section-content">
-                        <div class="exercises-block">
-                        <div class="block-title">
-                            <span data-i18n="exercises">Exercises</span>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left;" data-i18n="colName">Name</th>
-                                    <th data-i18n="colSets">Sets</th>
-                                    <th data-i18n="colReps">Reps</th>
-                                </tr>
-                            </thead>
-                            <tbody id="upperBodyExercises">
-                                <tr>
-                                    <td class="exercise-name">Single hand shrugs</td>
-                                    <td>2</td>
-                                    <td>10</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Farmer walk</td>
-                                    <td>2</td>
-                                    <td>3</td>
-                                    <td>10</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Rowing Back Machine Single Hand</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Reverse flies DB</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Rowing Back DB</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Rowing Back Cable</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Reverse Flies Cable</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STRETCHING SECTION -->
-                <div class="section">
-                    <div class="section-title" data-i18n="stretching">Stretching</div>
-                    <div class="section-content">
-                        <div class="exercises-block">
-                        <div class="block-title">
-                            <span data-i18n="exercises">Exercises</span>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left;" data-i18n="colName">Name</th>
-                                    <th data-i18n="colSets">Sets</th>
-                                    <th data-i18n="colDuration">Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stretchingExercises">
-                                <tr>
-                                    <td class="exercise-name">Hamstring Stretching</td>
-                                    <td>2</td>
-                                    <td>1 min</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Pigeon stretching</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>1 min</td>
-                                    <td>1 min</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Chest Stretching</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>1 min</td>
-                                    <td>1 min</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Child Pose</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>1 min</td>
-                                    <td>1 min</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Hip flexors stretching</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>1 min</td>
-                                    <td>1 min</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MIDDLE COLUMN: LOWER BODY AND SPINE -->
-            <div class="section">
-                <div class="section-title" data-i18n="lowerBodySpine">Lower body & spine</div>
-                <div class="section-content-lower-body">
-                    <div class="exercises-block">
-                        <div class="block-title">
-                            <span data-i18n="exercises">Exercises</span>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left;" data-i18n="colName">Name</th>
-                                    <th data-i18n="colSets">Sets</th>
-                                    <th data-i18n="colReps">Reps</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lowerBodyExercises">
-                                <tr>
-                                    <td class="exercise-name">Anterior pelvic tilt (Lying)</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Dead Bug</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Reverse crunches</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Half superman</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Lower back machine</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                                <tr>
-                                    <td class="exercise-name">Bird dog</td>
-                                    <td>2</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>15</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN: ALL ASSESSMENT RESULTS -->
-            <div class="section">
-                <div class="section-title" data-i18n="assessmentResults">Assessment Results</div>
-                <div class="section-assessment-only">
-                    <!-- Within Range Section -->
-                    <div>
-                        <div class="block-title">
-                            <span data-i18n="withinRange">Within Range</span>
-                        </div>
-                        <div class="remark-item remark-header">
-                            <span class="remark-label"></span>
-                            <span class="remark-value" data-i18n="colResults">Results</span>
-                            <span class="remark-normal" data-i18n="colNormal">Normal</span>
-                        </div>
-                        <div class="remarks" id="withinRangeResults">
-                            <!-- Will be populated dynamically -->
-                        </div>
-                    </div>
-                    
-                    <!-- Out of Range Section -->
-                    <div>
-                        <div class="block-title">
-                            <span data-i18n="outOfRange">Out of Range</span>
-                        </div>
-                        <div class="remark-item remark-header">
-                            <span class="remark-label"></span>
-                            <span class="remark-value" data-i18n="colResults">Results</span>
-                            <span class="remark-normal" data-i18n="colNormal">Normal</span>
-                        </div>
-                        <div class="remarks" id="outOfRangeResults">
-                            <!-- Will be populated dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        <div id="udraSheet"></div>
     </div>
 
     <script>
@@ -1806,6 +1563,53 @@
                 colNormal: 'Normal',
                 withinRange: 'Within Range',
                 outOfRange: 'Out of Range',
+                // UDRA sheet chrome
+                ud_eyebrow: 'POSTURE CORRECTION PROGRAM',
+                ud_outOf: 'OUT OF',
+                ud_within: 'WITHIN',
+                ud_range: 'RANGE',
+                ud_markersAssessed: 'markers assessed',
+                ud_statOutFull: 'OUT OF RANGE',
+                ud_statInFull: 'WITHIN RANGE',
+                ud_exercisesPrescribed: 'exercises prescribed',
+                ud_priorityFindings: 'Priority findings',
+                ud_measuredVsNormal: 'MEASURED VALUE VS NORMAL RANGE',
+                ud_normalPrefix: 'NORMAL',
+                ud_to: 'to',
+                ud_over: 'over',
+                ud_under: 'under',
+                ud_withinRangeHead: 'WITHIN RANGE',
+                ud_allClear: 'No marker is outside its normal range.',
+                ud_theProgram: 'The Program',
+                ud_exercisesCount: 'EXERCISES',
+                ud_setsReps: 'sets \u00d7 reps',
+                ud_setsDuration: 'sets \u00d7 duration',
+                ud_blockUpper: 'UPPER BODY & NECK',
+                ud_blockStretching: 'STRETCHING',
+                ud_blockLower: 'LOWER BODY & SPINE',
+                // UDRA sheet marker labels — short form, side always included
+                ms_forwardHeadRight: 'Forward head posture (R)',
+                ms_forwardHeadLeft: 'Forward head posture (L)',
+                ms_roundedShoulderRight: 'Rounded shoulder (R)',
+                ms_forwardShoulderLeft: 'Rounded shoulder (L)',
+                ms_leftShoulderSlope: 'Shoulder slope (L)',
+                ms_rightShoulderSlope: 'Shoulder slope (R)',
+                ms_shoulderStability: 'Shoulder stability',
+                ms_thoracicKyphosisRight: 'Thoracic kyphosis (R)',
+                ms_thoracicKyphosisLeft: 'Thoracic kyphosis (L)',
+                ms_lumbarLordosisRight: 'Lumbar lordosis (R)',
+                ms_lumbarLordosisLeft: 'Lumbar lordosis (L)',
+                ms_spineNeutrality: 'Spinal neutrality',
+                ms_pelvicStability: 'Pelvic stability',
+                ms_pelvicTilt: 'Pelvic tilt',
+                ms_squatDepth: 'Squat depth',
+                ms_hipHinge: 'Hip hinge angle',
+                ms_fingerToFloor: 'Finger to floor',
+                ms_kneeExtension: 'Knee extension',
+                ms_kendallKneeRight: 'Kendall knee angle (R)',
+                ms_kendallKneeLeft: 'Kendall knee angle (L)',
+                ms_leftHKA: 'HKA angle (L)',
+                ms_rightHKA: 'HKA angle (R)',
                 // Measurement labels used in results
                 ml_PelvicTilt: 'Pelvic Tilt',
                 ml_CoronalBalance: 'Coronal Balance',
@@ -2000,6 +1804,30 @@
                 colNormal: 'الطبيعي',
                 withinRange: 'ضمن النطاق الطبيعي',
                 outOfRange: 'خارج النطاق الطبيعي',
+                // UDRA sheet chrome
+                ud_eyebrow: 'برنامج تصحيح القوام',
+                ud_outOf: 'خارج',
+                ud_within: 'ضمن',
+                ud_range: 'المعدل',
+                ud_markersAssessed: 'مؤشراً تم تقييمه',
+                ud_statOutFull: 'خارج المجال',
+                ud_statInFull: 'داخل المجال',
+                ud_exercisesPrescribed: 'تمريناً موصوفاً',
+                ud_priorityFindings: 'النتائج ذات الأولوية',
+                ud_measuredVsNormal: 'القيمة المقاسة مقابل المعدل الطبيعي',
+                ud_normalPrefix: 'الطبيعي',
+                ud_to: 'إلى',
+                ud_over: 'زيادة',
+                ud_under: 'نقص',
+                ud_withinRangeHead: 'ضمن المعدل الطبيعي',
+                ud_allClear: 'لا يوجد أي قياس خارج المعدل الطبيعي.',
+                ud_theProgram: 'البرنامج',
+                ud_exercisesCount: 'تمرين',
+                ud_setsReps: 'مجموعات \u00d7 تكرارات',
+                ud_setsDuration: 'مجموعات \u00d7 مدة',
+                ud_blockUpper: 'الجزء العلوي والرقبة',
+                ud_blockStretching: 'الإطالة',
+                ud_blockLower: 'الجزء السفلي والعمود الفقري',
                 // Measurement labels used in results
                 ml_PelvicTilt: 'إمالة الحوض',
                 ml_CoronalBalance: 'التوازن التاجي',
@@ -2135,44 +1963,6 @@
                    (translations['en'][key]) || key;
         }
 
-        function toArabicNumerals(str) {
-            const map = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
-            return String(str).replace(/[0-9]/g, d => map[d]);
-        }
-
-        function numFmt(val) {
-            return currentLang === 'ar' ? toArabicNumerals(String(val)) : String(val);
-        }
-
-        // Translate a reps/duration value: converts digits and unit words
-        function translateReps(raw, lang) {
-            if (lang !== 'ar') return String(raw);
-            return toArabicNumerals(String(raw))
-                .replace(/\s*min\s*/gi, ' د')
-                .replace(/s$/i, 'ث');
-        }
-
-        // Translate unit words and Left/Right for Arabic
-        function localiseText(str, lang) {
-            if (lang !== 'ar') return str;
-            return str
-                .replace(/\bLeft\b/g, 'يسار')
-                .replace(/\bRight\b/g, 'يمين')
-                .replace(/\bcm\b/g, 'سم');
-        }
-
-        // Build a reverse map: translated text → translation key (for ex_ or ml_ prefixes)
-        function buildKeyMap(prefix) {
-            const map = {};
-            Object.keys(translations.en).forEach(k => {
-                if (k.startsWith(prefix)) {
-                    if (translations.en[k]) map[translations.en[k]] = k;
-                    if (translations.ar && translations.ar[k]) map[translations.ar[k]] = k;
-                }
-            });
-            return map;
-        }
-
         function setLanguage(lang) {
             currentMode = lang;
             currentLang = (lang === 'ar') ? 'ar' : 'en';
@@ -2180,7 +1970,6 @@
             const html = document.documentElement;
             html.setAttribute('lang', effectiveLang);
             const displayPage = document.getElementById('displayPage');
-            if (displayPage) displayPage.setAttribute('dir', effectiveLang === 'ar' ? 'rtl' : 'ltr');
 
             // Update toggle button visual state
             document.getElementById('langBILINGUAL').classList.toggle('active', lang === 'bilingual');
@@ -2203,71 +1992,12 @@
                 }
             });
 
-            // Update displayName prefix if currently visible
-            const displayName = document.getElementById('displayName');
-            if (displayName && displayName.textContent) {
-                const parts = displayName.textContent.split(': ');
-                if (parts.length >= 2) {
-                    displayName.textContent = t('clientPrefix') + ' ' + parts.slice(1).join(': ');
-                }
-            }
-
-            // Re-translate exercise names
-            const exKeyMap = buildKeyMap('ex_');
-            document.querySelectorAll('.exercise-name[data-ex-key]').forEach(el => {
-                const key = el.getAttribute('data-ex-key');
-                const enName = translations.en[key] || key;
-                const arName = translations.ar[key] || '';
-                if (lang === 'bilingual' && arName) {
-                    el.textContent = `${enName} / ${arName}`;
-                } else {
-                    el.textContent = t(key);
-                }
-            });
-
-            // Re-translate measurement field labels
-            document.querySelectorAll('.remark-label[data-ml-key]').forEach(el => {
-                el.textContent = t(el.getAttribute('data-ml-key'));
-            });
-
-            // Reformat date
-            const displayDateEl = document.getElementById('displayDate');
-            const rawDate = displayDateEl && displayDateEl.getAttribute('data-date-raw');
-            if (rawDate) {
-                const d = new Date(rawDate + 'T12:00:00');
-                displayDateEl.textContent = d.toLocaleDateString(
-                    lang === 'ar' ? 'ar-SA' : 'en-US',
-                    { year: 'numeric', month: 'long', day: 'numeric' }
-                );
-            }
-
-            // Reformat sets/reps cells in exercise tables
-            document.querySelectorAll('[data-num]').forEach(el => {
-                const raw = el.getAttribute('data-num');
-                el.textContent = translateReps(raw, lang);
-            });
-
-            // Reformat measurement values
-            document.querySelectorAll('.remark-value[data-raw-value]').forEach(el => {
-                const raw   = el.getAttribute('data-raw-value');
-                const pfx   = localiseText(el.getAttribute('data-prefix') || '', lang);
-                const unit  = localiseText(el.getAttribute('data-unit')   || '', lang);
-                const sfx   = localiseText(el.getAttribute('data-suffix') || '', lang);
-                const arrow = el.querySelector('.comparison-improved, .comparison-worsened, .comparison-same');
-                const arrowHtml = arrow ? arrow.outerHTML : '';
-                const num = lang === 'ar' ? toArabicNumerals(raw) : raw;
-                el.innerHTML = pfx + num + unit + (sfx ? ' ' + sfx : '') + arrowHtml;
-            });
-
-            // Reformat normal range labels
-            document.querySelectorAll('.remark-normal[data-raw-range]').forEach(el => {
-                const raw = el.getAttribute('data-raw-range');
-                el.textContent = lang === 'ar' ? localiseText(toArabicNumerals(raw), lang) : raw;
-            });
-
-            // Switching language re-wraps the exercise names, so re-match the row heights.
-            if (displayPage && displayPage.classList.contains('active')) {
-                equalizeLeftColumnRowHeights();
+            // The UDRA sheet is a pure function of the data + the current mode,
+            // so switching language re-renders it rather than patching text in
+            // place (the fit pass has to re-run anyway: Arabic changes wrapping).
+            const displayActive = displayPage && displayPage.classList.contains('active');
+            if (displayActive && typeof renderUdraSheet === 'function') {
+                renderUdraSheet();
             }
         }
 
@@ -3224,115 +2954,6 @@
             button.classList.add('selected');
         }
         
-        // Generate dynamic exercise tables based on filled measurements
-        function generateExerciseTables() {
-            // Clear all exercise tables
-            document.getElementById('shoulderExercises').innerHTML = '';
-            document.getElementById('coreExercises').innerHTML = '';
-            document.getElementById('kneeExercises').innerHTML = '';
-            document.getElementById('stretchingExercises').innerHTML = '';
-            
-            const exercisesAdded = {
-                shoulder: new Set(),
-                core: new Set(),
-                knee: new Set(),
-                stretching: new Set()
-            };
-            
-            // Process each measurement that has a value
-            Object.keys(normalValues).forEach(fieldId => {
-                const input = document.getElementById(fieldId);
-                if (!input || !input.value) return;
-                
-                const value = parseFloat(input.value);
-                const colorCategory = colorSelections[fieldId] || 'normal';
-                
-                // Handle special cases
-                let exerciseKey = fieldId;
-                
-                // Pelvic Tilt with Left/Right
-                if (fieldId === 'pelvicTilt') {
-                    const pelvicTiltSide = document.getElementById('pelvicTiltSide').value;
-                    if (pelvicTiltSide === 'L' || pelvicTiltSide === 'Left') {
-                        exerciseKey = 'pelvicTiltLeft';
-                    } else if (pelvicTiltSide === 'R' || pelvicTiltSide === 'Right') {
-                        exerciseKey = 'pelvicTiltRight';
-                    } else {
-                        return; // Skip if no side selected
-                    }
-                }
-                
-                // Kendall Knee with positive/negative
-                if (fieldId === 'kendallKneeRight') {
-                    exerciseKey = value >= 0 ? 'kendallKneeRightPositive' : 'kendallKneeRightNegative';
-                }
-                if (fieldId === 'kendallKneeLeft') {
-                    exerciseKey = value >= 0 ? 'kendallKneeLeftPositive' : 'kendallKneeLeftNegative';
-                }
-                
-                // Get exercises for this measurement
-                const exercises = exerciseMapping[exerciseKey];
-                if (!exercises) return;
-                
-                // Add each exercise to appropriate table
-                exercises.forEach(exercise => {
-                    const { name, type } = exercise;
-                    const { sets, reps, duration } = calculateSetsReps(colorCategory, type === 'stretch');
-                    
-                    // Determine which table to add to
-                    let tableId, categorySet;
-                    if (type === 'stretch') {
-                        tableId = 'stretchingExercises';
-                        categorySet = exercisesAdded.stretching;
-                    } else if (name.toLowerCase().includes('knee') || name.toLowerCase().includes('leg extension') || 
-                               name.toLowerCase().includes('leg press') || name.toLowerCase().includes('hamstring curl')) {
-                        tableId = 'kneeExercises';
-                        categorySet = exercisesAdded.knee;
-                    } else if (name.toLowerCase().includes('pelvic') || name.toLowerCase().includes('hip') || 
-                               name.toLowerCase().includes('hinge') || name.toLowerCase().includes('y raise') ||
-                               name.toLowerCase().includes('abduction') || name.toLowerCase().includes('glute') ||
-                               name.toLowerCase().includes('jefferson')) {
-                        tableId = 'coreExercises';
-                        categorySet = exercisesAdded.core;
-                    } else {
-                        tableId = 'shoulderExercises';
-                        categorySet = exercisesAdded.shoulder;
-                    }
-                    
-                    // Skip if already added
-                    if (categorySet.has(name)) return;
-                    categorySet.add(name);
-                    
-                    // Determine laterality
-                    let leftSets = '', rightSets = '', leftReps = '', rightReps = '';
-                    
-                    if (name.toLowerCase().includes('left')) {
-                        leftSets = sets;
-                        leftReps = type === 'stretch' ? duration : reps;
-                    } else if (name.toLowerCase().includes('right')) {
-                        rightSets = sets;
-                        rightReps = type === 'stretch' ? duration : reps;
-                    } else {
-                        // Both sides
-                        leftSets = rightSets = sets;
-                        leftReps = rightReps = type === 'stretch' ? duration : reps;
-                    }
-                    
-                    // Create table row
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="exercise-name">${name}</td>
-                        <td>${leftSets}</td>
-                        <td>${rightSets}</td>
-                        <td>${leftReps}</td>
-                        <td>${rightReps}</td>
-                    `;
-                    
-                    document.getElementById(tableId).appendChild(row);
-                });
-            });
-        }
-        
         // Auto-calculate colors for all measurements based on normal values
         function autoCalculateColors() {
             // Clear existing color selections
@@ -3379,18 +3000,17 @@
             return 'normal';
         }
 
+        // Builds the prescribed programme from the filled measurements and returns
+        // it as three de-duplicated blocks. Entries carry the ex_ translation key
+        // (not a rendered name) so the sheet can print English and Arabic from the
+        // same list without a reverse lookup.
         function generateDynamicExercises() {
-            // Clear all exercise tables
-            document.getElementById('upperBodyExercises').innerHTML = '';
-            document.getElementById('lowerBodyExercises').innerHTML = '';
-            document.getElementById('stretchingExercises').innerHTML = '';
-
             const exercisesToAdd = { upperBody: [], lowerBody: [], stretching: [] };
 
             // Helper to push exercise/stretch entries
             const addEx = (cat, isStretch, table, key, optType) => {
                 const sr = calculateSetsReps(cat, isStretch, optType);
-                table.push({ name: t(key), sets: sr.sets, reps: sr.reps });
+                table.push({ key: key, sets: sr.sets, reps: sr.reps });
             };
 
             // ── SHOULDER SLOPE LEFT (negative → pushdowns + trap stretch, positive → shrugs) ──
@@ -3543,10 +3163,10 @@
                 const esr = calculateSetsReps(cc, false);
                 if (cc === 'abnormal') {
                     if (parseFloat(kendallRightValue) > 0) {
-                        exercisesToAdd.lowerBody.push({ name: t('ex_LeftLegExtensions'),  sets: esr.sets, reps: esr.reps });
-                        exercisesToAdd.lowerBody.push({ name: t('ex_SingleLegPressLeft'), sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_LeftLegExtensions',  sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_SingleLegPressLeft', sets: esr.sets, reps: esr.reps });
                     } else {
-                        exercisesToAdd.lowerBody.push({ name: t('ex_LeftHamstringCurls'), sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_LeftHamstringCurls', sets: esr.sets, reps: esr.reps });
                     }
                 }
             }
@@ -3558,10 +3178,10 @@
                 const esr = calculateSetsReps(cc, false);
                 if (cc === 'abnormal') {
                     if (parseFloat(kendallLeftValue) > 0) {
-                        exercisesToAdd.lowerBody.push({ name: t('ex_RightLegExtensions'),  sets: esr.sets, reps: esr.reps });
-                        exercisesToAdd.lowerBody.push({ name: t('ex_SingleLegPressRight'), sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_RightLegExtensions',  sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_SingleLegPressRight', sets: esr.sets, reps: esr.reps });
                     } else {
-                        exercisesToAdd.lowerBody.push({ name: t('ex_RightHamstringCurls'), sets: esr.sets, reps: esr.reps });
+                        exercisesToAdd.lowerBody.push({ key: 'ex_RightHamstringCurls', sets: esr.sets, reps: esr.reps });
                     }
                 }
             }
@@ -3603,89 +3223,433 @@
                 const cc = colorSelections['kneeExtension'].category || colorSelections['kneeExtension'];
             }
 
-            // Remove duplicates and populate tables
-            const uniqueExercises = {
+            return {
                 upperBody: removeDuplicateExercises(exercisesToAdd.upperBody),
                 lowerBody: removeDuplicateExercises(exercisesToAdd.lowerBody),
                 stretching: removeDuplicateExercises(exercisesToAdd.stretching)
             };
-
-            populateExerciseTable('upperBodyExercises', uniqueExercises.upperBody);
-            populateExerciseTable('lowerBodyExercises', uniqueExercises.lowerBody);
-            populateExerciseTable('stretchingExercises', uniqueExercises.stretching);
         }
         
-        // "Upper body & neck" and "Stretching" share the left column but rarely hold the
-        // same number of exercises, so the section with `flex: 1` used to absorb all the
-        // free space (tall rows) while the other stayed compact. Give every row in BOTH
-        // tables one shared height: split the column's free space across the TOTAL row
-        // count, so the two tables line up row-for-row and the height still flexes with
-        // how many exercises there are. Never goes below the tallest natural row, so a
-        // wrapped exercise name can't get clipped.
-        function equalizeLeftColumnRowHeights() {
-            const col = document.querySelector('.section-left-column');
-            if (!col) return;
-            const bodies = ['upperBodyExercises', 'stretchingExercises']
-                .map(id => document.getElementById(id))
-                .filter(Boolean);
-            if (bodies.length < 2) return;
-            const rows = bodies.reduce((all, tb) => all.concat(Array.from(tb.rows)), []);
-            if (!rows.length) return;
-            const sections = Array.from(col.children).filter(el => el.classList.contains('section'));
-            if (!sections.length) return;
+        /* ══════════════════════════════════════════════════════════════════
+           UDRA POSTURE SHEET
+           A pure function of one program object — the measurements the
+           algorithm produced plus the programme generateDynamicExercises()
+           derived from them. Nothing is fetched or mutated in here.
 
-            // Neutralise the flex stretching and any previous sizing, then measure natural sizes.
-            col.classList.add('rows-equalized');
-            rows.forEach(r => { r.style.height = ''; });
+           The sheet is an exception report: out-of-range markers get the
+           page (name, value, range bar, how far off), in-range markers
+           collapse into a compact list at the bottom.
+           ══════════════════════════════════════════════════════════════════ */
 
-            const tallestRow = rows.reduce((m, r) => Math.max(m, r.getBoundingClientRect().height), 0);
-            const sectionsHeight = sections.reduce((s, el) => s + el.getBoundingClientRect().height, 0);
-            const rowsHeight = bodies.reduce((s, tb) => s + tb.getBoundingClientRect().height, 0);
-            const chrome = sectionsHeight - rowsHeight;   // titles + table headers + padding
-            const gap = (parseFloat(getComputedStyle(col).rowGap) || 0) * (sections.length - 1);
+        // Marker order on the sheet, head → shoulder → spine → pelvis → knee.
+        // `ms` is the sheet's short English label (side always included); `ml`
+        // is the existing long label key, reused for the Arabic line.
+        const UDRA_MARKERS = [
+            { field: 'forwardHeadRight',      ms: 'ms_forwardHeadRight',      ml: 'ml_FHARight',              unit: '°' },
+            { field: 'forwardHeadLeft',       ms: 'ms_forwardHeadLeft',       ml: 'ml_FHALeft',               unit: '°' },
+            { field: 'roundedShoulderRight',  ms: 'ms_roundedShoulderRight',  ml: 'ml_RSRight',               unit: '°' },
+            { field: 'forwardShoulderLeft',   ms: 'ms_forwardShoulderLeft',   ml: 'ml_RSLeft',                unit: '°' },
+            { field: 'leftShoulderSlope',     ms: 'ms_leftShoulderSlope',     ml: 'ml_LeftShoulderSlope',     unit: '°' },
+            { field: 'rightShoulderSlope',    ms: 'ms_rightShoulderSlope',    ml: 'ml_RightShoulderSlope',    unit: '°' },
+            { field: 'shoulderStability',     ms: 'ms_shoulderStability',     ml: 'ml_ShoulderStability',     unit: '°' },
+            { field: 'thoracicKyphosisRight', ms: 'ms_thoracicKyphosisRight', ml: 'ml_TKRight',               unit: '°' },
+            { field: 'thoracicKyphosisLeft',  ms: 'ms_thoracicKyphosisLeft',  ml: 'ml_TKLeft',                unit: '°' },
+            { field: 'lumbarLordosisRight',   ms: 'ms_lumbarLordosisRight',   ml: 'ml_LumbarLordosisRight',   unit: '°' },
+            { field: 'lumbarLordosisLeft',    ms: 'ms_lumbarLordosisLeft',    ml: 'ml_LumbarLordosisLeft',    unit: '°' },
+            { field: 'spineNeutrality',       ms: 'ms_spineNeutrality',       ml: 'ml_SpinalNeutrality',      unit: '°' },
+            { field: 'pelvicStability',       ms: 'ms_pelvicStability',       ml: 'ml_PelvicStability',       unit: '°' },
+            { field: 'pelvicTilt',            ms: 'ms_pelvicTilt',            ml: 'ml_PelvicTilt',            unit: '°' },
+            { field: 'squatDepth',            ms: 'ms_squatDepth',            ml: 'ml_SquatDepth',            unit: '°' },
+            { field: 'hipHinge',              ms: 'ms_hipHinge',              ml: 'ml_HipHinge',              unit: '°' },
+            { field: 'fingerToFloor',         ms: 'ms_fingerToFloor',         ml: 'ml_FingerToFloor',         unit: ' cm' },
+            { field: 'kneeExtension',         ms: 'ms_kneeExtension',         ml: 'ml_KneeExtension',         unit: '°' },
+            { field: 'kendallKneeRight',      ms: 'ms_kendallKneeRight',      ml: 'ml_KKRight',               unit: '°' },
+            { field: 'kendallKneeLeft',       ms: 'ms_kendallKneeLeft',       ml: 'ml_KKLeft',                unit: '°' },
+            { field: 'leftHKA',               ms: 'ms_leftHKA',               ml: 'ml_LeftHKA',               unit: '°' },
+            { field: 'rightHKA',              ms: 'ms_rightHKA',              ml: 'ml_RightHKA',              unit: '°' },
+        ];
 
-            const free = col.clientHeight - chrome - gap;
-            const h = Math.max(tallestRow, free / rows.length);
-            rows.forEach(r => { r.style.height = h + 'px'; });
+        // The normal range out of a normalValues entry. The three range shapes
+        // put the normal band in different slots:
+        //   red-red  [min_abnormal, normal_low,   normal_high, max_abnormal]
+        //   blue-red [normal_start, normal_end,   max_abnormal]
+        //   red-blue [min_abnormal, normal_start, normal_end]
+        function udraNormalBounds(rangeData) {
+            if (rangeData.type === 'blue-red') return [rangeData.values[0], rangeData.values[1]];
+            return [rangeData.values[1], rangeData.values[2]];
         }
 
-        // Remove duplicate exercises
+        // Integers print bare, everything else to one decimal.
+        const udraFmt = (x) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
+
+        // The sheet's technical chrome — ranges, deltas, unit labels, totals and the
+        // all-caps section captions — stays Latin in every view, alongside the
+        // numerals it sits with. Mixing an Arabic word into a mono measurement run
+        // both breaks the tabular alignment and invites bidi reordering; the reader
+        // gets Arabic for the vocabulary that matters (marker and exercise names).
+        const udraEn = (key) => translations.en[key] || key;
+
+        // Date in the rail's mono format, e.g. "08 SEP 2026".
+        const UDRA_MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        function udraFormatDate(raw) {
+            if (!raw) return '';
+            const d = new Date(raw + 'T12:00:00');
+            if (isNaN(d.getTime())) return raw;
+            return String(d.getDate()).padStart(2, '0') + ' ' + UDRA_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        // The only real computation on the sheet. Each bar has its OWN axis,
+        // scaled to that marker — not to a shared global scale. The padding term
+        // guarantees the dot is never flush with the bar's edge and that a very
+        // narrow normal range (e.g. -2 to 2) still renders a visible band.
+        function udraDerive(m) {
+            const { value, unit, min, max } = m;
+            const ok = value >= min && value <= max;
+            const over = value > max, under = value < min;
+            const dev = over ? value - max : under ? min - value : 0;
+
+            const d0 = Math.min(min, value), d1 = Math.max(max, value);
+            const pad = Math.max((d1 - d0) * 0.18, Math.max((max - min) * 0.12, 1.5));
+            const a = d0 - pad, b = d1 + pad;
+            const pct = (x) => ((x - a) / (b - a)) * 100;
+
+            return Object.assign({}, m, {
+                ok,
+                // Sort key for the flagged grid: RELATIVE deviation, so 12° out on a
+                // 10°-wide range outranks 27° out on a 70°-wide one.
+                severity: dev / Math.max(max - min, 1),
+                valText: udraFmt(value) + unit,
+                rangeText: udraFmt(min) + ' ' + udraEn('ud_to') + ' ' + udraFmt(max) + unit.trim(),
+                deltaText: ok ? '' : dev.toFixed(1) + unit.trim() + ' ' + udraEn(over ? 'ud_over' : 'ud_under'),
+                bandLeft: pct(min).toFixed(1) + '%',
+                bandWidth: (pct(max) - pct(min)).toFixed(1) + '%',
+                markLeft: pct(value).toFixed(1) + '%',
+            });
+        }
+
+        // Trend vs the client's previous test, when one was loaded from Supabase.
+        // Same rules as the input page's comparison indicators.
+        function udraTrend(fieldId, currentValue) {
+            if (!previousTestData || !previousTestData.measurements) return null;
+            const prevRaw = previousTestData.measurements[fieldId];
+            if (prevRaw === undefined || prevRaw === null) return null;
+            const prev = parseFloat(prevRaw);
+            const rangeData = normalValues[fieldId];
+            if (isNaN(prev) || !rangeData) return null;
+
+            const now = calculateColorCategory(currentValue, rangeData);
+            const was = calculateColorCategory(prev, rangeData);
+            if (!now || !was) return null;
+
+            if (now.category === was.category) {
+                const dNow = getDistanceFromNormal(currentValue, rangeData);
+                const dWas = getDistanceFromNormal(prev, rangeData);
+                if (dNow < dWas) return { glyph: '↑', cls: 'is-better' };
+                if (dNow > dWas) return { glyph: '↓', cls: 'is-worse' };
+                return { glyph: '–', cls: 'is-same' };
+            }
+            const rank = { normal: 2, middle: 1, abnormal: 0 };
+            return rank[now.category] > rank[was.category]
+                ? { glyph: '↑', cls: 'is-better' }
+                : { glyph: '↓', cls: 'is-worse' };
+        }
+
+        // Collect the sheet's input: every filled marker with its normal range,
+        // plus the three programme blocks.
+        function buildUdraProgram() {
+            const pelvicSide = (document.getElementById('pelvicTiltSide') || {}).value || '';
+
+            const measures = [];
+            for (const def of UDRA_MARKERS) {
+                const el = document.getElementById(def.field);
+                if (!el || el.value === '') continue;
+                const value = parseFloat(el.value);
+                const rangeData = normalValues[def.field];
+                if (!isFinite(value) || !rangeData) continue;
+                const [min, max] = udraNormalBounds(rangeData);
+                // Pelvic tilt is measured on one side; the side is part of the name.
+                const sideSuffix = def.field === 'pelvicTilt'
+                    ? (pelvicSide === 'Left' ? ' (L)' : pelvicSide === 'Right' ? ' (R)' : '')
+                    : '';
+                measures.push({
+                    field: def.field, msKey: def.ms, mlKey: def.ml, sideSuffix,
+                    value, unit: def.unit, min, max,
+                });
+            }
+
+            const ex = generateDynamicExercises();
+            return {
+                client: {
+                    name: (document.getElementById('clientName').value || '').trim(),
+                    date: udraFormatDate(document.getElementById('assessmentDate').value),
+                },
+                measures,
+                blocks: [
+                    { titleKey: 'ud_blockUpper',      unitKey: 'ud_setsReps',     items: ex.upperBody },
+                    { titleKey: 'ud_blockStretching', unitKey: 'ud_setsDuration', items: ex.stretching },
+                    { titleKey: 'ud_blockLower',      unitKey: 'ud_setsReps',     items: ex.lowerBody },
+                ],
+            };
+        }
+
+        /* ── Rendering ──────────────────────────────────────────────────── */
+
+        const udraEl = (tag, cls, children, attrs) => {
+            const el = document.createElement(tag);
+            if (cls) el.className = cls;
+            if (attrs) for (const k in attrs) el.setAttribute(k, attrs[k]);
+            for (const c of [].concat(children || [])) {
+                if (c === null || c === undefined || c === false || c === '') continue;
+                el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+            }
+            return el;
+        };
+
+        // Bilingual rule for the sheet: Arabic is added to what the client reads
+        // and acts on — marker names, exercise names, the block, section and rail
+        // titles, and the rail's headline counts and totals. What stays English in
+        // the EN/AR view is the measurement chrome that sits inside a mono run
+        // ("NORMAL", unit labels, delta words, ranges), where an Arabic word would
+        // break the tabular alignment; the AR-only view flips everything that has
+        // a translation.
+        //
+        // `arKey` is only needed where the Arabic lives under a different key —
+        // the sheet's short marker labels (ms_*) have no Arabic of their own, so
+        // they borrow the long-form ml_* wording.
+        function udraText(key, suffix, arKey) {
+            const sfx = suffix || '';
+            const en = (translations.en[key] || key) + sfx;
+            const arRaw = translations.ar[arKey || key];
+            const ar = arRaw ? arRaw + sfx : '';
+            if (currentMode === 'ar') return { text: ar || en, arPrimary: !!ar, second: '' };
+            if (currentMode === 'bilingual' && ar && ar !== en) return { text: en, arPrimary: false, second: ar };
+            return { text: en, arPrimary: false, second: '' };
+        }
+
+        // A label element whose Arabic gloss (if any) sits on its own line under
+        // the English one.
+        function udraLabelEl(cls, key, suffix, arKey, inlineGloss) {
+            const l = udraText(key, suffix, arKey);
+            return udraEl('div', cls + (l.arPrimary ? ' udra-ar' : ''), [
+                l.text,
+                l.second ? udraEl('span', inlineGloss ? 'udra-ar-gloss' : 'udra-ar-line', l.second) : null,
+            ]);
+        }
+
+        function udraMarkerCell(m) {
+            const trend = udraTrend(m.field, m.value);
+            return udraEl('div', 'udra-marker', [
+                udraEl('div', 'udra-marker-top', [
+                    udraLabelEl('udra-marker-name', m.msKey, m.sideSuffix, m.mlKey),
+                    udraEl('div', 'udra-marker-value udra-num', m.valText),
+                ]),
+                udraEl('div', 'udra-bar', [
+                    udraEl('div', 'udra-band', null, { style: `left:${m.bandLeft};width:${m.bandWidth}` }),
+                    udraEl('div', 'udra-dot', null, { style: `left:${m.markLeft}` }),
+                ]),
+                udraEl('div', 'udra-marker-foot', [
+                    udraEl('div', 'udra-marker-range udra-num', udraEn('ud_normalPrefix') + ' ' + m.rangeText),
+                    udraEl('div', 'udra-marker-delta udra-num', [
+                        m.deltaText,
+                        trend ? udraEl('span', 'udra-trend ' + trend.cls, trend.glyph) : null,
+                    ]),
+                ]),
+            ]);
+        }
+
+        // The English label breaks over two lines ("OUT OF / RANGE"); the Arabic is
+        // one phrase, so it sits under both rather than mirroring the break.
+        function udraStat(count, variant, labelKey, fullKey) {
+            const ar = translations.ar[fullKey] || '';
+            const label = (currentMode === 'ar' && ar)
+                ? udraEl('div', 'udra-stat-label udra-ar', ar)
+                : udraEl('div', 'udra-stat-label', [
+                    udraEn(labelKey), udraEl('br'), udraEn('ud_range'),
+                    (currentMode === 'bilingual' && ar) ? udraEl('span', 'udra-ar-line', ar) : null,
+                ]);
+            return udraEl('div', 'udra-stat', [
+                udraEl('div', 'udra-stat-num ' + variant, String(count)),
+                label,
+            ]);
+        }
+
+        // "22 markers assessed" with its Arabic under it. The count leads both lines
+        // and the whole row stays an LTR run, so the numeral keeps its place.
+        function udraTotal(n, key) {
+            const ar = translations.ar[key] ? n + ' ' + translations.ar[key] : '';
+            if (currentMode === 'ar' && ar) return udraEl('div', 'udra-total udra-num udra-ar', ar);
+            return udraEl('div', 'udra-total udra-num', [
+                n + ' ' + udraEn(key),
+                (currentMode === 'bilingual' && ar) ? udraEl('span', 'udra-ar-line', ar) : null,
+            ]);
+        }
+
+        function udraColumn(block) {
+            const rows = block.items.length
+                ? block.items.map((ex) => udraEl('div', 'udra-exercise', [
+                    udraLabelEl('udra-exercise-name', ex.key),
+                    udraEl('div', 'udra-exercise-dose udra-num', ex.sets + ' × ' + ex.reps),
+                ]))
+                : [udraEl('div', 'udra-empty', t('noExercises'))];
+
+            return udraEl('div', 'udra-column', [
+                udraEl('div', 'udra-column-head', [
+                    udraLabelEl('udra-column-title', block.titleKey),
+                    udraEl('div', 'udra-column-unit udra-num', udraEn(block.unitKey)),
+                ]),
+                udraEl('div', 'udra-column-body', rows),
+            ]);
+        }
+
+        function udraSectionHead(titleKey, caption) {
+            return udraEl('div', 'udra-section-head', [
+                udraLabelEl('udra-section-title', titleKey, '', null, true),
+                udraEl('div', 'udra-section-caption', caption),
+            ]);
+        }
+
+        function udraBuildSheet(data) {
+            const all = data.measures.map(udraDerive);
+            const flagged = all.filter((m) => !m.ok).sort((x, y) => y.severity - x.severity);
+            const cleared = all.filter((m) => m.ok);
+            const exerciseCount = data.blocks.reduce((n, b) => n + b.items.length, 0);
+
+            const rail = udraEl('div', 'udra-rail', [
+                udraEl('img', 'udra-wordmark', null, { src: 'assets/udra-wordmark-white.png', alt: 'UDRA' }),
+                udraEl('div', 'udra-ident', [
+                    udraLabelEl('udra-eyebrow', 'ud_eyebrow'),
+                    udraEl('div', 'udra-client', data.client.name),
+                    udraEl('div', 'udra-date udra-num', data.client.date),
+                ]),
+                udraEl('div', 'udra-divider'),
+                udraEl('div', 'udra-stats', [
+                    udraStat(flagged.length, 'is-out', 'ud_outOf', 'ud_statOutFull'),
+                    udraStat(cleared.length, 'is-in', 'ud_within', 'ud_statInFull'),
+                ]),
+                udraEl('div', 'udra-divider'),
+                udraEl('div', 'udra-totals', [
+                    udraTotal(all.length, 'ud_markersAssessed'),
+                    udraTotal(exerciseCount, 'ud_exercisesPrescribed'),
+                ]),
+                udraEl('div', 'udra-foot', [
+                    udraEl('img', 'udra-logomark', null, { src: 'assets/udra-mark-white.png', alt: '' }),
+                    udraEl('div', 'udra-foot-name', 'UDRA PERFORMANCE'),
+                ]),
+            ]);
+
+            const withinList = [];
+            cleared.forEach((m) => {
+                withinList.push(udraLabelEl('udra-within-name', m.msKey, m.sideSuffix, m.mlKey));
+                withinList.push(udraEl('div', 'udra-within-value udra-num', m.valText));
+            });
+
+            const field = udraEl('div', 'udra-field', [
+                udraSectionHead('ud_priorityFindings', udraEn('ud_measuredVsNormal')),
+                flagged.length
+                    ? udraEl('div', 'udra-flagged', flagged.map(udraMarkerCell))
+                    : udraEl('div', 'udra-all-clear' + (currentLang === 'ar' ? ' udra-ar' : ''), [
+                        udraEl('div', 'udra-all-clear-dot'),
+                        udraEl('div', null, t('ud_allClear')),
+                    ]),
+                cleared.length ? udraEl('div', 'udra-within', [
+                    udraEl('div', 'udra-within-head', [
+                        udraEl('div', 'udra-within-dot'),
+                        udraEl('div', 'udra-within-title' + (currentMode === 'ar' ? ' udra-ar' : ''), [
+                            t('ud_withinRangeHead') + ' · ',
+                            udraEl('span', 'udra-num', String(cleared.length)),
+                        ]),
+                    ]),
+                    udraEl('div', 'udra-within-list', withinList),
+                ]) : null,
+                udraEl('div', 'udra-programme', [
+                    udraSectionHead('ud_theProgram', exerciseCount + ' ' + udraEn('ud_exercisesCount')),
+                    udraEl('div', 'udra-columns', data.blocks.map(udraColumn)),
+                ]),
+            ]);
+
+            const sheet = udraEl('div', 'udra-sheet', [rail, field]);
+            sheet.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+            return sheet;
+        }
+
+        /* ── Page sizing ────────────────────────────────────────────────────
+           Every gap on the sheet is the approved constant — the inset under the
+           "Priority findings" rule, the gap above "The Program", the 28px under
+           the last exercise row. Nothing is tightened for a busy client or opened
+           up for a sparse one, because the PAGE is what flexes: the sheet has no
+           fixed height, so it is exactly as tall as its content plus that padding,
+           and the printed @page follows it.
+
+           The sheet is a flex row, so its height is whichever column is taller —
+           the findings field or the identity rail. A very light client therefore
+           bottoms out at the rail's own height rather than collapsing.
+           ─────────────────────────────────────────────────────────────────── */
+        const UDRA_SHEET_H = 816;   // 8.5in @ 96dpi — the design's height, for reference
+        const UDRA_PAGE_SLACK = 4;  // px of headroom in the page box; invisible, prevents a sliver page
+
+        // Keep the printed page box in step with the sheet's measured height. The
+        // static @page in the stylesheet is only a fallback; this overrides it with
+        // whatever the sheet actually came out at, so Cmd+P and the Download button
+        // both produce exactly one page of exactly the right size.
+        function udraSyncPageSize(sheet) {
+            // Round UP off the fractional layout height, not off offsetHeight's
+            // already-rounded integer: a page box a third of a pixel short of the
+            // content spills a second, near-empty sheet out of the printer. The
+            // slack on top of that absorbs any small difference between how the
+            // screen and the print engine lay the sheet out.
+            // Clear the last min-height first, or each call would measure the page
+            // box it set previously and the sheet would creep taller every time.
+            if (sheet) sheet.style.minHeight = '';
+            const px = sheet
+                ? Math.ceil(sheet.getBoundingClientRect().height) + UDRA_PAGE_SLACK
+                : UDRA_SHEET_H;
+            // Grow the sheet onto the slack too. Otherwise the page box is taller
+            // than the linen and that gap prints as a white line under the sheet.
+            if (sheet) sheet.style.minHeight = px + 'px';
+            const heightIn = (px / 96).toFixed(4);
+            let st = document.getElementById('dynamic-page-size');
+            if (!st) {
+                st = document.createElement('style');
+                st.id = 'dynamic-page-size';
+                document.head.appendChild(st);
+            }
+            st.textContent = `@media print { @page { size: 11in ${heightIn}in; margin: 0; } }`;
+        }
+
+        // Cmd+P never goes through downloadPDF(), so catch the dialog on its way up
+        // and re-measure then. Cheap, and it covers a sheet that has re-rendered
+        // (language switch) since the last explicit sync.
+        window.addEventListener('beforeprint', function () {
+            const sheet = document.querySelector('#udraSheet .udra-sheet');
+            if (sheet) udraSyncPageSize(sheet);
+        });
+
+        // Build + render + fit. Safe to call again (language switch re-renders).
+        function renderUdraSheet() {
+            const host = document.getElementById('udraSheet');
+            if (!host) return;
+            const sheet = udraBuildSheet(buildUdraProgram());
+            host.replaceChildren(sheet);
+            udraSyncPageSize(sheet);
+            // The brand faces change where text wraps, which changes the sheet's
+            // height — re-measure once they land.
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(() => {
+                    if (sheet.isConnected) udraSyncPageSize(sheet);
+                });
+            }
+        }
+
+        // Remove duplicate exercises (several markers can prescribe the same one).
         function removeDuplicateExercises(exercises) {
             const merged = {};
             exercises.forEach(ex => {
-                if (!merged[ex.name]) {
-                    merged[ex.name] = { ...ex };
+                const id = ex.key || ex.name;
+                if (!merged[id]) {
+                    merged[id] = { ...ex };
                 }
             });
             return Object.values(merged);
-        }
-        
-        // Populate a specific exercise table
-        function populateExerciseTable(tableId, exercises) {
-            const tbody = document.getElementById(tableId);
-            tbody.innerHTML = '';
-            
-            if (exercises.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;" data-i18n="noExercises">${t('noExercises')}</td></tr>`;
-                return;
-            }
-            
-            const _exKeyMap = buildKeyMap('ex_');
-            exercises.forEach(ex => {
-                const exKey = _exKeyMap[ex.name] || '';
-                const row = document.createElement('tr');
-                const enName = exKey ? translations.en[exKey] || ex.name : ex.name;
-                const arName = exKey ? translations.ar[exKey] || '' : '';
-                const displayName = (currentMode === 'bilingual' && arName)
-                    ? `${enName} / ${arName}`
-                    : ex.name;
-                row.innerHTML = `
-                    <td class="exercise-name"${exKey ? ` data-ex-key="${exKey}"` : ''}>${displayName}</td>
-                    <td data-num="${ex.sets}">${numFmt(ex.sets)}</td>
-                    <td data-num="${ex.reps}">${translateReps(ex.reps, currentLang)}</td>
-                `;
-                tbody.appendChild(row);
-            });
         }
         
         // Auto-calculate colors for all measurements based on normal values
@@ -3776,312 +3740,24 @@
             // Save to database
             await saveAssessment(clientName, assessmentDate, measurements);
             
-            // Format date
-            const date = new Date(assessmentDate + 'T12:00:00');
-            const formattedDate = date.toLocaleDateString(
-                currentLang === 'ar' ? 'ar-SA' : 'en-US',
-                { year: 'numeric', month: 'long', day: 'numeric' }
-            );
-            
-            // Update client info in display page
-            document.getElementById('displayName').textContent = `${t('clientPrefix')} ${clientName}`;
-            const displayDateEl2 = document.getElementById('displayDate');
-            displayDateEl2.textContent = formattedDate;
-            displayDateEl2.setAttribute('data-date-raw', assessmentDate);
-            
-            // Update all measurements
-            const pelvicTiltValue = document.getElementById('pelvicTilt').value;
-            if (pelvicTiltValue && pelvicTiltSide) {
-                updateMeasurement('pelvicTilt', t('ml_PelvicTilt'), '°', '', pelvicTiltSide + ' ');
-            } else if (pelvicTiltValue && !pelvicTiltSide) {
-                updateMeasurement('pelvicTilt', t('ml_PelvicTilt'), '°', '', '');
-            } else {
-                // Hide pelvic tilt if no value
-                const remarkItems = document.querySelectorAll('.remark-item');
-                remarkItems.forEach(item => {
-                    const labelElement = item.querySelector('.remark-label');
-                    if (labelElement && (labelElement.textContent === 'Pelvic Tilt' || labelElement.textContent === 'إمالة الحوض')) {
-                        item.style.display = 'none';
-                    }
-                });
-            }
-            updateMeasurement('leftHKA', t('ml_LeftHKA'), '°');
-            updateMeasurement('rightHKA', t('ml_RightHKA'), '°');
-            updateMeasurement('leftShoulderSlope', t('ml_LeftShoulderSlope'), '°');
-            updateMeasurement('rightShoulderSlope', t('ml_RightShoulderSlope'), '°');
-            
-            updateMeasurement('forwardHeadRight', t('ml_FHARight'), '°');
-            updateMeasurement('roundedShoulderRight', t('ml_RSRight'), '°');
-            updateMeasurement('thoracicKyphosisRight', t('ml_TKRight'), '°');
-            updateMeasurement('lumbarLordosisRight', t('ml_LumbarLordosisRight'), '°');
-            updateMeasurement('kendallKneeRight', t('ml_KKRight'), '°');
-            
-            updateMeasurement('forwardHeadLeft', t('ml_FHALeft'), '°');
-            updateMeasurement('forwardShoulderLeft', t('ml_RSLeft'), '°');
-            updateMeasurement('thoracicKyphosisLeft', t('ml_TKLeft'), '°');
-            updateMeasurement('lumbarLordosisLeft', t('ml_LumbarLordosisLeft'), '°');
-            updateMeasurement('kendallKneeLeft', t('ml_KKLeft'), '°');
-            
-            updateMeasurement('pelvicStability', t('ml_PelvicStability'), '°');
-            updateMeasurement('spineNeutrality', t('ml_SpinalNeutrality'), '°');
-            updateMeasurement('squatDepth', t('ml_SquatDepth'), '°');
-            updateMeasurement('shoulderStability', t('ml_ShoulderStability'), '°');
-            updateMeasurement('hipHinge', t('ml_HipHinge'), '°');
-            updateMeasurement('fingerToFloor', t('ml_FingerToFloor'), ' cm');
-            updateMeasurement('kneeExtension', t('ml_KneeExtension'), '°');
-            
-            // Generate dynamic exercise tables based on measurements
-            generateDynamicExercises();
-            
-            // Update last-visible classes for each remarks section
-            updateLastVisibleItems();
-            
-            // Switch to display page
+            // Render the UDRA sheet. It reads the form + the generated programme
+            // directly, so the page must be visible first — the fit pass measures.
             setLanguage(_autoLanguageOverride || 'bilingual');
             _autoLanguageOverride = null;
             document.getElementById('inputPage').classList.remove('active');
             document.getElementById('automatedPage').classList.remove('active');
             document.getElementById('displayPage').classList.add('active');
-
-            // Match row heights across the two left-column tables (needs the page visible
-            // so the column has a measurable height).
-            equalizeLeftColumnRowHeights();
+            renderUdraSheet();
 
             // Scroll to top
             window.scrollTo(0, 0);
 
-            // Bodydot auto-print: once the program is rendered, open the print dialog
-            // (mirrors the standalone downloadPDF flow with its dynamic @page sizing).
+            // Bodydot auto-print: once the program is rendered, open the print dialog.
             if (window.__BODYDOT__ && window.__BODYDOT__.autoPrint) {
                 window.__BODYDOT__.autoPrint = false;
                 setTimeout(function () { downloadPDF(); }, 150);
             }
         });
-
-        function updateMeasurement(fieldId, label, unit, suffix = '', prefix = '') {
-            const _el = document.getElementById(fieldId);
-            if (!_el) return;
-            const value = _el.value;
-            const colorData = colorSelections[fieldId];
-            let color = 'normal';
-            let isOutOfRange = false;
-            
-            // Get comparison arrow if previous data exists
-            let comparisonArrow = '';
-            if (previousTestData && previousTestData.measurements) {
-                const currentValue = parseFloat(value);
-                const previousValue = previousTestData.measurements[fieldId];
-                
-                if (!isNaN(currentValue) && previousValue !== undefined && previousValue !== null) {
-                    const prevValue = parseFloat(previousValue);
-                    if (!isNaN(prevValue)) {
-                        const rangeData = normalValues[fieldId];
-                        if (rangeData) {
-                            const currentResult = calculateColorCategory(currentValue, rangeData);
-                            const previousResult = calculateColorCategory(prevValue, rangeData);
-                            
-                            let indicator = '';
-                            let className = '';
-                            
-                            if (currentResult.category === 'normal' && previousResult.category !== 'normal') {
-                                indicator = '↑';
-                                className = 'comparison-improved';
-                            } else if (currentResult.category === 'abnormal' && previousResult.category !== 'abnormal') {
-                                indicator = '↓';
-                                className = 'comparison-worsened';
-                            } else if (currentResult.category === previousResult.category) {
-                                const currentDist = getDistanceFromNormal(currentValue, rangeData);
-                                const previousDist = getDistanceFromNormal(prevValue, rangeData);
-                                
-                                if (currentDist < previousDist) {
-                                    indicator = '↑';
-                                    className = 'comparison-improved';
-                                } else if (currentDist > previousDist) {
-                                    indicator = '↓';
-                                    className = 'comparison-worsened';
-                                } else {
-                                    indicator = '–';
-                                    className = 'comparison-same';
-                                }
-                            } else if (currentResult.category === 'middle') {
-                                if (previousResult.category === 'abnormal') {
-                                    indicator = '↑';
-                                    className = 'comparison-improved';
-                                } else {
-                                    indicator = '↓';
-                                    className = 'comparison-worsened';
-                                }
-                            } else if (previousResult.category === 'middle') {
-                                if (currentResult.category === 'normal') {
-                                    indicator = '↑';
-                                    className = 'comparison-improved';
-                                } else {
-                                    indicator = '↓';
-                                    className = 'comparison-worsened';
-                                }
-                            }
-                            
-                            if (indicator) {
-                                comparisonArrow = ` <span class="${className}">${indicator}</span>`;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if (colorData) {
-                if (typeof colorData === 'object') {
-                    // Use the category directly from zone-based calculation
-                    color = colorData.category;
-                    
-                    // Determine if out of range
-                    if (color === 'abnormal') {
-                        isOutOfRange = true;
-                    } else if (color === 'middle') {
-                        // Check if middle value is on abnormal side
-                        const val = colorData.value;
-                        const normalStart = colorData.normalStart;
-                        const normalEnd = colorData.normalEnd;
-                        
-                        // If value is outside the normal range (even in middle zone), it's out of range
-                        if (val < normalStart || val > normalEnd) {
-                            isOutOfRange = true;
-                        }
-                    }
-                } else {
-                    // Legacy format
-                    color = colorData;
-                    if (color === 'abnormal') {
-                        isOutOfRange = true;
-                    }
-                }
-            }
-            
-            // Determine which container to use
-            const containerId = isOutOfRange ? 'outOfRangeResults' : 'withinRangeResults';
-            const container = document.getElementById(containerId);
-            const otherContainerId = isOutOfRange ? 'withinRangeResults' : 'outOfRangeResults';
-            const otherContainer = document.getElementById(otherContainerId);
-            
-            if (!container) return;
-            
-            // Check if item exists in the correct container first
-            let remarkItem = container.querySelector(`[data-field="${fieldId}"]`);
-            
-            // If not in correct container, check the other container
-            if (!remarkItem && otherContainer) {
-                remarkItem = otherContainer.querySelector(`[data-field="${fieldId}"]`);
-                if (remarkItem) {
-                    // Move it to the correct container
-                    container.appendChild(remarkItem);
-                }
-            }
-            
-            if (!remarkItem) {
-                remarkItem = document.createElement('div');
-                remarkItem.className = 'remark-item';
-                remarkItem.setAttribute('data-field', fieldId);
-                
-                const labelElement = document.createElement('span');
-                labelElement.className = 'remark-label';
-                labelElement.textContent = label;
-                // Store translation key for language switching
-                const _mlKeys = Object.keys(translations.en).filter(k => k.startsWith('ml_'));
-                const _mlKey = _mlKeys.find(k => translations.en[k] === label || (translations.ar && translations.ar[k] === label)) || '';
-                if (_mlKey) labelElement.setAttribute('data-ml-key', _mlKey);
-                
-                const valueElement = document.createElement('span');
-                valueElement.className = 'remark-value';
-                
-                const normalElement = document.createElement('span');
-                normalElement.className = 'remark-normal';
-                
-                remarkItem.appendChild(labelElement);
-                remarkItem.appendChild(valueElement);
-                remarkItem.appendChild(normalElement);
-                container.appendChild(remarkItem);
-            }
-            
-            if (value) {
-                // Show the item and update its value
-                remarkItem.style.display = '';
-                const valueElement = remarkItem.querySelector('.remark-value');
-                valueElement.className = 'remark-value';
-                valueElement.setAttribute('data-raw-value', value);
-                valueElement.setAttribute('data-prefix', prefix);
-                valueElement.setAttribute('data-unit', unit);
-                valueElement.setAttribute('data-suffix', suffix);
-                const _pfx = localiseText(prefix, currentLang);
-                const _unit = localiseText(unit, currentLang);
-                const _sfx = localiseText(suffix, currentLang);
-                valueElement.innerHTML = _pfx + numFmt(value) + _unit + (_sfx ? ' ' + _sfx : '') + comparisonArrow;
-                
-                // Display normal range if available
-                const normalElement = remarkItem.querySelector('.remark-normal');
-                if (colorData && typeof colorData === 'object') {
-                    const normalInfo = normalValues[fieldId];
-                    if (normalInfo && normalInfo.values) {
-                        const rangeType = normalInfo.type;
-                        let rangeText = '';
-                        
-                        if (rangeType === 'red-red') {
-                            // values: [min_abnormal, normal_low, normal_high, max_abnormal]
-                            rangeText = `${normalInfo.values[1]}-${normalInfo.values[2]}${unit}`;
-                        } else if (rangeType === 'blue-red') {
-                            // values: [normal_start, normal_end, max_abnormal]
-                            rangeText = `${normalInfo.values[0]}-${normalInfo.values[1]}${unit}`;
-                        } else if (rangeType === 'red-blue') {
-                            // values: [min_abnormal, normal_start, normal_end]
-                            rangeText = `${normalInfo.values[1]}-${normalInfo.values[2]}${unit}`;
-                        }
-                        
-                        normalElement.setAttribute('data-raw-range', rangeText);
-                        normalElement.textContent = currentLang === 'ar' ? localiseText(toArabicNumerals(rangeText), 'ar') : rangeText;
-                    }
-                }
-            } else {
-                // Hide the item if no value
-                remarkItem.style.display = 'none';
-            }
-        }
-        
-        function updateLastVisibleItems() {
-            // Get all remarks sections
-            const remarksSections = document.querySelectorAll('.remarks');
-            
-            remarksSections.forEach(section => {
-                const items = section.querySelectorAll('.remark-item');
-                
-                // Remove last-visible class from all items first
-                items.forEach(item => item.classList.remove('last-visible'));
-                
-                // Find the last visible item and add the class
-                let lastVisible = null;
-                items.forEach(item => {
-                    if (item.style.display !== 'none') {
-                        lastVisible = item;
-                    }
-                });
-                
-                if (lastVisible) {
-                    lastVisible.classList.add('last-visible');
-                }
-            });
-        }
-        
-        // Back button functionality
-        function goBackToInput() {
-            document.getElementById('displayPage').classList.remove('active');
-            // Return to automated page if that's where we came from
-            const fromAutomated = _autoCurrentOrgId !== null && _autoAllClients.length > 0;
-            if (fromAutomated) {
-                document.getElementById('automatedPage').classList.add('active');
-            } else {
-                document.getElementById('inputPage').classList.add('active');
-            }
-            window.scrollTo(0, 0);
-            setLanguage('bilingual');
-        }
 
         function newProfile() {
             // Clear all input fields
@@ -4106,45 +3782,41 @@
             window.scrollTo(0, 0);
         }
         
-        // Download PDF functionality
-        function downloadPDF() {
-            // Get client name for filename
+        // Download PDF functionality. The sheet is 11in wide always; its height is
+        // whatever the client's content came to. Emit an @page that matches, so the
+        // PDF is exactly one page with the design's padding at the bottom.
+        async function downloadPDF() {
             const clientName = document.getElementById('clientName').value;
             const programTitle = t('programTitle');
             const fileName = clientName ? `${clientName.trim()} - ${programTitle}` : programTitle;
 
-            // Re-match row heights before measuring, so the page size reflects final layout.
-            equalizeLeftColumnRowHeights();
+            // The brand faces change where text wraps, so they change the sheet's
+            // height. Printing before they land commits a page box sized to a
+            // shorter sheet and paginates the difference onto a second page — the
+            // auto-print path used to fire on a fixed timer and lose this race.
+            if (document.fonts && document.fonts.ready) {
+                try { await document.fonts.ready; } catch (e) { /* print anyway */ }
+            }
+            // Let the post-swap layout settle before measuring it. rAF is throttled
+            // to a standstill in a background tab, and the program opens in one, so
+            // race it against a timer rather than risk never printing at all.
+            await new Promise((resolve) => {
+                let done = false;
+                const finish = () => { if (!done) { done = true; resolve(); } };
+                requestAnimationFrame(() => requestAnimationFrame(finish));
+                setTimeout(finish, 120);
+            });
 
-            // Compute content height and set dynamic @page size
-            const displayPage = document.getElementById('displayPage');
-            const contentHeightPx = displayPage.scrollHeight;
-            const isArabic = displayPage.getAttribute('dir') === 'rtl';
-            const pageWidthMm = (currentMode === 'bilingual') ? 415 : 380;
-            const pxPerMm = 96 / 25.4;
-            const isWindows = document.body.classList.contains('windows-os');
-            const heightMultiplier = isWindows
-                ? (currentMode === 'bilingual' ? 1.10 : 1.03)
-                : 1;
-            const bottomPadding = currentMode === 'bilingual' ? -18 : (isArabic ? 11 : 10);
-            const contentHeightMm = Math.ceil((contentHeightPx / pxPerMm) * heightMultiplier) + bottomPadding;
-            const dynStyle = document.createElement('style');
-            dynStyle.id = 'dynamic-page-size';
-            dynStyle.textContent = `@media print { @page { size: ${pageWidthMm}mm ${contentHeightMm}mm; margin: 0; } }`;
-            document.head.appendChild(dynStyle);
+            const sheet = document.querySelector('#udraSheet .udra-sheet');
+            udraSyncPageSize(sheet);
 
-            // Store original title
             const originalTitle = document.title;
             document.title = fileName;
 
-            // Trigger print dialog
             window.print();
 
-            // Restore after print
             window.addEventListener('afterprint', function cleanup() {
                 document.title = originalTitle;
-                const s = document.getElementById('dynamic-page-size');
-                if (s) s.remove();
                 window.removeEventListener('afterprint', cleanup);
             });
         }
