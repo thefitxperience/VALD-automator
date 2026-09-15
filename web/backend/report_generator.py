@@ -4,9 +4,11 @@ Fills each branch sheet starting at row 7 with approved programs.
 """
 import io
 import os
+import re
 from datetime import date, timedelta
 from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.formula import ArrayFormula
 from copy import copy
 
@@ -409,6 +411,137 @@ def _rebuild_report_sheet(ws, trainer_order_by_branch: dict, branch_order: list)
                 )
 
 
+# The extra column custom-range reports get (REPORT 2 col B, REPORT col E) is headed
+# with the selected range itself — "1 \u2013 10 SEP 2026" — rather than a generic label,
+# so the report says which days it covers without anyone having to ask.
+_MONTH_ABBR_EN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+_MONTH_NAMES_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+                   "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+
+
+def _range_label_en(start: date, end: date) -> str:
+    if start == end:
+        return f"{start.day} {_MONTH_ABBR_EN[start.month - 1]} {start.year}"
+    if (start.year, start.month) == (end.year, end.month):
+        return f"{start.day} \u2013 {end.day} {_MONTH_ABBR_EN[start.month - 1]} {start.year}"
+    return (f"{start.day} {_MONTH_ABBR_EN[start.month - 1]} \u2013 "
+            f"{end.day} {_MONTH_ABBR_EN[end.month - 1]} {end.year}")
+
+
+def _range_label_ar(start: date, end: date) -> str:
+    if start == end:
+        return f"{start.day} {_MONTH_NAMES_AR[start.month - 1]} {start.year}"
+    if (start.year, start.month) == (end.year, end.month):
+        return f"{start.day} - {end.day} {_MONTH_NAMES_AR[start.month - 1]} {start.year}"
+    return (f"{start.day} {_MONTH_NAMES_AR[start.month - 1]} - "
+            f"{end.day} {_MONTH_NAMES_AR[end.month - 1]} {end.year}")
+
+# Matches an A1-style cell reference (with optional $ anchors) inside a formula.
+_CELL_REF_RE = re.compile(r"(\$?)([A-Z]{1,2})(\$?)(\d+)")
+
+
+def _copy_cell_style(src, dst):
+    dst.font = copy(src.font)
+    dst.fill = copy(src.fill)
+    dst.alignment = copy(src.alignment)
+    dst.border = copy(src.border)
+    dst.number_format = src.number_format
+
+
+def _shift_refs_right(text: str, cols=("B", "C", "D"), min_row: int = 5) -> str:
+    """Bump B/C/D cell references one column right, but only those pointing at the
+    table body (row >= 5). Refs to the header rows — $B$3, the report date — and to
+    other sheets' cells (INDIRECT("...!D3")) stay put."""
+    def repl(m):
+        col_anchor, col, row_anchor, row = m.groups()
+        if col in cols and int(row) >= min_row:
+            col = chr(ord(col) + 1)
+        return f"{col_anchor}{col}{row_anchor}{row}"
+    return _CELL_REF_RE.sub(repl, text)
+
+
+def _last_branch_row(ws) -> int:
+    """Last row of REPORT 2 that carries a branch name in col A."""
+    last = 6
+    for r in range(7, ws.max_row + 1):
+        if ws.cell(row=r, column=1).value:
+            last = r
+    return last
+
+
+def _shift_report2_columns(ws, last_row: int):
+    """Move REPORT 2's LAST 7 DAYS / MONTH TO DATE / YEAR TO DATE columns (B, C, D)
+    one column right, freeing col B for the custom-range column. Values, formulas,
+    styles and column widths all move with them."""
+    for r in [5, 6] + list(range(7, last_row + 1)):
+        for c in (4, 3, 2):
+            src = ws.cell(row=r, column=c)
+            dst = ws.cell(row=r, column=c + 1)
+            val = src.value
+            if isinstance(val, ArrayFormula):
+                dst.value = ArrayFormula(dst.coordinate, _shift_refs_right(val.text))
+            elif isinstance(val, str) and val.startswith("="):
+                dst.value = _shift_refs_right(val)
+            else:
+                dst.value = val
+            _copy_cell_style(src, dst)
+
+    # Widths follow their columns; the new col B matches the one that used to be there.
+    widths = [ws.column_dimensions[get_column_letter(c)].width for c in (2, 3, 4)]
+    for c, w in zip((3, 4, 5), widths):
+        if w:
+            ws.column_dimensions[get_column_letter(c)].width = w
+    if widths[0]:
+        ws.column_dimensions["B"].width = widths[0]
+
+
+def _add_report2_custom_column(ws, period_by_branch: dict, last_row: int,
+                               period_start: date, period_end: date):
+    """Fill REPORT 2 col B (freed by _shift_report2_columns) with per-branch totals for
+    the selected date range, headed by the range itself, and add its grand total next
+    to the MONTHLY TOTAL."""
+    ws.cell(row=5, column=2).value = _range_label_en(period_start, period_end)
+    _copy_cell_style(ws.cell(row=5, column=3), ws.cell(row=5, column=2))
+    ws.cell(row=6, column=2).value = _range_label_ar(period_start, period_end)
+    _copy_cell_style(ws.cell(row=6, column=3), ws.cell(row=6, column=2))
+
+    for r in range(7, last_row + 1):
+        branch = ws.cell(row=r, column=1).value
+        if not branch:
+            continue
+        ws.cell(row=r, column=2).value = period_by_branch.get(str(branch).strip(), 0)
+
+    # MONTHLY TOTAL (D3) now sums the shifted MONTH TO DATE column.
+    ws.cell(row=3, column=4).value = f"=SUM(D7:D{last_row})"
+    # The range's own total — right after it in E/F, styled the same way.
+    label = ws.cell(row=3, column=5)
+    label.value = f"{_range_label_en(period_start, period_end)} TOTAL:"
+    _copy_cell_style(ws.cell(row=3, column=3), label)
+    total = ws.cell(row=3, column=6)
+    total.value = f"=SUM(B7:B{last_row})"
+    _copy_cell_style(ws.cell(row=3, column=4), total)
+    ws.column_dimensions["F"].width = max(ws.column_dimensions["F"].width or 0, 16)
+
+
+def _add_report_custom_column(ws, period_by_trainer: dict,
+                              period_start: date, period_end: date):
+    """Add the count per trainer for the selected range in REPORT col E, headed by the
+    range itself and styled like col D."""
+    ws.cell(row=5, column=5).value = _range_label_en(period_start, period_end)
+    _copy_cell_style(ws.cell(row=5, column=4), ws.cell(row=5, column=5))
+    ws.cell(row=6, column=5).value = _range_label_ar(period_start, period_end)
+    _copy_cell_style(ws.cell(row=6, column=4), ws.cell(row=6, column=5))
+
+    for r in range(7, ws.max_row + 1):
+        trainer = ws.cell(row=r, column=2).value
+        if not trainer:
+            continue
+        cell = ws.cell(row=r, column=5)
+        _copy_cell_style(ws.cell(row=r, column=4), cell)
+        cell.value = period_by_trainer.get(str(trainer).strip(), 0)
+
+
 def generate_report(
     gym: str,
     programs: list[dict],
@@ -493,8 +626,17 @@ def generate_report(
     monthly_by_trainer: dict[str, int] = {}
     for p in programs:
         if in_full_month(p):
-            trainer = p.get("trainer_name", "") or ""
+            trainer = (p.get("trainer_name", "") or "").strip()
             monthly_by_trainer[trainer] = monthly_by_trainer.get(trainer, 0) + 1
+
+    # Custom date range: totals for the selected range itself, shown in their own
+    # column (REPORT 2 col B / REPORT col E) alongside the 7-day / month / year ones.
+    is_custom = period_type != "weekly" and bool(start_day or end_day)
+    period_by_branch: dict[str, int] = {b: len(v) for b, v in by_branch.items()}
+    period_by_trainer: dict[str, int] = {}
+    for p in filtered:
+        trainer = (p.get("trainer_name", "") or "").strip()
+        period_by_trainer[trainer] = period_by_trainer.get(trainer, 0) + 1
 
     # A branch that has been CLOSED (no trainers left on the roster) and has no activity
     # in this period or month is hidden from the report, so shut branches don't linger as
@@ -528,28 +670,38 @@ def generate_report(
                 t_order = trainer_order_by_branch or {}
                 if t_order:
                     _rebuild_report_sheet(ws, t_order, b_order)
-                # For weekly/partial: overwrite col C with monthly counts
-                if is_partial and t_order:
-                    r = 7
-                    for branch in b_order:
-                        for trainer_name in t_order.get(branch, []):
-                            count = monthly_by_trainer.get(trainer_name, 0)
-                            ws.cell(row=r, column=3).value = count
-                            r += 1
-                elif is_partial:
-                    # Fallback to static TRAINER_ORDER if no DB data
-                    for idx, trainer in enumerate(TRAINER_ORDER.get(gym, [])):
-                        count = monthly_by_trainer.get(trainer, 0)
-                        ws.cell(row=7 + idx, column=3).value = count
-
-            if is_partial and sheet_name == "REPORT 2":
-                branch_order = BRANCH_ORDER.get(gym, [])
-                for idx, branch in enumerate(branch_order):
-                    count = monthly_by_branch.get(branch, 0)
-                    cell = ws.cell(row=7 + idx, column=3)
-                    cell.value = count
+                # For weekly/partial: overwrite col C with monthly counts.
+                # Read each row's trainer off the sheet so the counts land on the
+                # right row whatever order the rows were written in.
+                if is_partial:
+                    for r in range(7, ws.max_row + 1):
+                        trainer_name = ws.cell(row=r, column=2).value
+                        if not trainer_name:
+                            continue
+                        ws.cell(row=r, column=3).value = monthly_by_trainer.get(
+                            str(trainer_name).strip(), 0)
+                # Custom range: per-trainer totals for the range in col E
+                if is_custom:
+                    _add_report_custom_column(ws, period_by_trainer,
+                                              period_start, period_end)
 
             if sheet_name == "REPORT 2":
+                last_row = _last_branch_row(ws)
+                # Custom range: push the existing columns right and fill col B
+                if is_custom:
+                    _shift_report2_columns(ws, last_row)
+                    _add_report2_custom_column(ws, period_by_branch, last_row,
+                                               period_start, period_end)
+                if is_partial:
+                    # MONTH TO DATE sits in col D once the custom column is inserted
+                    month_col = 4 if is_custom else 3
+                    for r in range(7, last_row + 1):
+                        branch = ws.cell(row=r, column=1).value
+                        if not branch:
+                            continue
+                        ws.cell(row=r, column=month_col).value = monthly_by_branch.get(
+                            str(branch).strip(), 0)
+
                 # Hide closed branches that contributed nothing this period.
                 for r in range(7, ws.max_row + 1):
                     label = ws.cell(row=r, column=1).value
