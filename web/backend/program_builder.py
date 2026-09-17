@@ -1,29 +1,19 @@
 """
 Program HTML/PDF builder.
 
-Generates a Workout Planner Sheet as HTML matching the original Excel design,
-then renders to PDF via weasyprint.  No xlsm/LibreOffice/xlwings needed.
+Reads a VALD test's cells, works out each movement's left/right asymmetry, the
+band it falls in and the exercises it prescribes, then renders the UDRA
+bilateral program sheet (see udra_sheet.py) and writes it to PDF via WeasyPrint.
+
+The programme logic here is the original; only the presentation changed.
 """
-import base64
 import os
 import re
 from datetime import datetime
 
-BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-HEADERS_DIR = os.path.join(BASE_DIR, "headers")
+import udra_sheet
 
-
-# Header image
-
-def _header_b64(gym: str, test_type: str) -> str:
-    if gym == "Body Masters":
-        fname = "Masters.png"
-    elif test_type == "lower":
-        fname = "Motions LOWER.png"
-    else:
-        fname = "Motions FULL + UPPER.png"
-    with open(os.path.join(HEADERS_DIR, fname), "rb") as f:
-        return base64.b64encode(f.read()).decode()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # Remark logic
@@ -410,6 +400,7 @@ def _extract_sections(cells_data: dict, test_type: str, prev_asymmetries: dict =
             else:
                 cmp_color = None
             remarks.append({"label": lv, "pct_display": f"{abs(pf)*100:.1f}%",
+                             "pct": current_pct,
                              "side": sv, "remark_str": rv, "cmp_color": cmp_color})
             key = lv.split(" /")[0].strip()
             rs, ls, rr, lr = _get_sets_reps(rv, sv)
@@ -422,209 +413,210 @@ def _extract_sections(cells_data: dict, test_type: str, prev_asymmetries: dict =
     return sections
 
 
-# HTML generation
+
+# ── UDRA bilateral sheet mapping ────────────────────────────────────────────
+# Everything below only reshapes what _extract_sections() already produced into
+# the handoff's BilateralSheet contract. No programme logic lives here.
+
+_PROGRAM_TITLE = {
+    "upper": "UPPER BODY PROGRAM",
+    "lower": "LOWER BODY PROGRAM",
+    "full":  "FULL BODY PROGRAM",
+}
+
+_MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+
+
+def _sheet_date(test_date) -> str:
+    """The identity bar's mono date, e.g. '14 SEP 2026'."""
+    try:
+        d = datetime.strptime(str(test_date)[:10], "%Y-%m-%d")
+        return f"{d.day:02d} {_MONTHS[d.month - 1]} {d.year}"
+    except Exception:
+        return str(test_date)
+
+
+_STRIP_ASYMMETRY_LABELS = {"Shoulder IR Standing Asymmetry",
+                           "Shoulder External Rotation Asymmetry"}
+
+
+def _label_parts(s: str):
+    """Measure label -> (english, arabic). Mirrors _bilingual_label's rules."""
+    en, rest = _split_slash(s)
+    en_disp = en.replace(" Asymmetry", "") if en in _STRIP_ASYMMETRY_LABELS else en
+    if rest and _has_arabic(rest):
+        return en_disp, rest
+    return en_disp, _LABEL_AR.get(en, "")
+
+
+def _side_code(side_str: str) -> str:
+    """'Left Quadriceps / ...' -> 'L'. The deficient side drives the bar's direction."""
+    en, _ = _split_slash(str(side_str))
+    return "L" if en.strip().lower().startswith("left") else "R"
+
+
+def _name_parts(s: str):
+    """Exercise or body-part 'English / Arabic' -> (english, arabic)."""
+    en, ar = _split_slash(s)
+    return en, (ar if _has_arabic(ar) else "")
+
+
+# The full protocol each program runs, in assessment order, mapped to the section
+# it belongs to. VALD does not always capture every movement — trunk lateral
+# flexion shows up in only ~47% of lower-body tests — and the handoff is explicit
+# that a missing measure KEEPS ITS ROW so a partial sheet and a complete one stay
+# comparable line-for-line. Without this roster a skipped movement would simply
+# vanish and the rows would shift.
+#
+# Counts confirmed against the asymmetry history: upper 9, lower 7, full 10, with
+# no other movement appearing in any test.
+_MEASURE_ROSTER = {
+    "upper": [   # SHOULDER | SHOULDER (push/pull) | ELBOW | HAND
+        (0, "Shoulder External Rotation Asymmetry"),
+        (0, "Shoulder IR Standing Asymmetry"),
+        (0, "Shoulder Flexion Asymmetry"),
+        (0, "Shoulder Abduction Asymmetry"),
+        (1, "Shoulder Push Asymmetry"),
+        (1, "Shoulder Pull Asymmetry"),
+        (2, "Elbow Extension Asymmetry"),
+        (2, "Elbow Flexion Asymmetry"),
+        (3, "Grip Squeeze Asymmetry"),
+    ],
+    "lower": [   # KNEE | HIP | TRUNK | HIP
+        (0, "Knee Extension Asymmetry"),
+        (0, "Knee Flexion Asymmetry"),
+        (1, "Hip Abduction Asymmetry"),
+        (1, "Hip Adduction Asymmetry"),
+        (2, "Trunk Lateral Flexion"),
+        (3, "Hip Flexion Asymmetry"),
+        (3, "Hip Extension Asymmetry"),
+    ],
+    "full": [    # SHOULDER | ELBOW | KNEE | HIP
+        (0, "Shoulder External Rotation Asymmetry"),
+        (0, "Shoulder IR Standing Asymmetry"),
+        (0, "Shoulder Flexion Asymmetry"),
+        (0, "Shoulder Abduction Asymmetry"),
+        (1, "Elbow Extension Asymmetry"),
+        (1, "Elbow Flexion Asymmetry"),
+        (2, "Knee Extension Asymmetry"),
+        (2, "Knee Flexion Asymmetry"),
+        (3, "Hip Abduction Asymmetry"),
+        (3, "Hip Adduction Asymmetry"),
+    ],
+}
+
+
+def _raw_label(s: str) -> str:
+    """The label as the roster keys it — English part, before display shortening."""
+    en, _ = _split_slash(s)
+    return en.strip()
+
+
+def build_sheet_data(gym: str, test_type: str, patient_name: str, test_date: str,
+                     cells_data: dict, prev_asymmetries: dict = None) -> dict:
+    """Assemble the UDRA bilateral sheet's data object from a VALD test."""
+    sections = _extract_sections(cells_data, test_type, prev_asymmetries)
+    movements = cells_data.get("movements", [])
+
+    areas = []
+    for part in _get_body_parts(movements, test_type):
+        en, ar = _name_parts(part)
+        areas.append({"en": en, "ar": ar})
+
+    # Rows stay in anatomical protocol order — the order the assessment runs in.
+    # Never sorted by severity.
+    captured = {}
+    for si, sec in enumerate(sections):
+        for r in sec["remarks"]:
+            captured[_raw_label(r["label"])] = (si, r)
+
+    def row(section_idx, raw, r=None):
+        header_en = sections[section_idx]["header"][0] if section_idx < len(sections) else ""
+        if r is None:
+            # Not captured this visit: the row stays, with no value and no bar.
+            return {"en": raw.replace(" Asymmetry", "") if raw in _STRIP_ASYMMETRY_LABELS else raw,
+                    "ar": _LABEL_AR.get(raw, ""), "pct": None, "side": "L",
+                    "region_tag": header_en.upper()}
+        en, ar = _label_parts(r["label"])
+        return {"en": en, "ar": ar, "pct": r.get("pct"),
+                "side": _side_code(r.get("side", "")), "region_tag": header_en.upper()}
+
+    measures = []
+    roster = _MEASURE_ROSTER.get(test_type)
+    if roster:
+        for section_idx, raw in roster:
+            hit = captured.pop(raw, None)
+            measures.append(row(section_idx, raw, hit[1] if hit else None))
+        # Anything the test produced that the roster does not know about still shows.
+        for raw, (si, r) in captured.items():
+            measures.append(row(si, raw, r))
+    else:
+        for si, sec in enumerate(sections):
+            for r in sec["remarks"]:
+                measures.append(row(si, _raw_label(r["label"]), r))
+
+    blocks = []
+    for sec in sections:
+        header_en, header_ar = sec["header"]
+        items = []
+        for ex in sec["exercises"]:
+            en, ar = _name_parts(ex["name"])
+            items.append({"en": en, "ar": ar,
+                          "setsL": ex["l_sets"], "setsR": ex["r_sets"],
+                          "repsL": ex["l_reps"], "repsR": ex["r_reps"]})
+        blocks.append({"titleEn": header_en.upper(), "titleAr": header_ar, "items": items})
+
+    label = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body"}.get(test_type, test_type)
+    return {
+        "client": {
+            "name": patient_name,
+            "date": _sheet_date(test_date),
+            "program": _PROGRAM_TITLE.get(test_type, f"{test_type.upper()} BODY PROGRAM"),
+            "title": f"{patient_name} - {label}",
+        },
+        "areas": areas,
+        "measures": measures,
+        "blocks": blocks,
+    }
+
+# HTML / PDF generation — UDRA bilateral sheet
+#
+# The programme logic above is unchanged; this only renders it. See udra_sheet.py
+# for the design itself (design_handoff_udra_bilateral_sheet).
 
 def generate_program_html(gym: str, test_type: str, patient_name: str,
                           test_date: str, cells_data: dict,
                           prev_asymmetries: dict = None) -> str:
+    """
+    The workout sheet as HTML, for the live preview. Runs the same layout pass
+    the PDF does so the preview shows exactly what will print, then re-emits it
+    with the fonts and logo inlined, since a browser cannot read file:// from a
+    served page.
+    """
+    data = build_sheet_data(gym, test_type, patient_name, test_date,
+                            cells_data, prev_asymmetries)
     try:
-        h_b64 = _header_b64(gym, test_type)
-        hdr_html = f'<img src="data:image/png;base64,{h_b64}" class="hdr-img">'
+        _html, doc = udra_sheet.fit_and_render(data)
+        boxes, _ = udra_sheet._boxes(doc)
+        page_h = udra_sheet.math.ceil(udra_sheet._h(boxes, "sheet") or udra_sheet.SHEET_H)
+        return udra_sheet.render(data, page_h=page_h + udra_sheet.PAGE_SLACK, embed_fonts=True)
     except Exception:
-        hdr_html = f'<div class="hdr-fallback">{gym} — WORKOUT PLANNER SHEET</div>'
+        # A preview must not fail just because the layout probe could not run.
+        return udra_sheet.render(data, embed_fonts=True)
 
-    display_date = test_date
-    try:
-        display_date = datetime.strptime(str(test_date)[:10], "%Y-%m-%d").strftime("%d/%m/%Y")
-    except Exception:
-        pass
-
-    movements  = cells_data.get("movements", [])
-    body_parts = _get_body_parts(movements, test_type)
-    part_rows  = [f"<tr><td class='part'>{p}</td></tr>" for p in body_parts]
-    part_rows += ["<tr><td class='part'>&nbsp;</td></tr>"] * max(0, 8 - len(part_rows))
-    parts_html = "".join(part_rows[:8])
-
-    sections  = _extract_sections(cells_data, test_type, prev_asymmetries)
-    secs_html = ""
-    for sec in sections:
-        en, ar = sec["header"]
-
-        ex_rows = ""
-        for ex in sec["exercises"]:
-            nm = _bilingual(ex["name"])
-            ex_rows += (f"<tr class='ex-row'><td class='en'>{nm}</td>"
-                        f"<td>{ex['l_sets']}</td><td>{ex['r_sets']}</td>"
-                        f"<td>{ex['l_reps']}</td><td>{ex['r_reps']}</td></tr>")
-        empty_row = "<tr class='ex-row'><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>"
-        ex_rows += empty_row * max(0, 14 - len(sec["exercises"]))
-
-        # Remarks: 2-col table with paired rows (label+%, side+status)
-        rem_pairs = ""
-        for r in sec["remarks"]:
-            cc = r.get("cmp_color")
-            style = f" style='color:{cc}'" if cc else ""
-            rem_pairs += (
-                f"<tr class='ra'>"
-                f"<td class='rl'{style}>{_bilingual_label(r['label'])}</td>"
-                f"<td class='rp'{style}>{r['pct_display']}</td>"
-                f"</tr>"
-                f"<tr class='rb'>"
-                f"<td class='rs'{style}>{_bilingual_side(r['side'])}</td>"
-                f"<td class='rrk'{style}>{_fmt_remark(r['remark_str'], None)}</td>"
-                f"</tr>"
-            )
-        empty_pair = "<tr class='ra'><td>&nbsp;</td><td></td></tr><tr class='rb'><td>&nbsp;</td><td></td></tr>"
-        rem_pairs += empty_pair * max(0, 4 - len(sec["remarks"]))
-
-        secs_html += f"""
-<div class="sec">
-  <div class="sec-ex">
-  <table class="ex-table">
-    <colgroup>
-      <col class="cx"><col class="cn"><col class="cn"><col class="cn"><col class="cn">
-    </colgroup>
-    <thead>
-      <tr class="sh">
-        <th class="sn">{en}<br><span class="sa">{ar}</span></th>
-        <th colspan="2">Sets</th><th colspan="2" class="sep-l">Reps</th>
-      </tr>
-      <tr class="ch">
-        <th class="exh">EXERCISES</th>
-        <th>L</th><th>R</th><th>L</th><th>R</th>
-      </tr>
-    </thead>
-    <tbody>
-      {ex_rows}
-    </tbody>
-  </table>
-  </div>
-  <div class="rem-hdr"><span>REMARKS</span><span>ملاحظات</span></div>
-  <table class="rem-table">
-    <tbody>
-      {rem_pairs}
-    </tbody>
-  </table>
-</div>"""
-
-    accent = "#E9BD5C" if "masters" in gym.lower() else "#59848D"
-
-    css = f"""
-@page {{ size: 320mm 205mm; margin: 0; }}
-* {{ box-sizing: border-box; margin: 0; padding: 0; }}
-body {{ font-family: Arial, Helvetica, sans-serif; width: 320mm; background: #fff; color: #111; }}
-.hdr-img {{ width: 900px; max-height: auto; display: block; margin-right: auto; padding-left: 3mm; padding-top:3mm; }}
-.hdr-fallback {{ background:#1d5c6b;color:#fff;padding:8mm 5mm;font-size:16pt;font-weight:bold; }}
-.content {{ display:flex; gap:0; padding:2.5mm 3mm 2mm 3mm; }}
-.sidebar {{ width:146px; flex-shrink:0; display:flex; flex-direction:column; gap:0; margin-right:13px; padding-top:6mm; }}
-.sb  {{ border:1px solid #DD5647; border-collapse:collapse; width:100%; }}
-.sb-grow {{ flex:1; }}
-.mb-lg {{ margin-bottom:4mm; }}
-.mb-sm {{ margin-bottom:3mm; }}
-.mb-xl {{ margin-bottom:6mm; }}
-.sl  {{ background:#DD5647;color:#fff;padding:3px 4px;font-size:7.5pt;font-weight:bold;line-height:1.5; height:16px; box-sizing:border-box; }}
-.slr {{ background:#DD5647;color:#fff;padding:3px 4px;font-size:7.5pt;font-weight:bold;line-height:1.5; height:25px; box-sizing:border-box; }}
-.sl-ar  {{ background:#DD5647;color:#fff;padding:2px 4px;font-size:7.5pt;font-weight:normal;text-align:right;border-top:1px solid #fff; height:16px; box-sizing:border-box; }}
-.slr-ar {{ background:#DD5647;color:#fff;padding:2px 4px;font-size:7.5pt;font-weight:normal;text-align:right;border-top:1px solid #fff; height:25px; box-sizing:border-box; }}
-.sv  {{ padding:3px 4px;font-size:7.5pt;height:10mm; }}
-.sm  {{ padding:0; }}
-.part{{ padding:2px 4px;font-size:7.5pt;line-height:1.4;height:6mm;box-sizing:border-box; }}
-.sd  {{ padding:3px 4px;font-size:7.5pt;text-align:right; height:8mm; }}
-.sno {{ height:8mm;padding:3px 4px; }}
-/* ── Section layout ── */
-.sections {{ display:flex; gap:2mm; align-items:stretch; }}
-.sec {{ flex:0 0 230px; width:230px; display:flex; flex-direction:column; }}
-.sec-ex {{ flex:1; display:flex; flex-direction:column; }}
-.sec-ex .ex-table {{ flex:1; }}
-/* ── Exercise table ── */
-.ex-table {{ width:100%; border-collapse:separate; border-spacing:1px; background:#fff; table-layout:fixed; }}
-col.cx {{ width:122px; }}
-col.cn {{ width:20px; }}
-.sh {{ }}
-.sn {{ text-align:left; padding:3px 4px; font-size:9pt; font-weight:bold; line-height:1.2; color:{accent}; }}
-.sa {{ font-size:6.5pt; font-weight:bold; display:block; margin-top:1px; }}
-.sh th:not(.sn) {{ text-align:center; font-size:7pt; padding:2px 1px; color:#111; font-weight:normal; }}
-.sep-l {{ border-left:1px solid #bbb; }}
-.ch {{ background:{accent}; color:#fff; }}
-.ch th {{ text-align:center; padding:2px 1px; font-size:6pt; font-weight:bold; }}
-.exh {{ text-align:left !important; padding-left:4px !important; font-size:6pt; }}
-.ex-table tbody tr.ex-row {{ height:6mm; background:#F2F2F2; }}
-.ex-table tbody tr td {{ border:none; padding:1px 2px; vertical-align:middle; }}
-.ex-table tbody tr td:not(.en){{ text-align:center; font-size:6pt; font-weight:normal; }}
-.en {{ font-size:6pt; line-height:1.35; white-space:normal; vertical-align:middle; padding:2px 3px; }}
-/* ── Remarks table ── */
-.rem-hdr {{ display:flex; justify-content:space-between; font-weight:bold; font-size:6.5pt;
-           padding:2px 4px; }}
-.rem-table {{ width:100%; border-collapse:collapse; table-layout:fixed;
-             border:1px solid #DD5647; margin-top:1px; }}
-/* pair row A: label | % */
-.ra {{ height:7mm; }}
-.ra td {{ padding:2px 4px; font-size:5.5pt; line-height:1.4; border-bottom:1px dashed #DD5647; vertical-align:top; }}
-/* pair row B: side | status — dashed red bottom */
-.rb {{ height:7mm; }}
-.rb td {{ padding:2px 4px; font-size:5.5pt; line-height:1.4;
-         border-bottom:1px dashed #DD5647; vertical-align:top; }}
-.rl  {{ }}
-.rp  {{ text-align:left; font-weight:normal; }}
-.rs  {{ }}
-.rrk {{ }}
-"""
-
-    TYPE_LABEL = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body"}
-    doc_title = f"{patient_name} - {TYPE_LABEL.get(test_type, test_type)}"
-
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{doc_title}</title>
-  <style>{css}</style>
-</head>
-<body>
-  {hdr_html}
-  <div class="content">
-    <div class="sidebar">
-      <table class="sb mb-lg">
-        <thead>
-          <tr><td class="sl">CLIENT NAME</td></tr>
-          <tr><td class="sl-ar">اسم العميل</td></tr>
-        </thead>
-        <tbody><tr><td class="sv">{patient_name}</td></tr></tbody>
-      </table>
-      <table class="sb mb-sm">
-        <thead>
-          <tr><td class="slr">MEDICAL CASE OR TREATMENT AREA</td></tr>
-          <tr><td class="slr-ar">الحالة الطبيّة أو منطقة العلاج</td></tr>
-        </thead>
-        <tbody>{parts_html}</tbody>
-      </table>
-      <table class="sb mb-xl">
-        <thead><tr><td class="sl">DATE | التاريخ</td></tr></thead>
-        <tbody><tr><td class="sd">{display_date}</td></tr></tbody>
-      </table>
-      <table class="sb sb-grow">
-        <thead><tr><td class="sl">NOTE | ملاحظة</td></tr></thead>
-        <tbody><tr><td class="sno"></td></tr></tbody>
-      </table>
-    </div>
-    <div class="sections">
-      {secs_html}
-    </div>
-  </div>
-</body>
-</html>"""
-
-
-# PDF generation
 
 def generate_program_pdf(gym: str, test_type: str, patient_name: str,
                          test_date: str, cells_data: dict,
                          prev_asymmetries: dict = None):
-    from weasyprint import HTML as WP
-    html      = generate_program_html(gym, test_type, patient_name, test_date, cells_data,
-                                      prev_asymmetries=prev_asymmetries)
-    pdf_bytes = WP(string=html).write_pdf()
-    safe   = re.sub(r'[^\w\s-]', '', patient_name).strip().replace(' ', '_')
-    label  = {"upper": "Upper_Body", "lower": "Lower_Body", "full": "Full_Body"}.get(test_type, test_type)
+    data = build_sheet_data(gym, test_type, patient_name, test_date,
+                            cells_data, prev_asymmetries)
+    _html, doc = udra_sheet.fit_and_render(data)
+    if len(doc.pages) > 1:
+        print(f"[udra] {patient_name} ({test_type}): sheet spilled to {len(doc.pages)} pages "
+              f"({len(data['measures'])} measures, "
+              f"{sum(len(b['items']) for b in data['blocks'])} exercises).")
+    pdf_bytes = doc.write_pdf()
+    safe = re.sub(r'[^\w\s-]', '', patient_name).strip().replace(' ', '_')
+    label = {"upper": "Upper_Body", "lower": "Lower_Body", "full": "Full_Body"}.get(test_type, test_type)
     return pdf_bytes, "application/pdf", f"{safe}_-_{label}.pdf"
-
