@@ -171,15 +171,14 @@ def generate_bodydot_report(
     # ── TEST VALIDITY ──
     # "Valid" is counted by dispatch date (same basis as the REPORT sheets below), so
     # B8 always equals the number of programs listed on the data sheet. "Invalid" is
-    # counted by test date, because a failed test never gets dispatched. The labels
-    # are rewritten here so the total isn't read as "tests conducted this month".
+    # counted by test date, because a failed test never gets dispatched — which is why
+    # A7 drops "Conducted": the total spans two windows. Notes (col D) are the
+    # template's; leave them alone.
     total = int(validity.get("total", 0))
     valid = int(validity.get("valid", 0))
     invalid = int(validity.get("invalid", 0))
     ws = wb["TEST VALIDITY"]
-    ws["A7"], ws["D7"] = "Total Tests", "Programs dispatched + failed tests"
-    ws["A8"], ws["D8"] = "Valid Tests", "Program dispatched this period"
-    ws["A9"], ws["D9"] = "Invalid Tests", "Failed — internet connection issues"
+    ws["A7"] = "Total Tests"
     ws["B7"], ws["C7"] = total, 1 if total else 0
     ws["B8"], ws["C8"] = valid, (valid / total if total else 0)
     ws["B9"], ws["C9"] = invalid, (invalid / total if total else 0)
