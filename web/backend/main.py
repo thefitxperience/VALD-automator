@@ -898,8 +898,9 @@ def api_generate_bodydot_report(
 ):
     """Bodydot report — read entirely from the DB (no live sweep, which is slow).
     Supports monthly / weekly / custom-day-range periods, mirroring the VALD report.
-    Validity totals come from approved rows by test date within the period; the
-    per-trainer breakdown + data sheet come from approved VALID rows by dispatch date.
+    The per-trainer breakdown + data sheet come from approved VALID rows by dispatch
+    date, and so does the TEST VALIDITY "Valid" count, so the sheets reconcile;
+    "Invalid" is by test date, since a failed test never gets dispatched.
     Approve both valid and invalid tests on the Bodydot page so this stays complete."""
     if gym not in bodydot_api.REPORT_GYMS:
         raise HTTPException(status_code=400, detail=f"No Bodydot report for gym '{gym}'")
@@ -927,7 +928,15 @@ def api_generate_bodydot_report(
         .data or []
     )
 
-    # TEST VALIDITY — tests conducted within the period (by test_date), valid vs invalid.
+    # TEST VALIDITY — two different windows on purpose, so the sheet reconciles with
+    # the rest of the report:
+    #   • Valid   → by DISPATCH date, the same basis as REPORT / REPORT 2 / the data
+    #     sheet, so "Valid Tests" always equals the programs listed there. A test may
+    #     be conducted one month and dispatched the next; it belongs to the month the
+    #     program was delivered in, and a valid test not yet dispatched counts nowhere
+    #     until it is.
+    #   • Invalid → by TEST date. An invalid test never produces a program, so it
+    #     never gets a dispatch date; the test date is the only date it has.
     def _in_window(d):
         if not isinstance(d, str):
             return False
@@ -936,12 +945,16 @@ def api_generate_bodydot_report(
         except ValueError:
             return False
         return period_start <= td <= period_end
-    in_window = [r for r in approved if _in_window(r.get("test_date"))]
-    valid_ct = sum(1 for r in in_window if r.get("valid"))
-    validity = {"total": len(in_window), "valid": valid_ct, "invalid": len(in_window) - valid_ct}
 
     # Data sheet / per-trainer — only VALID tests (invalid ones have no program).
     valid_rows = [r for r in approved if r.get("valid")]
+
+    valid_ct = sum(1 for r in valid_rows if _in_window(r.get("dispatch_date")))
+    invalid_ct = sum(
+        1 for r in approved
+        if not r.get("valid") and _in_window(r.get("test_date"))
+    )
+    validity = {"total": valid_ct + invalid_ct, "valid": valid_ct, "invalid": invalid_ct}
 
     branch = bodydot_api.GYM_TO_BRANCH.get(gym)
     roster = [r["name"] for r in _trainers_for(gym, branch)] if branch else []

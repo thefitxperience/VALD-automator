@@ -5,13 +5,13 @@ Fills the "Bodydot Month YEAR - <gym>.xlsx" templates, which mirror the VALD
 monthly report (REPORT / REPORT 2 / per-branch data sheet, dispatch-date driven)
 plus a TEST VALIDITY summary sheet.
 
-Two data sources, matching the agreed design:
-  • TEST VALIDITY (Total / Valid / Invalid) — LIVE from the Bodydot API for the
-    month, by test date (invalid tests never get approved, so they can't come
-    from our DB).
-  • REPORT / REPORT 2 / data sheet — from APPROVED rows in `bodydot_tests`,
-    dispatch-date driven, exactly like the VALD report. Per-trainer counts are
-    Excel COUNTIF formulas over the data sheet's TRAINER NAME column.
+All sheets come from APPROVED rows in `bodydot_tests`:
+  • REPORT / REPORT 2 / data sheet — dispatch-date driven, exactly like the VALD
+    report. Per-trainer counts are Excel COUNTIF formulas over the data sheet's
+    TRAINER NAME column.
+  • TEST VALIDITY — "Valid" is the same dispatch-date set as above, so the two
+    always reconcile; "Invalid" is by test date, since a failed test never gets
+    dispatched. Approve invalid tests on the Bodydot page or they go uncounted.
 
 Bodydot has one branch per gym, so there is a single data sheet:
     Body Masters → "RUH - Al Aarid"   Body Motions → "RUH - Al Sahafa"
@@ -168,11 +168,18 @@ def generate_bodydot_report(
     # approval time are excluded (their tests still count in the data sheet + club totals).
     trainers = sorted(set(trainer_roster or []), key=str.lower)
 
-    # ── TEST VALIDITY (live totals) ──
+    # ── TEST VALIDITY ──
+    # "Valid" is counted by dispatch date (same basis as the REPORT sheets below), so
+    # B8 always equals the number of programs listed on the data sheet. "Invalid" is
+    # counted by test date, because a failed test never gets dispatched. The labels
+    # are rewritten here so the total isn't read as "tests conducted this month".
     total = int(validity.get("total", 0))
     valid = int(validity.get("valid", 0))
     invalid = int(validity.get("invalid", 0))
     ws = wb["TEST VALIDITY"]
+    ws["A7"], ws["D7"] = "Total Tests", "Programs dispatched + failed tests"
+    ws["A8"], ws["D8"] = "Valid Tests", "Program dispatched this period"
+    ws["A9"], ws["D9"] = "Invalid Tests", "Failed — internet connection issues"
     ws["B7"], ws["C7"] = total, 1 if total else 0
     ws["B8"], ws["C8"] = valid, (valid / total if total else 0)
     ws["B9"], ws["C9"] = invalid, (invalid / total if total else 0)
