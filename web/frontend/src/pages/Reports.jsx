@@ -289,9 +289,8 @@ export default function Reports() {
       )}
 
       <p className="text-xs text-gray-500 text-center">
-        {source === 'bodydot'
-          ? <>Report pulls all <strong className="text-gray-400">approved</strong> Bodydot tests</>
-          : <>Report pulls all <strong className="text-gray-400">approved</strong> programs</>}
+        Report pulls all <strong className="text-gray-400">approved</strong>{' '}
+        {source === 'bodydot' ? 'Bodydot' : 'VALD'} programs
         {periodType === 'weekly'
           ? ` dispatched in week ${weekNumber} of ${MONTHS[month - 1]} ${year}`
           : periodType === 'custom'
@@ -541,9 +540,7 @@ function PaymentReport() {
       </button>
 
       <p className="text-xs text-gray-500 text-center">
-        {isBodydot
-          ? <>Rebuilds every <strong className="text-gray-400">valid</strong> Bodydot program from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong>, one sheet per branch.</>
-          : <>Appends all programs from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> to the payment report.</>}
+        Appends all {isBodydot ? 'Bodydot' : 'VALD'} programs from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> to the payment report.
       </p>
     </div>
   )
