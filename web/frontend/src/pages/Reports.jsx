@@ -112,9 +112,7 @@ export default function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8">
         <h1 className="text-2xl font-bold text-white">Reports</h1>
         <div />
-        <h1 className="text-2xl font-bold text-white hidden lg:block">
-          {source === 'bodydot' ? 'Bodydot' : 'VALD'} Payment Report
-        </h1>
+        <h1 className="text-2xl font-bold text-white hidden lg:block">Payment Report</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
@@ -308,7 +306,7 @@ export default function Reports() {
 
         {/* ── Right: Payment report + Growth Tracker stacked ── */}
         <div className="space-y-6">
-          <PaymentReport source={source} />
+          <PaymentReport />
           <div className="border-t border-gray-700 pt-6">
             <GrowthTracker />
           </div>
@@ -431,13 +429,14 @@ function GrowthTracker() {
   )
 }
 
-function PaymentReport({ source }) {
+function PaymentReport() {
   const now = new Date()
+  const [paySource, setPaySource] = useState('vald')
   const [payMonth, setPayMonth] = useState(now.getMonth() + 1)
   const [payYear, setPayYear] = useState(now.getFullYear())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const isBodydot = source === 'bodydot'
+  const isBodydot = paySource === 'bodydot'
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -456,20 +455,48 @@ function PaymentReport({ source }) {
       a.href = url
       a.download = match ? match[1]
         : `${isBodydot ? 'Bodydot ' : ''}Payment - ${MONTHS[payMonth - 1]} ${payYear}.xlsx`
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Failed to generate payment report')
+      // The response is a Blob, so a 400/404 body has to be read back as text
+      // before its detail is visible — otherwise the panel fails silently.
+      let detail = e.message
+      if (e.response?.data instanceof Blob) {
+        try { detail = JSON.parse(await e.response.data.text()).detail || detail } catch { /* ignore */ }
+      } else {
+        detail = e.response?.data?.detail || detail
+      }
+      setError(detail || 'Failed to generate payment report')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white lg:hidden">
-        {isBodydot ? 'Bodydot' : 'VALD'} Payment Report
-      </h1>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold text-white lg:hidden">Payment Report</h1>
+
+      {/* Source (VALD / Bodydot) */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">Service</label>
+        <div className="flex gap-3">
+          {SOURCES.map((s) => (
+            <button
+              key={s.key}
+              onClick={() => { setPaySource(s.key); setError(null) }}
+              className={`rounded-xl overflow-hidden transition-all border-2 bg-gray-100
+                ${paySource === s.key
+                  ? 'border-brand-500 shadow-lg shadow-brand-500/30 scale-105'
+                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-500'
+                }`}
+            >
+              <img src={s.logo} alt={s.name} className="h-14 w-28 object-contain px-0.5 py-px" />
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
