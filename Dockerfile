@@ -21,6 +21,7 @@ COPY ["Month YEAR - Body Motions.xlsx", "."]
 COPY ["Payment - Month YEAR.xlsx", "."]
 COPY ["Bodydot Month YEAR - Body Masters.xlsx", "."]
 COPY ["Bodydot Month YEAR - Body Motions.xlsx", "."]
+COPY ["Bodydot Payment - Month YEAR.xlsx", "."]
 COPY ["Body Masters/", "Body Masters/"]
 COPY ["Body Motions/", "Body Motions/"]
 

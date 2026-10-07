@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { generateReport, generatePaymentReport, generateGrowthTracker, generateBodydotReport } from '../api/client'
+import { generateReport, generatePaymentReport, generateBodydotPaymentReport, generateGrowthTracker, generateBodydotReport } from '../api/client'
 
 const GYMS = [
   { name: 'Body Motions', logo: '/VALD-automator/Motions_logo.png' },
@@ -112,7 +112,9 @@ export default function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8">
         <h1 className="text-2xl font-bold text-white">Reports</h1>
         <div />
-        <h1 className="text-2xl font-bold text-white hidden lg:block">VALD Payment Report</h1>
+        <h1 className="text-2xl font-bold text-white hidden lg:block">
+          {source === 'bodydot' ? 'Bodydot' : 'VALD'} Payment Report
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-8 items-start">
@@ -306,7 +308,7 @@ export default function Reports() {
 
         {/* ── Right: Payment report + Growth Tracker stacked ── */}
         <div className="space-y-6">
-          <PaymentReport />
+          <PaymentReport source={source} />
           <div className="border-t border-gray-700 pt-6">
             <GrowthTracker />
           </div>
@@ -429,18 +431,21 @@ function GrowthTracker() {
   )
 }
 
-function PaymentReport() {
+function PaymentReport({ source }) {
   const now = new Date()
   const [payMonth, setPayMonth] = useState(now.getMonth() + 1)
   const [payYear, setPayYear] = useState(now.getFullYear())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const isBodydot = source === 'bodydot'
 
   const handleGenerate = async () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await generatePaymentReport(payMonth, payYear)
+      const res = isBodydot
+        ? await generateBodydotPaymentReport(payMonth, payYear)
+        : await generatePaymentReport(payMonth, payYear)
       const blob = new Blob([res.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
@@ -449,7 +454,8 @@ function PaymentReport() {
       const disposition = res.headers?.['content-disposition'] || ''
       const match = disposition.match(/filename="([^"]+)"/)
       a.href = url
-      a.download = match ? match[1] : `Payment - ${MONTHS[payMonth - 1]} ${payYear}.xlsx`
+      a.download = match ? match[1]
+        : `${isBodydot ? 'Bodydot ' : ''}Payment - ${MONTHS[payMonth - 1]} ${payYear}.xlsx`
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
@@ -461,7 +467,9 @@ function PaymentReport() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white lg:hidden">VALD Payment Report</h1>
+      <h1 className="text-2xl font-bold text-white lg:hidden">
+        {isBodydot ? 'Bodydot' : 'VALD'} Payment Report
+      </h1>
 
       {/* Month + Year */}
       <div className="grid grid-cols-2 gap-4">
@@ -506,7 +514,9 @@ function PaymentReport() {
       </button>
 
       <p className="text-xs text-gray-500 text-center">
-        Appends all programs from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> to the payment report.
+        {isBodydot
+          ? <>Rebuilds every <strong className="text-gray-400">valid</strong> Bodydot program from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong>, one sheet per branch.</>
+          : <>Appends all programs from <strong className="text-gray-400">May 2026</strong> through <strong className="text-gray-400">{MONTHS[payMonth - 1]} {payYear}</strong> to the payment report.</>}
       </p>
     </div>
   )

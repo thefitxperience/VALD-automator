@@ -23,6 +23,7 @@ from report_generator import generate_report
 from payment_report_generator import generate_payment_report
 from growth_tracker_generator import generate_growth_tracker
 from bodydot_report_generator import generate_bodydot_report
+from bodydot_payment_generator import generate_bodydot_payment_report
 import bodydot_api
 
 from program_builder import generate_program_pdf, generate_program_html
@@ -1099,6 +1100,53 @@ def api_generate_payment_report(
     month_name = calendar.month_name[month]
     filename = f"Payment - {month_name} {year}.xlsx"
 
+    return StreamingResponse(
+        io.BytesIO(result_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/report/bodydot-payment")
+def api_generate_bodydot_payment_report(
+    month: int = Form(...),
+    year: int = Form(...),
+):
+    """Bodydot payment file: every dispatched program from May 2026 through the
+    selected month, one sheet per branch, with that month's totals on REPORT.
+    Only VALID tests appear — an invalid test never produces a program."""
+    page_size = 1000
+    tests: list[dict] = []
+    offset = 0
+    while True:
+        res = (
+            supabase.table("bodydot_tests")
+            .select("gym,client_name,real_client_id,trainer_name,test_date,dispatch_date")
+            .eq("approved", True)
+            .eq("valid", True)
+            .eq("ignored", False)
+            .order("id")   # stable sort — required for correct .range() pagination
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = res.data or []
+        tests.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
+
+    try:
+        result_bytes = generate_bodydot_payment_report(
+            tests=tests, month=month, year=year, report_date=date.today(),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    import calendar
+    filename = f"Bodydot Payment - {calendar.month_name[month]} {year}.xlsx"
     return StreamingResponse(
         io.BytesIO(result_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -77,6 +77,13 @@ export const generatePaymentReport = (month, year) => {
   return api.post('/api/report/payment', fd, { responseType: 'blob', timeout: 120000 })
 }
 
+export const generateBodydotPaymentReport = (month, year) => {
+  const fd = new FormData()
+  fd.append('month', month)
+  fd.append('year', year)
+  return api.post('/api/report/bodydot-payment', fd, { responseType: 'blob', timeout: 120000 })
+}
+
 export const generateGrowthTracker = (gym, month, year) => {
   const fd = new FormData()
   fd.append('gym', gym)
