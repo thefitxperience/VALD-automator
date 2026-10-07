@@ -183,6 +183,11 @@ def generate_bodydot_payment_report(
 
                 row_at += 1
 
+        # Size the print area to what was actually written — the row count changes
+        # every run, so a fixed one would either cut rows off or trail blank pages.
+        last_row = max(row_at - 1, FIRST_DATA_ROW)
+        ws.print_area = f"$A$1:$F${last_row}"
+
         wb[REPORT_SHEET][total_cell] = len(by_gym_month.get((gym, (year, month)), []))
 
     wb[REPORT_SHEET]["B3"] = rpt_date
