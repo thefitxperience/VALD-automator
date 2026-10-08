@@ -4451,7 +4451,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const measures = measuresFrom(b.session);
     if (!measures.length) throw new Error('This assessment has no measurements to show.');
     const client = { name: displayName(b.clientName), date: sheetDate(b.session.createdAt) };
-    document.title = (client.name ? client.name + ' — ' : '') + 'Posture Assessment';
+    // The browser names the saved PDF after the title: "Yasma Abdouni - Posture Assessment".
+    document.title = (client.name ? client.name + ' - ' : '') + 'Posture Assessment';
     render(client, derive(measures));
     const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     ready.then(() => {
