@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BODYDOT_ORGS, listClients, listSessions, getSession, sessionValidity } from '../api/bodydot'
 import { getBodydotTests, getTrainers, unapproveBodydotTest } from '../api/client'
 import { openProgram } from '../bodydot/openProgram'
-import { openClientView } from '../bodydot/openClientView'
+import { openClientView, clientViewEnabled } from '../bodydot/openClientView'
 import BodydotCard from '../components/BodydotCard'
 
 const PAGE_SIZE = 25
@@ -98,7 +98,7 @@ function CompletedCard({ test, org, picker, onStatus }) {
             {busy ? 'Loading…' : 'Generate Program'}
           </button>
         )}
-        {!invalid && (
+        {!invalid && clientViewEnabled(org.gym) && (
           <button
             onClick={handleClientView}
             disabled={busy}
@@ -325,7 +325,7 @@ function ClientBrowser({ org }) {
         <>
           <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
             {visible.map((c) => (
-              <BrowseRow key={c.id} client={c} bilingual={org.bilingual} sessionInfo={sessions[c.id]} />
+              <BrowseRow key={c.id} client={c} bilingual={org.bilingual} clientView={clientViewEnabled(org.gym)} sessionInfo={sessions[c.id]} />
             ))}
           </div>
           <Pagination safePage={safePage} totalPages={totalPages} count={visible.length} total={filtered.length} setPage={setPage} />
@@ -335,7 +335,7 @@ function ClientBrowser({ org }) {
   )
 }
 
-function BrowseRow({ client, bilingual, sessionInfo }) {
+function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
   const [busy, setBusy] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const sessions = Array.isArray(sessionInfo) ? sessionInfo : []
@@ -404,6 +404,7 @@ function BrowseRow({ client, bilingual, sessionInfo }) {
         >
           {busy ? 'Loading…' : 'Generate Program'}
         </button>
+        {clientView && (
         <button
           onClick={handleClientView}
           disabled={busy || !chosenId}
@@ -412,6 +413,7 @@ function BrowseRow({ client, bilingual, sessionInfo }) {
         >
           Client View
         </button>
+        )}
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import SearchableSelect from './SearchableSelect'
 import { getSession } from '../api/bodydot'
 import { openProgram } from '../bodydot/openProgram'
-import { openClientView } from '../bodydot/openClientView'
+import { openClientView, clientViewEnabled } from '../bodydot/openClientView'
 import { approveBodydotTest, ignoreBodydotTest, patchBodydotTest, getTrainerWhatsapp } from '../api/client'
 
 // A New (unapproved) Bodydot test — laid out like the VALD ProgramCard, minus branch.
@@ -206,6 +206,7 @@ export default function BodydotCard({ test, org, roster, onStatus, picker }) {
         >
           {opening ? 'Loading…' : '🖨 Open & Print'}
         </button>
+        {clientViewEnabled(org.gym) && (
         <button
           onClick={handleClientView}
           disabled={opening}
@@ -214,6 +215,7 @@ export default function BodydotCard({ test, org, roster, onStatus, picker }) {
         >
           🖨 Client View
         </button>
+        )}
         <button
           onClick={handleIgnore}
           disabled={busy}
