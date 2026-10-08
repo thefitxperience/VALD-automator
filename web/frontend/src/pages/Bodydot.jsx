@@ -403,7 +403,7 @@ function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
           title="Full posture program with exercises, for the coach"
           className="text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
         >
-          {busy === 'expert' ? 'Loading…' : 'Expert PDF'}
+          {busy === 'expert' ? 'Loading…' : 'Full Program'}
         </button>
         {clientView && (
         <button
@@ -412,7 +412,7 @@ function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
           title="One-page results and daily habits, written for the client"
           className="text-xs px-3 py-1.5 rounded-lg border border-brand-600/70 text-brand-300 hover:bg-brand-600/10 disabled:opacity-50 transition-colors font-semibold"
         >
-          {busy === 'client' ? 'Loading…' : 'Client PDF'}
+          {busy === 'client' ? 'Loading…' : 'Client Summary'}
         </button>
         )}
       </div>
