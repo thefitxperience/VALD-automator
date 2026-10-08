@@ -3,7 +3,7 @@ Backfill asymmetry_values on existing Supabase programs records using the
 local *_asymmetry_history.json log files.
 
 Usage (from the repo root with the .venv activated or using the venv python):
-    "/Users/andyayas/VALD Automator/.venv/bin/python3" backfill_asymmetry_values.py
+    "/Users/andyayas/VALD Automator/.venv/bin/python3" legacy-desktop-tool/backfill_asymmetry_values.py
 
 Requires SUPABASE_URL and SUPABASE_SERVICE_KEY in environment or a .env file.
 """
@@ -16,8 +16,10 @@ from pathlib import Path
 # Allow running without the backend on sys.path
 ROOT = Path(__file__).parent
 
+REPO = ROOT.parent   # this script lives in legacy-desktop-tool/
+
 # Load .env if present (try repo root then web/backend)
-for env_file in [ROOT / ".env", ROOT / "web" / "backend" / ".env"]:
+for env_file in [REPO / ".env", REPO / "web" / "backend" / ".env"]:
     if env_file.exists():
         for line in env_file.read_text().splitlines():
             line = line.strip()

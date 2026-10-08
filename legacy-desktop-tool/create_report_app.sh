@@ -6,7 +6,7 @@ on run
     try
         if gymChoice is "All" then
             -- Generate combined report
-            set reportPath to do shell script "cd '/Users/andyayas/VALD Automator' && .venv/bin/python process_dynamo.py --report all 2>&1 | grep 'Summary report saved:' | sed 's/Summary report saved: //'"
+            set reportPath to do shell script "cd '/Users/andyayas/VALD Automator/legacy-desktop-tool' && ../.venv/bin/python process_dynamo.py --report all 2>&1 | grep 'Summary report saved:' | sed 's/Summary report saved: //'"
             
             -- Open the report
             do shell script "open " & quoted form of reportPath
@@ -22,7 +22,7 @@ on run
                 set gym to "motions"
             end if
             
-            set reportPath to do shell script "cd '/Users/andyayas/VALD Automator' && .venv/bin/python process_dynamo.py --report " & gym & " 2>&1 | grep 'Summary report saved:' | sed 's/Summary report saved: //'"
+            set reportPath to do shell script "cd '/Users/andyayas/VALD Automator/legacy-desktop-tool' && ../.venv/bin/python process_dynamo.py --report " & gym & " 2>&1 | grep 'Summary report saved:' | sed 's/Summary report saved: //'"
             
             -- Open the report file
             do shell script "open " & quoted form of reportPath

@@ -92,7 +92,7 @@ The WhatsApp button opens `wa.me/{number}`. Download the PDFs first, then manual
 
 1. **Program Generation page** → select gym → drop the check file
 2. For each NEW/UPDATED test: assign branch, trainer, dispatch date
-3. Upload the program PDF (generated locally by `process_dynamo.py`) and results PDF (from VALD site)
+3. Upload the program PDF (generated locally by `legacy-desktop-tool/process_dynamo.py`) and results PDF (from VALD site)
 4. Click **Approve** — saves to database
 5. Click **WhatsApp** — opens trainer's chat; attach the downloaded PDFs manually
 
