@@ -4,6 +4,7 @@ v2 — paginated Supabase fetch, server-side PDF generation.
 """
 import os
 import io
+import re
 import traceback
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
@@ -357,8 +358,63 @@ def api_list_programs(
     return res.data or []
 
 
+def _norm_client(name) -> str:
+    return re.sub(r"\s+", " ", str(name or "")).strip().lower()
+
+
+def _existing_program(gym: str, client_name: str, test_type: str, test_date: str, branch: str):
+    """The row this test is already stored as, at ANY branch.
+
+    A test is one client + test type + test date. Matching on branch too (as the old
+    upsert did) meant re-approving an UPDATED test under a different branch inserted a
+    second row, so the same test was paid in two months. Rows marked DOUBLE PAID are
+    deliberate extra counts that mirror a payment file and are never matched.
+    """
+    rows = (
+        supabase.table("programs")
+        .select("*")
+        .eq("gym", gym)
+        .eq("test_type", test_type)
+        .eq("test_date", test_date)
+        .eq("approved", True)
+        .neq("check_status", "DOUBLE PAID")
+        .execute()
+        .data or []
+    )
+    rows = [r for r in rows if _norm_client(r.get("client_name")) == _norm_client(client_name)]
+    if not rows:
+        return None
+    same_branch = [r for r in rows if (r.get("branch") or "") == (branch or "")]
+    return sorted(same_branch or rows, key=lambda r: r.get("created_at") or "")[0]
+
+
 @app.post("/api/programs/approve")
 def api_approve(payload: ApprovePayload):
+    existing = _existing_program(payload.gym, payload.client_name, payload.test_type,
+                                 payload.test_date, payload.branch)
+    if existing:
+        # Same test seen again (usually VALD re-sending it with more movements): refresh
+        # it in place. Blank branch/trainer/dispatch on the card keep what's stored, and
+        # approved_at keeps the FIRST approval so it still says when the program went out.
+        updates = {
+            "branch": payload.branch or existing.get("branch"),
+            "client_id": payload.client_id or existing.get("client_id"),
+            "movements": payload.movements,
+            "trainer_name": payload.trainer_name or existing.get("trainer_name"),
+            "dispatch_date": payload.dispatch_date or existing.get("dispatch_date"),
+            "check_status": payload.check_status,
+        }
+        if payload.asymmetry_values:
+            updates["asymmetry_values"] = payload.asymmetry_values
+        try:
+            res = supabase.table("programs").update(updates).eq("id", existing["id"]).execute()
+        except Exception as e:
+            # e.g. moving it onto a branch where a DOUBLE PAID row of the same test sits
+            raise HTTPException(status_code=409, detail=f"Could not update the existing record for this test: {e}")
+        if res.data:
+            return res.data[0]
+        raise HTTPException(status_code=500, detail="Failed to approve program")
+
     record = {
         "gym": payload.gym,
         "branch": payload.branch,
@@ -376,7 +432,8 @@ def api_approve(payload: ApprovePayload):
     if payload.asymmetry_values:
         record["asymmetry_values"] = payload.asymmetry_values
 
-    # Upsert by (gym, client_name, test_type, test_date)
+    # No approved row for this test yet. Upsert still guards the unique key, so a
+    # previously ignored/unapproved row at the same branch is reused, not duplicated.
     res = (
         supabase.table("programs")
         .upsert(record, on_conflict="gym,branch,client_name,test_type,test_date")

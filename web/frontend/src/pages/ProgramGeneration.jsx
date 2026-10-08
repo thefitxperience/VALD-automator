@@ -8,6 +8,13 @@ const GYMS = [
   { name: 'Body Masters', logo: '/VALD-automator/Masters_logo.png' },
 ]
 
+// A card must be keyed by the test it shows, never by its position in the list.
+// ProgramCard keeps branch / trainer / dispatch date in its own state, so with
+// index keys, flipping Newest/Oldest kept every card mounted while handing it a
+// different test — and approving saved one client's test with another client's
+// branch, trainer and dispatch date.
+const testKey = (t) => [t.status, t.patient, t.test_type, t.date, t.external_id].join('|')
+
 export default function ProgramGeneration() {
   const [gym, setGym] = useState('Body Motions')
   const [loading, setLoading] = useState(false)
@@ -108,8 +115,8 @@ export default function ProgramGeneration() {
               <h2 className="text-lg font-semibold text-emerald-400 border-b border-emerald-900 pb-1">
                 New Tests ({newTests.length})
               </h2>
-              {newTests.map((t, i) => (
-                <ProgramCard key={`new-${i}`} test={t} gym={gym} />
+              {newTests.map((t) => (
+                <ProgramCard key={testKey(t)} test={t} gym={gym} />
               ))}
             </section>
           )}
@@ -120,8 +127,8 @@ export default function ProgramGeneration() {
               <h2 className="text-lg font-semibold text-amber-400 border-b border-amber-900 pb-1">
                 Updated Tests ({updatedTests.length})
               </h2>
-              {updatedTests.map((t, i) => (
-                <ProgramCard key={`upd-${i}`} test={t} gym={gym} />
+              {updatedTests.map((t) => (
+                <ProgramCard key={testKey(t)} test={t} gym={gym} />
               ))}
             </section>
           )}

@@ -120,3 +120,6 @@ ALTER TABLE bodydot_tests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_all" ON bodydot_tests
     USING (true)
     WITH CHECK (true);
+
+-- Change log for programs (updated_at + program_changes table + trigger):
+-- see migrations/2026-10-08_program_change_log.sql — run it once in the SQL editor.

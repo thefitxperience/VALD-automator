@@ -163,6 +163,30 @@ export default function ProgramCard({ test, gym }) {
     }
   }
 
+  // A program can't go out before its test, and an UPDATED test is already counted in
+  // the month it was dispatched — moving it (or its branch) quietly changes a month that
+  // may already have been reported and paid. Ask before doing either.
+  const confirmDispatch = () => {
+    const d = dispatchDate || test.existing_dispatch_date
+    if (d && test.date && d < test.date) {
+      alert(`The dispatch date (${d}) is before the test date (${test.date}). Please check it.`)
+      return false
+    }
+    if (test.status !== 'UPDATED') return true
+    const monthName = (iso) => new Date(`${iso}T12:00:00`).toLocaleString('en-GB', { month: 'long', year: 'numeric' })
+    const was = test.existing_dispatch_date
+    const changes = []
+    if (was && d && was.slice(0, 7) !== d.slice(0, 7)) {
+      changes.push(`• It was dispatched ${was} and is counted in ${monthName(was)}. ` +
+                   `Dispatch ${d} moves it to ${monthName(d)}, changing both months' totals.`)
+    }
+    if (test.existing_branch && branch && branch !== test.existing_branch) {
+      changes.push(`• It is recorded at ${test.existing_branch}. This moves it to ${branch}.`)
+    }
+    if (!changes.length) return true
+    return window.confirm(`${test.patient} — this test was already approved.\n\n${changes.join('\n')}\n\nApprove with these changes?`)
+  }
+
   const handleApprove = async () => {
     // For NEW tests, branch+trainer are required.
     // For UPDATED tests with no existing branch/trainer, allow approving without them (data-only update).
@@ -171,6 +195,7 @@ export default function ProgramCard({ test, gym }) {
       alert('Please select a branch and trainer before approving.')
       return
     }
+    if (!confirmDispatch()) return
     setSaving(true)
     try {
       const res = await approveProgram({
