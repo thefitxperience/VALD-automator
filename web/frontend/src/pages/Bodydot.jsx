@@ -336,7 +336,7 @@ function ClientBrowser({ org }) {
 }
 
 function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(null)   // 'expert' | 'client' while that PDF loads
   const [selectedId, setSelectedId] = useState(null)
   const sessions = Array.isArray(sessionInfo) ? sessionInfo : []
   const hasMultiple = sessions.length > 1
@@ -344,27 +344,27 @@ function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
 
   const handleGenerate = async () => {
     if (!chosenId) return
-    setBusy(true)
+    setBusy('expert')
     try {
       const session = await getSession(client.id, chosenId)
       openProgram(session, client.name || '', bilingual)
     } catch (e) {
       alert(`Could not generate program for ${client.name || 'client'}: ${e.message}`)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
   const handleClientView = async () => {
     if (!chosenId) return
-    setBusy(true)
+    setBusy('client')
     try {
       const session = await getSession(client.id, chosenId)
       openClientView(session, client.name || '')
     } catch (e) {
       alert(`Could not open the client view for ${client.name || 'client'}: ${e.message}`)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
@@ -400,18 +400,19 @@ function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
         <button
           onClick={handleGenerate}
           disabled={busy || !chosenId}
+          title="Full posture program with exercises, for the coach"
           className="text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
         >
-          {busy ? 'Loading…' : 'Generate Program'}
+          {busy === 'expert' ? 'Loading…' : 'Expert PDF'}
         </button>
         {clientView && (
         <button
           onClick={handleClientView}
           disabled={busy || !chosenId}
-          title="One-page results and daily habits for the client"
+          title="One-page results and daily habits, written for the client"
           className="text-xs px-3 py-1.5 rounded-lg border border-brand-600/70 text-brand-300 hover:bg-brand-600/10 disabled:opacity-50 transition-colors font-semibold"
         >
-          Client View
+          {busy === 'client' ? 'Loading…' : 'Client PDF'}
         </button>
         )}
       </div>
