@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import SearchableSelect from './SearchableSelect'
 import { getSession } from '../api/bodydot'
 import { openProgram } from '../bodydot/openProgram'
+import { openClientView } from '../bodydot/openClientView'
 import { approveBodydotTest, ignoreBodydotTest, patchBodydotTest, getTrainerWhatsapp } from '../api/client'
 
 // A New (unapproved) Bodydot test — laid out like the VALD ProgramCard, minus branch.
@@ -84,6 +85,18 @@ export default function BodydotCard({ test, org, roster, onStatus, picker }) {
       openProgram(session, test.client_name || '', org.bilingual)
     } catch (e) {
       alert('Could not open program: ' + e.message)
+    } finally {
+      setOpening(false)
+    }
+  }
+
+  const handleClientView = async () => {
+    setOpening(true)
+    try {
+      const session = await getSession(test.client_id, test.session_id)
+      openClientView(session, test.client_name || '')
+    } catch (e) {
+      alert('Could not open the client view: ' + e.message)
     } finally {
       setOpening(false)
     }
@@ -192,6 +205,14 @@ export default function BodydotCard({ test, org, roster, onStatus, picker }) {
           className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 disabled:opacity-50 transition-colors"
         >
           {opening ? 'Loading…' : '🖨 Open & Print'}
+        </button>
+        <button
+          onClick={handleClientView}
+          disabled={opening}
+          title="One-page results and daily habits for the client"
+          className="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-300 hover:text-gray-200 disabled:opacity-50 transition-colors"
+        >
+          🖨 Client View
         </button>
         <button
           onClick={handleIgnore}

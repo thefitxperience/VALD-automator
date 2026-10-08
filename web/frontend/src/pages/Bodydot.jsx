@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BODYDOT_ORGS, listClients, listSessions, getSession, sessionValidity } from '../api/bodydot'
 import { getBodydotTests, getTrainers, unapproveBodydotTest } from '../api/client'
 import { openProgram } from '../bodydot/openProgram'
+import { openClientView } from '../bodydot/openClientView'
 import BodydotCard from '../components/BodydotCard'
 
 const PAGE_SIZE = 25
@@ -45,6 +46,17 @@ function CompletedCard({ test, org, picker, onStatus }) {
       setBusy(false)
     }
   }
+  const handleClientView = async () => {
+    setBusy(true)
+    try {
+      const session = await getSession(test.client_id, test.session_id)
+      openClientView(session, test.client_name || '')
+    } catch (e) {
+      alert('Could not open the client view: ' + e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
   const handleUndo = async () => {
     setBusy(true)
     try {
@@ -84,6 +96,16 @@ function CompletedCard({ test, org, picker, onStatus }) {
             className="text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
           >
             {busy ? 'Loading…' : 'Generate Program'}
+          </button>
+        )}
+        {!invalid && (
+          <button
+            onClick={handleClientView}
+            disabled={busy}
+            title="One-page results and daily habits for the client"
+            className="text-xs px-3 py-1.5 rounded-lg border border-brand-600/70 text-brand-300 hover:bg-brand-600/10 disabled:opacity-50 transition-colors font-semibold"
+          >
+            Client View
           </button>
         )}
         <button
@@ -333,6 +355,19 @@ function BrowseRow({ client, bilingual, sessionInfo }) {
     }
   }
 
+  const handleClientView = async () => {
+    if (!chosenId) return
+    setBusy(true)
+    try {
+      const session = await getSession(client.id, chosenId)
+      openClientView(session, client.name || '')
+    } catch (e) {
+      alert(`Could not open the client view for ${client.name || 'client'}: ${e.message}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   let dateLabel
   if (sessionInfo === undefined) dateLabel = <span className="text-gray-600">Loading tests…</span>
   else if (!sessions.length) dateLabel = <span className="text-gray-600">No test data</span>
@@ -368,6 +403,14 @@ function BrowseRow({ client, bilingual, sessionInfo }) {
           className="text-xs px-3 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-50 transition-colors font-semibold"
         >
           {busy ? 'Loading…' : 'Generate Program'}
+        </button>
+        <button
+          onClick={handleClientView}
+          disabled={busy || !chosenId}
+          title="One-page results and daily habits for the client"
+          className="text-xs px-3 py-1.5 rounded-lg border border-brand-600/70 text-brand-300 hover:bg-brand-600/10 disabled:opacity-50 transition-colors font-semibold"
+        >
+          Client View
         </button>
       </div>
     </div>

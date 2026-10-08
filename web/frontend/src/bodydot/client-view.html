@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Posture Assessment</title>
+<!-- Sora for text, JetBrains Mono for every number; IBM Plex Sans Arabic only as a fallback so
+     Arabic client names render properly in the header. -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* BodyDot Client View — design_handoff_bodydot_client_view (concept 2a). One fixed A4 page. */
+@page { size: A4; margin: 0 }
+* { box-sizing: border-box }
+html, body { margin: 0; background: #DAD6CE; font-family: 'Sora', 'IBM Plex Sans Arabic', sans-serif; color: #122649;
+             -webkit-print-color-adjust: exact; print-color-adjust: exact }
+.toolbar { display: flex; justify-content: center; padding: 18px 0 0 }
+.toolbar button { font: 700 11px 'Sora', sans-serif; letter-spacing: .12em; background: #122649; color: #fff; border: 0;
+                  padding: 10px 22px; cursor: pointer }
+.sheet { width: 794px; height: 1123px; margin: 22px auto 40px; background: #EFECE6; box-shadow: 0 24px 60px rgba(18,38,73,.18);
+         overflow: hidden; display: flex; flex-direction: column;
+         --hb-pad: 9px 14px; --pr-pad: 8px 0; --body-gap: 24px }
+@media print { html, body { background: none } .toolbar { display: none } .sheet { margin: 0; box-shadow: none } }
+.mono { font-family: 'JetBrains Mono', monospace }
+.hdr { background: #122649; padding: 22px 34px 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px }
+.stat { display: flex; flex-direction: column; gap: 2px; align-items: flex-end }
+.stat b { font-size: 42px; font-weight: 800; line-height: .85; letter-spacing: -.04em }
+.stat span { font-size: 9px; font-weight: 700; letter-spacing: .13em; color: #fff }
+.body { flex: 1; padding: 22px 34px 20px; display: flex; flex-direction: column; gap: var(--body-gap); min-height: 0 }
+.sh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1.5px solid #122649; padding-bottom: 7px }
+.sh h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -.015em; line-height: 1.1 }
+.cap { font-size: 8.5px; font-weight: 600; letter-spacing: .14em; opacity: .7 }
+.pr { display: grid; grid-template-columns: 36px minmax(0,1fr) 190px 66px; gap: 0 16px; align-items: center; padding: var(--pr-pad);
+      border-bottom: 1px solid rgba(18,38,73,.13) }
+.pr .n { font-size: 22px; font-weight: 800; opacity: .22; line-height: 1; letter-spacing: -.04em }
+.pr .nm { font-size: 13px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2 }
+.pr .ds { font-size: 9.5px; line-height: 1.35; opacity: .82; margin-top: 3px }
+.bar { position: relative; height: 5px; background: rgba(18,38,73,.1) }
+.band { position: absolute; top: 0; bottom: 0; background: rgba(0,94,255,.55) }
+.dot { position: absolute; top: -3.5px; width: 12px; height: 12px; border-radius: 50%; background: #FF403C; border: 2px solid #EFECE6; margin-left: -6px }
+.bl { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 8px; white-space: nowrap }
+.chip { font-size: 12.5px; font-weight: 500; color: #fff; background: #FF403C; padding: 5px 0; text-align: center; line-height: 1.1 }
+.row3 { display: grid; grid-template-columns: 96px minmax(0,1fr) minmax(0,1fr); gap: 0 4px }
+.side { background: #122649; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px }
+.side b { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; color: #fff; line-height: 1.25 }
+.side span { font-size: 8.5px; line-height: 1.4; color: #64E0FF }
+.cell { background: #fff; padding: var(--hb-pad); display: flex; flex-direction: column; gap: 4px }
+.hb { display: grid; grid-template-columns: 10px minmax(0,1fr); gap: 8px; align-items: baseline; font-size: 9.5px; line-height: 1.35 }
+.hb i { font-style: normal; font-size: 11px; font-weight: 700; line-height: 1 }
+.tag { padding: 7px 14px; font-size: 11px; font-weight: 800; letter-spacing: .14em }
+.grp { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.grp h4 { margin: 0; font-size: 8px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; white-space: nowrap;
+          border-bottom: 1px solid rgba(18,38,73,.15); padding-bottom: 5px }
+.m { display: grid; grid-template-columns: 6px minmax(0,1fr) auto; gap: 6px; align-items: baseline; font-size: 9px; line-height: 1.3 }
+.m s { width: 6px; height: 6px; border-radius: 50%; transform: translateY(-1px); text-decoration: none }
+.lg { display: flex; align-items: center; gap: 6px } .lg s { width: 7px; height: 7px; border-radius: 50% }
+.ft { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(18,38,73,.15);
+      padding-top: 10px; font-size: 8.5px; color: rgba(18,38,73,.65) }
+.note { padding: 12px 0 2px; font-size: 11px; opacity: .8 }
+.err { font-family: sans-serif; padding: 40px; color: #c0392b }
+</style>
+</head>
+<body>
+<div class="toolbar"><button onclick="window.print()">PRINT / SAVE AS PDF</button></div>
+<div class="sheet" id="sheet"></div>
+<script>
+// ── Content: verbatim from "BodyDot Client View PDF - Content.xlsx" ─────────────────────────
+const CONTENT = {"groups":[{"order":1,"label":"Head & neck","ar":"الرأس والرقبة"},{"order":2,"label":"Shoulders & upper back","ar":"الكتفان وأعلى الظهر"},{"order":3,"label":"Trunk & balance","ar":"الجذع والاتزان"},{"order":4,"label":"Lower back & pelvis","ar":"أسفل الظهر والحوض"},{"order":5,"label":"Hips, knees & ankles","ar":"الورك والركبتان والكاحلان"}],"measures":[{"code":"S01","name":"Forward head","group":"Head & neck","description":"Your head sits too far in front of your body instead of resting on top of your neck.","doLife":"Hold your phone up at eye level instead of looking down at it.","doGym":"When your plan has a pulling exercise, slow down and hold for one second at the end of each pull.","dontLife":"Do not sleep on a thick, high pillow. It pushes your head forward all night.","dontGym":"Do not let your chin push forward when a set gets hard. Keep it level."},{"code":"S11","name":"Head over shoulder","group":"Head & neck","description":"If both results are off, your head and your shoulders are both sitting forward.","doLife":"Raise your screen so the top of it is level with your eyes.","doGym":"Before you train, do 10 slow chin tucks: pull your chin straight back and hold 5 seconds.","dontLife":"Do not lie on your side propping your head on your hand to read or scroll.","dontGym":"Do not poke your head forward to see yourself in the mirror. Move your eyes, not your head."},{"code":"F01","name":"Head tilt","group":"Head & neck","description":"Your head leans towards one shoulder instead of sitting level.","doLife":"Change the side you carry your bag on every day.","doGym":"On any exercise you do one side at a time, start with the weaker side and match the other side to it.","dontLife":"Do not hold your phone between your ear and your shoulder.","dontGym":"Do not turn your head to one side while you lift. Keep your eyes forward."},{"code":"S02","name":"Rounded shoulders","group":"Shoulders & upper back","description":"Your shoulders roll forward instead of sitting under your ears.","doLife":"Stand up and open your chest for 30 seconds every hour that you sit.","doGym":"On every pulling exercise in your plan, pause for one second when the handle is closest to you.","dontLife":"Do not use a laptop on your lap. It pulls your shoulders forward.","dontGym":"Do not let your shoulders roll forward at the end of a set. Stop the set instead."},{"code":"S05","name":"Upper back curve","group":"Shoulders & upper back","description":"A small curve is normal and healthy. Too much and you look hunched.","doLife":"Sit with your back against the chair, not curved away from it.","doGym":"Spend 1 minute lying back over a foam roller before you start training.","dontLife":"Do not spend long periods bent over a low table or a phone.","dontGym":"Do not round your upper back to move the last few centimetres of a lift. Keep your chest open."},{"code":"Q01","name":"Overhead shoulder control","group":"Shoulders & upper back","description":"If they fall forward, your shoulders cannot reach a safe overhead position yet.","doLife":"Reach both arms overhead against a wall and hold for 30 seconds a day.","doGym":"Before any overhead exercise, slide both arms slowly up a wall 10 times to warm the shoulders.","dontLife":"Do not carry a heavy bag on one shoulder all day.","dontGym":"Do not arch your lower back to get the weight overhead. Use a lighter weight."},{"code":"F02","name":"Shoulder level","group":"Shoulders & upper back","description":"One shoulder sits higher than the other.","doLife":"Carry bags on both sides, or use a backpack with both straps.","doGym":"When your plan uses dumbbells, watch that both arms finish at the same height.","dontLife":"Do not sit with one arm resting high on an armrest or a car door.","dontGym":"Do not let the strong side take over. When one side stops, the set is finished."},{"code":"F03","name":"Shoulder slope","group":"Shoulders & upper back","description":"A steep drop can mean the muscles on top of your shoulder are weak.","doLife":"Keep your shoulders relaxed when you walk, not pulled up and not pulled down.","doGym":"When you hold or carry weight, keep your shoulders steady instead of letting them sag.","dontLife":"Do not carry heavy shopping bags with straight hanging arms for a long time.","dontGym":"Do not force your shoulders down hard on every repetition. Let them move naturally."},{"code":"S10","name":"Upper body lean","group":"Shoulders & upper back","description":"It is not about the shoulder joint. It is about how your whole body is stacked.","doLife":"Stand with your weight in the middle of your feet, not on your toes or your heels.","doGym":"On standing exercises, keep your ribs stacked above your hips.","dontLife":"Do not stand leaning on one hip for long periods.","dontGym":"Do not lean backwards to finish a press. If you have to lean, the weight is too heavy."},{"code":"F04","name":"Elbow straightness","group":"Shoulders & upper back","description":"Some people cannot straighten fully because of an old injury or tightness.","doLife":"Let your arms hang straight and relaxed when you stand and walk.","doGym":"Let the weight come all the way down on arm exercises, so your elbow straightens each time.","dontLife":"Do not keep your arms bent and folded for long periods.","dontGym":"Do not stop halfway down to make the set easier."},{"code":"S04","name":"Front-to-back balance","group":"Trunk & balance","description":"Your chest should sit directly over your hips.","doLife":"Walk for 10 minutes a day looking at the horizon, not at the ground.","doGym":"Finish every session with 2 minutes lying flat on your back on the floor.","dontLife":"Do not sit on soft, low sofas that let your hips sink below your knees.","dontGym":"Do not let your chest drop forward on standing exercises. Stop the set when it does."},{"code":"F07","name":"Side-to-side balance","group":"Trunk & balance","description":"Your body should be centred. Leaning to one side means that side is working much harder than the other.","doLife":"Stand with equal weight on both feet. Check yourself in a mirror.","doGym":"Check yourself in the mirror from the front between sets. Put equal weight on both feet.","dontLife":"Do not always carry a child, a bag or a tool on the same side.","dontGym":"Do not stand resting on one leg between sets."},{"code":"S03","name":"Forward trunk lean","group":"Trunk & balance","description":"Your spine moves as one piece here, not as one small part.","doLife":"Lie flat on your back on the floor for 5 minutes a day.","doGym":"Slow down on the hip exercises in your plan and feel your glutes do the work.","dontLife":"Do not sit for more than one hour without standing up.","dontGym":"Do not skip your warm-up. Your hips are the part that needs it most."},{"code":"Q02","name":"Upright in the squat","group":"Trunk & balance","description":"Leaning far forward usually means stiff ankles or stiff hips, or a weak back.","doLife":"Practise squatting down to pick things up instead of bending over.","doGym":"Before leg day, stretch your calves and the front of your hips for 1 minute each.","dontLife":"Do not sit in very low, soft chairs that force you to lean forward to stand up.","dontGym":"Do not go deeper than the point where your chest starts to drop forward."},{"code":"S07","name":"Hip tilt","group":"Lower back & pelvis","description":"Your hip bones tip forward, which pushes your lower back into a deeper arch and your belly forward.","doLife":"Stand up and walk for 2 minutes every hour that you sit.","doGym":"Between sets, stretch the front of your hip for 30 seconds on each side.","dontLife":"Do not wear high heels for long periods. They tip your hips further forward.","dontGym":"Do not let your lower back arch when you press overhead. Keep your ribs down."},{"code":"S06","name":"Lower back curve","group":"Lower back & pelvis","description":"Everybody has one. Too deep a curve squeezes the joints of your back.","doLife":"When you stand for a long time, rest one foot on a low step and change feet often.","doGym":"Before each lift, tighten your belly gently, as if someone was about to poke it.","dontLife":"Do not sleep on your stomach. It deepens the curve all night.","dontGym":"Do not arch your back hard at the top of a lift."},{"code":"Q05","name":"Hip control in the squat","group":"Lower back & pelvis","description":"Tucking under rounds your lower back at the exact moment it is carrying the most weight.","doLife":"Squat only as deep as you can go while keeping your back flat.","doGym":"Stop your squat just above the depth where your hips start to tuck underneath you.","dontLife":"Do not force yourself to sit in a very deep position for a long time.","dontGym":"Do not chase depth with a heavy weight. Depth comes later."},{"code":"F05","name":"Hip level","group":"Lower back & pelvis","description":"One hip sits higher than the other. It can come from a real difference in leg length, or from a habit such as always standing on one leg.","doLife":"Stand with your weight on both feet, not resting on one hip.","doGym":"On single-leg exercises, keep your hips level and square. Use the mirror to check.","dontLife":"Do not cross the same leg over every time you sit.","dontGym":"Do not shift your weight onto one side as you stand up out of a squat."},{"code":"S09","name":"Hip position","group":"Lower back & pelvis","description":"Many people stand this way to rest, hanging on the joints instead of using the muscles.","doLife":"Stand with your hips above your ankles, not pushed out in front.","doGym":"Finish standing lifts with your hips underneath you, not pushed out in front.","dontLife":"Do not stand with your hips pushed forward and your weight hanging back.","dontGym":"Do not push your hips far forward to finish a lift. Stop when your body is straight."},{"code":"F06","name":"Knee alignment","group":"Hips, knees & ankles","description":"Knees that fall inward, or push outward, put uneven pressure on the knee joint every step you take.","doLife":"Walk with your feet pointing straight ahead, not turned out.","doGym":"On every leg exercise, think about pushing your knees out in line with your toes.","dontLife":"Do not sit for long with your knees pressed together and your feet apart.","dontGym":"Do not let your knees drop inward as you stand up from the bottom."},{"code":"Q03","name":"Knee control in the squat","group":"Hips, knees & ankles","description":"Some movement is normal. A lot usually means your ankles are stiff.","doLife":"Stretch your calves every day: push against a wall with your back leg straight.","doGym":"Stretch your calves for 1 minute before any leg exercise.","dontLife":"Do not wear shoes with a very soft or very high heel every day.","dontGym":"Do not let your heels lift off the floor. Stop at the depth where they stay down."},{"code":"T02","name":"Hip fold","group":"Hips, knees & ankles","description":"Folding at the hips is what protects your back every single time you pick something up.","doLife":"When you pick something up, push your hips backwards first, then bend.","doGym":"On any exercise where you bend forward, push your hips backwards first, then lower.","dontLife":"Do not bend from your back to pick things up off the floor.","dontGym":"Do not round your back to reach lower. Bend your knees a little instead."},{"code":"S08","name":"Knee position","group":"Hips, knees & ankles","description":"Standing with the knee pushed back locks the joint and loads it all day.","doLife":"Stand with your knees very slightly soft, not locked backwards.","doGym":"Stop just short of locking your knees at the top of leg exercises.","dontLife":"Do not stand with your knees pushed hard backwards.","dontGym":"Do not rest between repetitions by locking your knees backwards."},{"code":"T01","name":"Knee straightness when reaching","group":"Hips, knees & ankles","description":"Bending them is the most common way people cheat the test, and it hides tight hamstrings.","doLife":"Stretch the back of your thighs for 30 seconds on each leg, every day.","doGym":"Stretch the back of your thighs at the end of your session, while you are still warm.","dontLife":"Do not bounce when you stretch. Hold still and breathe.","dontGym":"Do not bend your knees to reach further in a stretch. Go less far with straight legs."},{"code":"T03","name":"Reach to the floor","group":"Hips, knees & ankles","description":"It is a result, not a cause. It comes from your hips, your hamstrings and your back working together.","doLife":"Do a gentle forward fold every morning. Measure once a week to see it improve.","doGym":"Do your stretching at the end of the session, not the start.","dontLife":"Do not force the stretch as soon as you wake up. Your back is stiffest then.","dontGym":"Do not bounce to reach further. Hold still and breathe out slowly."},{"code":"Q04","name":"Squat depth","group":"Hips, knees & ankles","description":"It is not a fault and it is not a problem.","doLife":"Stand up from a chair without using your hands, 10 times a day.","doGym":"Spend 2 minutes of your warm-up sitting in the lowest squat position you can hold.","dontLife":"Do not avoid squatting down. The less you do it, the less you will be able to do it.","dontGym":"Do not add weight to get deeper. Earn the depth with your own body weight first."}]};
+
+// ── Measurement source + normal range per code ───────────────────────────────────────────────
+// The Bodydot API returns values only (no ranges; partners set their own), so ranges live here.
+// They are the approved handoff ranges, which match the trainer program sheet for every measure
+// both use except Q02 — the API defines overheadSquatTrunkAngle as forward lean during the squat,
+// so smaller is better and 0–40° is normal. Distances arrive in metres and are shown in cm.
+// Several measures have a left and a right reading (or a front and a back one); they share one
+// display name, so the page shows the side that is further outside its range, or their average
+// when both are in range.
+const SOURCES = {
+  S01: { codes: ['forwardHeadAngle', 'forwardHeadAngleLeft'],                       min: 0,   max: 30,  unit: '°' },
+  S11: { codes: ['kendallSidePostureEar', 'kendallSidePostureEarLeft'],             min: 0,   max: 30,  unit: '°' },
+  F01: { codes: ['headHorizontalAngle'],                                            min: -3,  max: 3,   unit: '°' },
+  S02: { codes: ['forwardShoulderAngle', 'forwardShoulderAngleLeft'],               min: 0,   max: 42,  unit: '°' },
+  S05: { codes: ['thoracicKyphosis', 'thoracicKyphosisLeft'],                       min: 35,  max: 45,  unit: '°' },
+  Q01: { codes: ['overheadSquatArmAngle', 'overheadSquatArmAngleLeft'],             min: 170, max: 180, unit: '°' },
+  F02: { codes: ['shoulderHorizontalAngle'],                                        min: -2,  max: 2,   unit: '°' },
+  F03: { codes: ['leftShoulderSlope', 'rightShoulderSlope'],                        min: 12,  max: 18,  unit: '°' },
+  S10: { codes: ['kendallSidePostureShoulder', 'kendallSidePostureShoulderLeft'],   min: -5,  max: 5,   unit: '°' },
+  F04: { codes: ['leftElbowAngle', 'rightElbowAngle'],                              min: 170, max: 180, unit: '°' },
+  S04: { codes: ['sagittalVerticalAxis', 'sagittalVerticalAxisLeft'],               min: -3,  max: 3,   unit: ' cm', scale: 100 },
+  F07: { codes: ['coronalBalance'],                                                 min: -2,  max: 2,   unit: ' cm', scale: 100 },
+  S03: { codes: ['t1PelvicAngle', 't1PelvicAngleLeft'],                             min: 0,   max: 8,   unit: '°' },
+  Q02: { codes: ['overheadSquatTrunkAngle', 'overheadSquatTrunkAngleLeft'],         min: 0,   max: 40,  unit: '°' },
+  S07: { codes: ['anteriorPelvicTilt', 'anteriorPelvicTiltLeft'],                   min: 5,   max: 15,  unit: '°' },
+  S06: { codes: ['lumbarLordosis', 'lumbarLordosisLeft'],                           min: 45,  max: 55,  unit: '°' },
+  Q05: { codes: ['overheadSquatPelvicAngle', 'overheadSquatPelvicAngleLeft'],       min: 0,   max: 10,  unit: '°' },
+  F05: { codes: ['frontalASISAlignment'],                                           min: -2,  max: 2,   unit: '°' },
+  S09: { codes: ['kendallSidePostureHip', 'kendallSidePostureHipLeft'],             min: -5,  max: 5,   unit: '°' },
+  F06: { codes: ['leftHKAAngle', 'rightHKAAngle'],                                  min: -3,  max: 3,   unit: '°' },
+  Q03: { codes: ['overheadSquatKneeDistance', 'overheadSquatKneeDistanceLeft'],     min: 0,   max: 10,  unit: ' cm', scale: 100 },
+  T02: { codes: ['toeTouchHipAngle', 'toeTouchHipAngleLeft'],                       min: 0,   max: 70,  unit: '°' },
+  S08: { codes: ['kendallSidePostureKnee', 'kendallSidePostureKneeLeft'],           min: -5,  max: 5,   unit: '°' },
+  T01: { codes: ['toeTouchKneeAngle', 'toeTouchKneeAngleLeft'],                     min: 170, max: 180, unit: '°' },
+  T03: { codes: ['toeTouchDistance', 'toeTouchDistanceLeft'],                       min: -5,  max: 5,   unit: ' cm', scale: 100 },
+  Q04: { codes: ['overheadSquatKneeDepth', 'overheadSquatKneeDepthLeft'],           min: 60,  max: 150, unit: '°' },
+};
+
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = x => Number.isInteger(x) ? String(x) : x.toFixed(1);
+const deviation = (v, s) => v > s.max ? v - s.max : v < s.min ? s.min - v : 0;
+
+// Every value in the session, by valueCode (a code can appear in more than one step).
+// Prefer the 'custom' sequence when present, as the trainer program does.
+function sessionValues(session) {
+  const seqs = session.sequences || [];
+  const custom = seqs.some(s => s.code === 'custom');
+  const out = {};
+  for (const seq of seqs) {
+    if (custom && seq.code !== 'custom') continue;
+    for (const step of seq.stepResults || []) {
+      for (const v of (step.data && step.data.values) || []) {
+        if (typeof v.value === 'number' && isFinite(v.value)) (out[v.valueCode] = out[v.valueCode] || []).push(v.value);
+      }
+    }
+  }
+  return out;
+}
+
+function measuresFrom(session) {
+  const vals = sessionValues(session);
+  const out = [];
+  for (const c of CONTENT.measures) {
+    const s = SOURCES[c.code];
+    if (!s) continue;
+    const readings = s.codes.flatMap(k => vals[k] || []).map(v => Math.round(v * (s.scale || 1) * 10) / 10);
+    if (!readings.length) continue;                       // not captured in this session: leave it off the page
+    const worst = readings.reduce((a, b) => deviation(b, s) > deviation(a, s) ? b : a);
+    const value = deviation(worst, s) > 0 ? worst
+                : Math.round(readings.reduce((a, b) => a + b, 0) / readings.length * 10) / 10;
+    out.push({ ...c, value, min: s.min, max: s.max, unit: s.unit });
+  }
+  return out;
+}
+
+function sheetDate(iso) {
+  const d = new Date(String(iso || '').slice(0, 10) + 'T12:00:00Z');
+  return isNaN(d) ? '' : String(d.getUTCDate()).padStart(2, '0') + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+
+// The client id is often typed into the client name in Bodydot; it doesn't belong on the client's page.
+const displayName = n => (String(n || '').replace(/\s*\d{4,}\s*/g, ' ').trim() || String(n || '').trim());
+
+// ── Selection logic: "BodyDot Client View PDF.docx" ──────────────────────────────────────────
+function derive(measures) {
+  const all = measures.map(m => {
+    const dev = deviation(m.value, m), over = m.value > m.max;
+    const d0 = Math.min(m.min, m.value), d1 = Math.max(m.max, m.value);
+    const pad = Math.max((d1 - d0) * .18, Math.max((m.max - m.min) * .12, 1.5));
+    const a = d0 - pad, span = d1 + pad - a, pct = x => ((x - a) / span * 100).toFixed(1) + '%';
+    return { ...m, ok: dev === 0, score: dev / Math.max(m.max - m.min, 1),
+             val: fmt(m.value) + m.unit, range: fmt(m.min) + ' to ' + fmt(m.max) + m.unit.trim(),
+             delta: dev === 0 ? 'in range' : fmt(Math.round(dev * 10) / 10) + m.unit.trim() + (over ? ' over' : ' under'),
+             bl: pct(m.min), bw: ((m.max - m.min) / span * 100).toFixed(1) + '%', ml: pct(m.value) };
+  });
+  const out = all.filter(m => !m.ok);
+  const groups = [...CONTENT.groups].sort((a, b) => a.order - b.order);
+  // highest score in each group first (so the five cover different areas), then fill by score
+  const pick = [];
+  groups.forEach(g => { const w = out.filter(m => m.group === g.label).sort((a, b) => b.score - a.score)[0]; if (w) pick.push(w); });
+  [...out].sort((a, b) => b.score - a.score).forEach(m => { if (pick.length < 5 && !pick.includes(m)) pick.push(m); });
+  const pr = pick.sort((a, b) => b.score - a.score).slice(0, 5).map((m, i) => ({ ...m, n: String(i + 1).padStart(2, '0') }));
+  const list = k => [...new Set(pr.map(p => p[k]).filter(Boolean))];
+  const prCodes = new Set(pr.map(p => p.code));
+  const rest = groups.map(g => ({ label: g.label,
+      items: all.filter(m => m.group === g.label && !prCodes.has(m.code)).sort((a, b) => a.ok - b.ok) }))
+    .filter(g => g.items.length);
+  return { out: out.length, ok: all.length - out.length, pr, rest,
+           doLife: list('doLife'), dontLife: list('dontLife'), doGym: list('doGym'), dontGym: list('dontGym') };
+}
+
+const hb = (arr, g, c) => arr.map(t => `<div class="hb"><i style="color:${c}">${g}</i><div>${esc(t)}</div></div>`).join('');
+
+function render(client, v) {
+  const priorities = v.pr.length
+    ? v.pr.map(m => `<div class="pr"><div class="n">${m.n}</div>
+        <div><div class="nm">${esc(m.name)}</div><div class="ds">${esc(m.description)}</div></div>
+        <div><div class="bar"><div class="band" style="left:${m.bl};width:${m.bw}"></div><div class="dot" style="left:${m.ml}"></div></div>
+          <div class="bl mono"><span style="opacity:.68">NORMAL ${m.range}</span><span style="color:#C7231F;font-weight:500">${m.delta}</span></div></div>
+        <div class="chip mono">${m.val}</div></div>`).join('')
+    : `<div class="note">Every measurement is within its normal range. Keep doing what you are doing.</div>`;
+  const habits = v.pr.length ? `
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 4px"><div></div><div class="cap" style="padding:0 14px 1px;line-height:1.2">BASED ON YOUR CURRENT PRIORITIES</div></div>
+    <div class="row3"><div></div><div class="tag" style="background:#CDFF20">TO DO</div><div class="tag" style="background:#FF403C;color:#fff">NOT TO DO</div></div>
+    <div class="row3"><div class="side"><b>DAILY LIFE</b><span>Home, work, phone, sleep</span></div><div class="cell">${hb(v.doLife, '+', '#005EFF')}</div><div class="cell">${hb(v.dontLife, '×', '#FF403C')}</div></div>
+    <div class="row3"><div class="side"><b>IN THE GYM</b><span>Warm-up, sets, rest</span></div><div class="cell">${hb(v.doGym, '+', '#005EFF')}</div><div class="cell">${hb(v.dontGym, '×', '#FF403C')}</div></div>
+  </div>` : '';
+  document.getElementById('sheet').innerHTML = `
+<div class="hdr">
+  <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+    <img src="assets/udra-wordmark-white.png" alt="udra" style="width:76px;height:24px;object-fit:contain;display:block">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.16em;color:#64E0FF">YOUR POSTURE ASSESSMENT</div>
+    <div dir="auto" style="font-size:28px;font-weight:700;letter-spacing:-.025em;color:#fff;line-height:1.05;unicode-bidi:plaintext;text-align:left">${esc(client.name)}</div>
+  </div>
+  <div style="display:flex;gap:26px;align-items:flex-end;flex-shrink:0">
+    <div class="stat"><b style="color:#FF403C">${v.out}</b><span>TO WORK ON</span></div>
+    <div class="stat"><b style="color:#CDFF20">${v.ok}</b><span>ON TRACK</span></div>
+    <div class="mono" style="font-size:10px;color:#64E0FF;padding-bottom:3px">${esc(client.date)}</div>
+  </div>
+</div>
+<div class="body">
+  <div>
+    <div class="sh"><h2>Your five priorities</h2><div class="cap">START HERE</div></div>
+    ${priorities}
+  </div>${habits}
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="sh"><h2>Your Full Assessment</h2><div style="display:flex;gap:14px">
+      <div class="lg"><s style="background:#FF403C"></s><span class="cap">OUTSIDE RANGE</span></div>
+      <div class="lg"><s style="background:#005EFF"></s><span class="cap">ON TRACK</span></div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0 14px">
+      ${v.rest.map(g => `<div class="grp"><h4>${esc(g.label)}</h4>${g.items.map(m => `<div class="m"><s style="background:${m.ok ? '#005EFF' : '#FF403C'}"></s><span>${esc(m.name)}</span><span class="mono" style="font-weight:500;color:${m.ok ? '#122649' : '#C7231F'}">${m.val}</span></div>`).join('')}</div>`).join('')}
+    </div>
+  </div>
+  <div class="ft"><div><span style="color:#E0201C;font-weight:700;font-size:9px">Reassess in 4 to 6 weeks to check your progress.</span> Not-to-do items are temporary. Pain is a stop sign; tell your coach.</div>
+    <img src="assets/udra-mark.png" alt="" style="width:18px;height:18px;object-fit:contain;flex-shrink:0"></div>
+</div>`;
+}
+
+// ── Overflow: the page is a fixed A4. Tighten in the handoff's order and stop as soon as it fits;
+// font sizes are never touched, so nothing drops below 8px.
+const FIT_STEPS = [
+  { '--hb-pad': '6px 12px' }, { '--hb-pad': '4px 10px' },
+  { '--pr-pad': '6px 0' },    { '--pr-pad': '4px 0' },
+  { '--body-gap': '18px' },   { '--body-gap': '12px' },
+];
+function overflows(sheet) {
+  // The footer is pushed to the bottom (margin-top:auto), so the page overflows exactly when the
+  // footer's bottom edge passes the body's inner bottom edge.
+  const body = sheet.querySelector('.body');
+  const limit = body.getBoundingClientRect().bottom - parseFloat(getComputedStyle(body).paddingBottom);
+  return sheet.querySelector('.ft').getBoundingClientRect().bottom > limit + 0.5;
+}
+function fit() {
+  const sheet = document.getElementById('sheet');
+  let used = 0;
+  for (const step of FIT_STEPS) {
+    if (!overflows(sheet)) break;
+    for (const [k, val] of Object.entries(step)) sheet.style.setProperty(k, val);
+    used++;
+  }
+  sheet.dataset.fitSteps = used;                         // how much tightening this client needed
+  sheet.dataset.overflow = overflows(sheet) ? 'yes' : 'no';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const b = window.__BODYDOT__;
+  try {
+    if (!b || !b.session) throw new Error('No assessment data was passed to this page.');
+    const measures = measuresFrom(b.session);
+    if (!measures.length) throw new Error('This assessment has no measurements to show.');
+    const client = { name: displayName(b.clientName), date: sheetDate(b.session.createdAt) };
+    document.title = (client.name ? client.name + ' — ' : '') + 'Posture Assessment';
+    render(client, derive(measures));
+    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    ready.then(() => {
+      fit();
+      if (b.autoPrint) { b.autoPrint = false; setTimeout(() => window.print(), 250); }
+    });
+  } catch (err) {
+    document.body.innerHTML = '<p class="err">Could not build the client view: ' + esc(err && err.message ? err.message : err) + '</p>';
+  }
+});
+</script>
+</body>
+</html>
