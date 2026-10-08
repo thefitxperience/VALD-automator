@@ -67,9 +67,10 @@ const CONTENT = {"groups":[{"order":1,"label":"Head & neck","ar":"الرأس و�
 
 // ── Measurement source + normal range per code ───────────────────────────────────────────────
 // The Bodydot API returns values only (no ranges; partners set their own), so ranges live here.
-// They are the approved handoff ranges, which match the trainer program sheet for every measure
-// both use except Q02 — the API defines overheadSquatTrunkAngle as forward lean during the squat,
-// so smaller is better and 0–40° is normal. Distances arrive in metres and are shown in cm.
+// They are the TRAINER PROGRAM SHEET's ranges (program.html normalValues), which are the business's
+// correct ranges — so the client and the trainer always see the same verdict. Measures the trainer
+// sheet has no range for (S11, F01, F02, S10, F04, S09, Q03) use the client-view handoff's range.
+// Distances arrive in metres and are shown in cm.
 // Several measures have a left and a right reading (or a front and a back one); they share one
 // display name, so the page shows the side that is further outside its range, or their average
 // when both are in range.
@@ -84,11 +85,11 @@ const SOURCES = {
   F03: { codes: ['leftShoulderSlope', 'rightShoulderSlope'],                        min: 12,  max: 18,  unit: '°' },
   S10: { codes: ['kendallSidePostureShoulder', 'kendallSidePostureShoulderLeft'],   min: -5,  max: 5,   unit: '°' },
   F04: { codes: ['leftElbowAngle', 'rightElbowAngle'],                              min: 170, max: 180, unit: '°' },
-  S04: { codes: ['sagittalVerticalAxis', 'sagittalVerticalAxisLeft'],               min: -3,  max: 3,   unit: ' cm', scale: 100 },
-  F07: { codes: ['coronalBalance'],                                                 min: -2,  max: 2,   unit: ' cm', scale: 100 },
-  S03: { codes: ['t1PelvicAngle', 't1PelvicAngleLeft'],                             min: 0,   max: 8,   unit: '°' },
-  Q02: { codes: ['overheadSquatTrunkAngle', 'overheadSquatTrunkAngleLeft'],         min: 0,   max: 40,  unit: '°' },
-  S07: { codes: ['anteriorPelvicTilt', 'anteriorPelvicTiltLeft'],                   min: 5,   max: 15,  unit: '°' },
+  S04: { codes: ['sagittalVerticalAxis', 'sagittalVerticalAxisLeft'],               min: 0,   max: 5,   unit: ' cm', scale: 100 },
+  F07: { codes: ['coronalBalance'],                                                 min: -5,  max: 5,   unit: ' cm', scale: 100 },
+  S03: { codes: ['t1PelvicAngle', 't1PelvicAngleLeft'],                             min: 0,   max: 20,   unit: '°' },
+  Q02: { codes: ['overheadSquatTrunkAngle', 'overheadSquatTrunkAngleLeft'],         min: 60,  max: 90,  unit: '°' },
+  S07: { codes: ['anteriorPelvicTilt', 'anteriorPelvicTiltLeft'],                   min: 5,   max: 8,  unit: '°' },
   S06: { codes: ['lumbarLordosis', 'lumbarLordosisLeft'],                           min: 45,  max: 55,  unit: '°' },
   Q05: { codes: ['overheadSquatPelvicAngle', 'overheadSquatPelvicAngleLeft'],       min: 0,   max: 10,  unit: '°' },
   F05: { codes: ['frontalASISAlignment'],                                           min: -2,  max: 2,   unit: '°' },
