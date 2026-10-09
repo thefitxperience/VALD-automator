@@ -98,6 +98,16 @@ Approve with these changes?`):!0},le=async()=>{var F,B,se;if(!(e.status==="UPDAT
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posture Correction Form</title>
+    <!-- Opened from the app (window.__BODYDOT__ is injected above): the program renders straight
+         onto the display page, so the legacy input form and its FIT background must never paint,
+         not even for the frame before the sheet is built. Screen only; print styles are untouched. -->
+    <script>if (window.__BODYDOT__) document.documentElement.classList.add('bd-launch');<\/script>
+    <style>
+        @media screen {
+            html.bd-launch, html.bd-launch body { background: #DAD6CE !important; background-image: none !important; }
+            html.bd-launch #inputPage, html.bd-launch #automatedPage { display: none !important; }
+        }
+    </style>
     <link rel="icon" type="image/png" href="./icon.ico">
     <link rel="shortcut icon" type="image/png" href="./icon.ico">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
