@@ -93,8 +93,7 @@ export default function BodydotCard({ test, org, roster, onStatus, picker }) {
   const handleClientView = async () => {
     setOpening(true)
     try {
-      const session = await getSession(test.client_id, test.session_id)
-      openClientView(session, test.client_name || '')
+      await openClientView(test.client_id, test.session_id, test.client_name || '')
     } catch (e) {
       alert('Could not open the client view: ' + e.message)
     } finally {

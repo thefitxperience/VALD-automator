@@ -49,8 +49,7 @@ function CompletedCard({ test, org, picker, onStatus }) {
   const handleClientView = async () => {
     setBusy(true)
     try {
-      const session = await getSession(test.client_id, test.session_id)
-      openClientView(session, test.client_name || '')
+      await openClientView(test.client_id, test.session_id, test.client_name || '')
     } catch (e) {
       alert('Could not open the client view: ' + e.message)
     } finally {
@@ -359,8 +358,7 @@ function BrowseRow({ client, bilingual, clientView, sessionInfo }) {
     if (!chosenId) return
     setBusy('client')
     try {
-      const session = await getSession(client.id, chosenId)
-      openClientView(session, client.name || '')
+      await openClientView(client.id, chosenId, client.name || '')
     } catch (e) {
       alert(`Could not open the client view for ${client.name || 'client'}: ${e.message}`)
     } finally {

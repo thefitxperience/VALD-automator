@@ -17,7 +17,7 @@ html, body { margin: 0; background: #DAD6CE; font-family: 'Sora', 'IBM Plex Sans
                   padding: 10px 22px; cursor: pointer }
 .sheet { width: 794px; height: 1123px; margin: 22px auto 40px; background: #EFECE6; box-shadow: 0 24px 60px rgba(18,38,73,.18);
          overflow: hidden; display: flex; flex-direction: column;
-         --hb-pad: 9px 14px; --pr-pad: 8px 0; --body-gap: 24px }
+         --hb-pad: 9px 14px; --pr-pad: 8px 0; --body-gap: 24px; --hb-gap: 4px; --fa-gap: 6px; --cmp-pad: 8px 12px }
 @media print { html, body { background: none } .toolbar { display: none } .sheet { margin: 0; box-shadow: none } }
 .mono { font-family: 'JetBrains Mono', monospace }
 .hdr { background: #122649; padding: 22px 34px 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px }
@@ -42,11 +42,11 @@ html, body { margin: 0; background: #DAD6CE; font-family: 'Sora', 'IBM Plex Sans
 .side { background: #122649; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px }
 .side b { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; color: #fff; line-height: 1.25 }
 .side span { font-size: 8.5px; line-height: 1.4; color: #64E0FF }
-.cell { background: #fff; padding: var(--hb-pad); display: flex; flex-direction: column; gap: 4px }
+.cell { background: #fff; padding: var(--hb-pad); display: flex; flex-direction: column; gap: var(--hb-gap) }
 .hb { display: grid; grid-template-columns: 10px minmax(0,1fr); gap: 8px; align-items: baseline; font-size: 9.5px; line-height: 1.35 }
 .hb i { font-style: normal; font-size: 11px; font-weight: 700; line-height: 1 }
 .tag { padding: 7px 14px; font-size: 11px; font-weight: 800; letter-spacing: .14em }
-.grp { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.grp { display: flex; flex-direction: column; gap: var(--fa-gap); min-width: 0 }
 .grp h4 { margin: 0; font-size: 8px; font-weight: 700; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; white-space: nowrap;
           border-bottom: 1px solid rgba(18,38,73,.15); padding-bottom: 5px }
 .m { display: grid; grid-template-columns: 6px minmax(0,1fr) auto; gap: 6px; align-items: baseline; font-size: 9px; line-height: 1.3 }
@@ -54,6 +54,19 @@ html, body { margin: 0; background: #DAD6CE; font-family: 'Sora', 'IBM Plex Sans
 .lg { display: flex; align-items: center; gap: 6px } .lg s { width: 7px; height: 7px; border-radius: 50% }
 .ft { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(18,38,73,.15);
       padding-top: 10px; font-size: 8.5px; color: rgba(18,38,73,.65) }
+.cmp { display: grid; grid-template-columns: 96px repeat(3, minmax(0,1fr)); gap: 0 4px }
+/* Since-last-time / first-assessment strip: soft tints and a blue label, so it does not read as
+   another DAILY LIFE / IN THE GYM row. Each cell sets its colour in --k. */
+.cmp .lbl { background: #005EFF; padding: 9px 12px; display: flex; flex-direction: column; justify-content: center; gap: 3px }
+.cmp .lbl b { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; color: #fff; line-height: 1.25 }
+.cmp .lbl span { font: 500 8.5px 'JetBrains Mono', monospace; color: #fff; opacity: .85 }
+.cmp .c { background: color-mix(in srgb, var(--k) var(--p, 12%), #fff); padding: var(--cmp-pad); display: flex; flex-direction: column; gap: 3px }
+.cmp .c:nth-child(2) { --p: 34% } .cmp .c.book { --p: 9% }
+.cmp .c .h { display: flex; align-items: baseline; gap: 6px; font-size: 8.5px; font-weight: 800; letter-spacing: .12em }
+.cmp .c .h b { font: 700 16px 'JetBrains Mono', monospace; letter-spacing: -.02em }
+.cmp .c .names { font-size: 9px; line-height: 1.35 }
+.ghost { position: absolute; top: -3.5px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #122649; margin-left: -6px; opacity: .45; background: transparent }
+.was { font: 500 8px 'JetBrains Mono', monospace; text-align: center; margin-top: 3px; opacity: .75; white-space: nowrap }
 .note { padding: 12px 0 2px; font-size: 11px; opacity: .8 }
 .err { font-family: sans-serif; padding: 40px; color: #c0392b }
 </style>
@@ -173,27 +186,71 @@ function derive(measures) {
   const rest = groups.map(g => ({ label: g.label,
       items: all.filter(m => m.group === g.label && !prCodes.has(m.code)).sort((a, b) => a.ok - b.ok) }))
     .filter(g => g.items.length);
-  return { out: out.length, ok: all.length - out.length, pr, rest,
+  return { all, out: out.length, ok: all.length - out.length, pr, rest,
            doLife: list('doLife'), dontLife: list('dontLife'), doGym: list('doGym'), dontGym: list('dontGym') };
+}
+
+// Change since the previous assessment, per measure: better / worse only past a threshold
+// (posture readings move a little between visits even when nothing has changed).
+function compare(curr, prevMeasures) {
+  if (!prevMeasures) return null;
+  const prev = Object.fromEntries(prevMeasures.map(m => [m.code, m]));
+  const res = {};
+  for (const m of curr) {
+    const p = prev[m.code];
+    if (!p) continue;
+    const d1 = deviation(p.value, m), d2 = deviation(m.value, m), thr = Math.max(1, (m.max - m.min) * .1);
+    let status = 'same';
+    if (d1 > 0 && d2 === 0) status = 'into';
+    else if (d1 === 0 && d2 > 0) status = 'outof';
+    else if (d2 < d1 - thr) status = 'better';
+    else if (d2 > d1 + thr) status = 'worse';
+    res[m.code] = { prev: p.value, status, ok: d1 === 0 };
+  }
+  return res;
 }
 
 const hb = (arr, g, c) => arr.map(t => `<div class="hb"><i style="color:${c}">${g}</i><div>${esc(t)}</div></div>`).join('');
 
-function render(client, v) {
+// One scale per bar that spans the normal range, today's value AND last time's, so both dots and
+// the band are positioned on the same axis.
+function pctOf(m, prev, x) {
+  const d0 = Math.min(m.min, m.value, prev), d1 = Math.max(m.max, m.value, prev);
+  const pad = Math.max((d1 - d0) * .18, Math.max((m.max - m.min) * .12, 1.5)), a = d0 - pad;
+  return ((x - a) / (d1 + pad - a) * 100).toFixed(1) + '%';
+}
+function render(client, v, cmp) {
+  const prevOut = cmp ? Object.values(cmp).filter(c => !c.ok).length + v.all.filter(m => !cmp[m.code] && !m.ok).length : null;
+  const prevOk = cmp ? v.all.length - prevOut : null;
   const priorities = v.pr.length
-    ? v.pr.map(m => `<div class="pr"><div class="n">${m.n}</div>
+    ? v.pr.map(m => { const c = cmp && cmp[m.code]; const px = c ? x => pctOf(m, c.prev, x) : null;
+        const bl = px ? px(m.min) : m.bl, bw = px ? `calc(${px(m.max)} - ${px(m.min)})` : m.bw, ml = px ? px(m.value) : m.ml;
+        return `<div class="pr"><div class="n">${m.n}</div>
         <div><div class="nm">${esc(m.name)}</div><div class="ds">${esc(m.description)}</div></div>
-        <div><div class="bar"><div class="band" style="left:${m.bl};width:${m.bw}"></div><div class="dot" style="left:${m.ml}"></div></div>
+        <div><div class="bar"><div class="band" style="left:${bl};width:${bw}"></div>${c ? `<div class="ghost" style="left:${px(c.prev)}"></div>` : ''}<div class="dot" style="left:${ml}"></div></div>
           <div class="bl mono"><span style="opacity:.68">NORMAL ${m.range}</span><span style="color:#C7231F;font-weight:500">${m.delta}</span></div></div>
-        <div class="chip mono">${m.val}</div></div>`).join('')
+        <div><div class="chip mono">${m.val}</div>${c ? `<div class="was">was ${fmt(c.prev)}${m.unit.trim()}</div>` : ''}</div></div>`; }).join('')
     : `<div class="note">Every measurement is within its normal range. Keep doing what you are doing.</div>`;
   const habits = v.pr.length ? `
   <div style="display:flex;flex-direction:column;gap:4px">
     <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 4px"><div></div><div class="cap" style="padding:0 14px 1px;line-height:1.2">BASED ON YOUR CURRENT PRIORITIES</div></div>
-    <div class="row3"><div></div><div class="tag" style="background:#CDFF20">TO DO</div><div class="tag" style="background:#FF403C;color:#fff">NOT TO DO</div></div>
+    <div class="row3"><div></div><div class="tag" style="background:#CDFF20">DO'S</div><div class="tag" style="background:#FF403C;color:#fff">DON'TS</div></div>
     <div class="row3"><div class="side"><b>DAILY LIFE</b><span>Home, work, phone, sleep</span></div><div class="cell">${hb(v.doLife, '+', '#005EFF')}</div><div class="cell">${hb(v.dontLife, '×', '#FF403C')}</div></div>
     <div class="row3"><div class="side"><b>IN THE GYM</b><span>Warm-up, sets, rest</span></div><div class="cell">${hb(v.doGym, '+', '#005EFF')}</div><div class="cell">${hb(v.dontGym, '×', '#FF403C')}</div></div>
   </div>` : '';
+  const strip = cmp ? (() => {
+    const pick = st => v.all.filter(m => cmp[m.code] && st.includes(cmp[m.code].status)).map(m => esc(m.name));
+    const into = pick(['into']), better = pick(['better']), worse = pick(['worse', 'outof']);
+    const cell = (color, n, label, names, empty) => `<div class="c" style="--k:${color}">
+        <div class="h"><b>${n}</b>${label}</div><div class="names">${names.length ? names.join(', ') : `<span style="opacity:.55">${empty}</span>`}</div></div>`;
+    return `<div class="cmp"><div class="lbl"><b>SINCE LAST TIME</b><span>${esc(client.prevDate)}</span></div>
+      ${cell('#CDFF20', into.length, 'NOW IN RANGE', into, 'Nothing new in range yet')}
+      ${cell('#005EFF', better.length, 'IMPROVING', better, 'No other changes')}
+      ${cell('#FF403C', worse.length, 'ROOM TO GROW', worse, 'Every measure held or improved')}</div>`; })()
+  : `<div class="cmp"><div class="lbl"><b>FIRST ASSESSMENT</b><span>${esc(client.date)}</span></div>
+      <div class="c" style="--k:#CDFF20"><div class="h">YOUR BASELINE</div><div class="names">These results are your starting point. Next time, this space shows what has changed.</div></div>
+      <div class="c" style="--k:#005EFF"><div class="h">WHAT HAPPENS NEXT</div><div class="names">Follow your program, designed from your full assessment, and the habits below.</div></div>
+      <div class="c book" style="--k:#122649"><div class="h">BOOK YOUR NEXT ASSESSMENT FROM</div><div class="mono" style="font-size:16px;font-weight:700;letter-spacing:-.02em">${esc(client.nextDate)}</div></div></div>`;
   document.getElementById('sheet').innerHTML = `
 <div class="hdr">
   <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
@@ -202,8 +259,8 @@ function render(client, v) {
     <div dir="auto" style="font-size:28px;font-weight:700;letter-spacing:-.025em;color:#fff;line-height:1.05;unicode-bidi:plaintext;text-align:left">${esc(client.name)}</div>
   </div>
   <div style="display:flex;gap:26px;align-items:flex-end;flex-shrink:0">
-    <div class="stat"><b style="color:#FF403C">${v.out}</b><span>TO WORK ON</span></div>
-    <div class="stat"><b style="color:#CDFF20">${v.ok}</b><span>ON TRACK</span></div>
+    <div class="stat"><b style="color:#FF403C">${v.out}</b><span>TO WORK ON</span>${cmp ? `<span class="mono" style="color:#64E0FF;font-weight:500;letter-spacing:0">was ${prevOut}</span>` : ''}</div>
+    <div class="stat"><b style="color:#CDFF20">${v.ok}</b><span>ON TRACK</span>${cmp ? `<span class="mono" style="color:#64E0FF;font-weight:500;letter-spacing:0">was ${prevOk}</span>` : ''}</div>
     <div class="mono" style="font-size:10px;color:#64E0FF;padding-bottom:3px">${esc(client.date)}</div>
   </div>
 </div>
@@ -211,7 +268,9 @@ function render(client, v) {
   <div>
     <div class="sh"><h2>Your five priorities</h2><div class="cap">START HERE</div></div>
     ${priorities}
-  </div>${habits}
+  </div>
+  ${habits}
+  ${strip}
   <div style="display:flex;flex-direction:column;gap:12px">
     <div class="sh"><h2>Your Full Assessment</h2><div style="display:flex;gap:14px">
       <div class="lg"><s style="background:#FF403C"></s><span class="cap">OUTSIDE RANGE</span></div>
@@ -225,30 +284,26 @@ function render(client, v) {
 </div>`;
 }
 
-// ── Overflow: the page is a fixed A4. Tighten in the handoff's order and stop as soon as it fits;
-// font sizes are never touched, so nothing drops below 8px.
-const FIT_STEPS = [
-  { '--hb-pad': '6px 12px' }, { '--hb-pad': '4px 10px' },
-  { '--pr-pad': '6px 0' },    { '--pr-pad': '4px 0' },
-  { '--body-gap': '18px' },   { '--body-gap': '12px' },
-];
-function overflows(sheet) {
-  // The footer is pushed to the bottom (margin-top:auto), so the page overflows exactly when the
-  // footer's bottom edge passes the body's inner bottom edge.
-  const body = sheet.querySelector('.body');
-  const limit = body.getBoundingClientRect().bottom - parseFloat(getComputedStyle(body).paddingBottom);
-  return sheet.querySelector('.ft').getBoundingClientRect().bottom > limit + 0.5;
-}
+// Fixed A4: one spacing scale for the whole page. Every gap (priorities, do's/don'ts, strip, full
+// assessment, between sections) shrinks or grows by the same proportion until the content exactly
+// fills the page, so the spacing looks even to the eye. Font sizes are never touched.
+const SPACING = {
+  '--pr-pad':   s => `${8 * s}px 0`,  '--hb-pad': s => `${9 * s}px 14px`, '--hb-gap':  s => `${4 * s}px`,
+  '--cmp-pad':  s => `${8 * s}px 12px`, '--fa-gap': s => `${6 * s}px`,    '--body-gap': s => `${24 * s}px`,
+};
+const SPACING_MIN = 0.35, SPACING_MAX = 1.6;
 function fit() {
-  const sheet = document.getElementById('sheet');
-  let used = 0;
-  for (const step of FIT_STEPS) {
-    if (!overflows(sheet)) break;
-    for (const [k, val] of Object.entries(step)) sheet.style.setProperty(k, val);
-    used++;
-  }
-  sheet.dataset.fitSteps = used;                         // how much tightening this client needed
-  sheet.dataset.overflow = overflows(sheet) ? 'yes' : 'no';
+  const sheet = document.getElementById('sheet'), body = sheet.querySelector('.body'), ft = sheet.querySelector('.ft');
+  const set = s => { for (const [k, f] of Object.entries(SPACING)) sheet.style.setProperty(k, f(s)); };
+  const fits = () => ft.getBoundingClientRect().bottom
+                     <= body.getBoundingClientRect().bottom - parseFloat(getComputedStyle(body).paddingBottom) + 0.5;
+  let lo = SPACING_MIN, hi = SPACING_MAX;
+  set(hi);
+  if (fits()) lo = hi;
+  else for (let i = 0; i < 16; i++) { const mid = (lo + hi) / 2; set(mid); if (fits()) lo = mid; else hi = mid; }
+  set(lo);
+  sheet.dataset.spacing = lo.toFixed(2);                 // 1 = the design's spacing
+  sheet.dataset.overflow = fits() ? 'no' : 'yes';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -257,10 +312,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!b || !b.session) throw new Error('No assessment data was passed to this page.');
     const measures = measuresFrom(b.session);
     if (!measures.length) throw new Error('This assessment has no measurements to show.');
-    const client = { name: displayName(b.clientName), date: sheetDate(b.session.createdAt) };
+    const client = { name: displayName(b.clientName), date: sheetDate(b.session.createdAt),
+                     prevDate: b.previousSession ? sheetDate(b.previousSession.createdAt) : null,
+                     nextDate: (() => { const d = new Date(String(b.session.createdAt).slice(0, 10) + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 28);
+                                        return String(d.getUTCDate()).padStart(2, '0') + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); })() };
+    const cmp = b.previousSession ? compare(measures, measuresFrom(b.previousSession)) : null;
     // The browser names the saved PDF after the title: "Yasma Abdouni - Posture Assessment".
     document.title = (client.name ? client.name + ' - ' : '') + 'Posture Assessment';
-    render(client, derive(measures));
+    render(client, derive(measures), cmp);
     const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     ready.then(() => {
       fit();
